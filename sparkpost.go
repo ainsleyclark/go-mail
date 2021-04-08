@@ -37,8 +37,6 @@ const (
 	SparkAPIVersion = 1
 )
 
-// newSparkPost
-//
 // Creates a new SparkPost client. Configuration is
 // validated before initialisation.
 func newSparkPost(cfg Config) (*sparkPost, error) {
@@ -67,8 +65,6 @@ func newSparkPost(cfg Config) (*sparkPost, error) {
 	}, nil
 }
 
-// Send
-//
 // Send posts the go mail Transmission to the SparkPost
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error
@@ -113,10 +109,8 @@ func (s *sparkPost) Send(t *Transmission) (Response, error) {
 	}, nil
 }
 
-// addAttachments
-//
-// Transforms a go mail attachments to SparkPost
-// attachments.
+// addAttachments transforms a go mail attachments to
+// SparkPost attachments.
 func (s *sparkPost) addAttachments(a Attachments) []sp.Attachment {
 	var att []sp.Attachment
 	for _, v := range a {

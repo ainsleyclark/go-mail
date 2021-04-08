@@ -34,8 +34,6 @@ type mailGun struct {
 // transmissions.
 type mailGunSendFunc func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error)
 
-// newMailGun
-//
 // Creates a new MailGun client. Configuration is
 // validated before initialisation.
 func newMailGun(cfg Config) *mailGun {
@@ -47,8 +45,6 @@ func newMailGun(cfg Config) *mailGun {
 	}
 }
 
-// Send
-//
 // Send posts the go mail Transmission to the MailGun
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error

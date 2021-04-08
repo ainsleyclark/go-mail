@@ -29,8 +29,6 @@ type Transmission struct {
 	Attachments Attachments
 }
 
-// Validate
-//
 // Validate runs sanity checks of a Transmission struct.
 // This is run before any email sending to ensure
 // there are no invalid API calls.

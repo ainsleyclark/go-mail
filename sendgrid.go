@@ -33,8 +33,6 @@ type sendGrid struct {
 // SendGrid transmissions.
 type sendGridSendFunc func(email *mail.SGMailV3) (*rest.Response, error)
 
-// NewSendGrid
-//
 // Creates a new sendGrid client. Configuration is
 // validated before initialisation.
 func newSendGrid(cfg Config) *sendGrid {
@@ -46,8 +44,6 @@ func newSendGrid(cfg Config) *sendGrid {
 	}
 }
 
-// Send
-//
 // Send posts the go mail Transmission to the SendGrid
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error

@@ -28,8 +28,6 @@ type MailTestSuite struct {
 	suite.Suite
 }
 
-// TestMail
-//
 // Assert testing has begun.
 func TestMail(t *testing.T) {
 	suite.Run(t, new(MailTestSuite))
@@ -42,8 +40,6 @@ const (
 	PNGName = "gopher.png"
 )
 
-// GetTransmission
-//
 // Returns a dummy transition for testing with an
 // attachment.
 func (t *MailTestSuite) GetTransmission() *mail.Transmission {

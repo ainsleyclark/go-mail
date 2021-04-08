@@ -15,17 +15,16 @@ notifications:
 
 before_install:
   - go get -t .
+  - go get github.com/mattn/goveralls
   - go get -u github.com/haya14busa/goverage
   - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
 
 script:
-  - go fmt ./...
-  - golangci-lint run ./...
-  - go clean -testcache && go test -race $(go list ./... | grep -v tests)
+  - make all
   - goverage -v -coverprofile=c.out ./
-  - goveralls -coverprofile=c.out -service travis-ci
 
 after_success:
+  - goveralls -coverprofile=c.out -service travis-ci -repotoken $COVERALLS_TOKEN
   - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
     git config credential.helper "store --file=.git/credentials";

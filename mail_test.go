@@ -29,15 +29,11 @@ type MailTestSuite struct {
 	base string
 }
 
-// TestMail
-//
 // Assert testing has begun.
 func TestMail(t *testing.T) {
 	suite.Run(t, new(MailTestSuite))
 }
 
-// SetupSuite
-//
 // Assigns test base.
 func (t *MailTestSuite) SetupSuite() {
 	wd, err := os.Getwd()
@@ -56,8 +52,6 @@ const (
 	SVGName = "gopher.svg"
 )
 
-// Attachment
-//
 // Returns a PNG attachment for testing.
 func (t *MailTestSuite) Attachment(name string) Attachment {
 	path := t.base + string(os.PathSeparator) + DataPath + string(os.PathSeparator) + name

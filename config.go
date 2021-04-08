@@ -27,8 +27,6 @@ type Config struct {
 	FromName    string
 }
 
-// Validate
-//
 // Validate runs sanity checks of a Config struct.
 // This is run before a new client is created
 // to ensure there are no invalid API
