@@ -14,7 +14,8 @@
 
 ## Introduction
 
-Go Mail combines popular mail API's into a singular easy to use interface. Great for 
+Go Mail combines popular mail API's into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to 
+choose what platform they use. 
 
 ```go
 cfg := mail.Config{
@@ -52,6 +53,9 @@ go get -u github.com/ainsleyclark/go-mail
 ```
 
 ## Supported API's
+
+Currently, Sparkpost, MailGun and SendGrid is supported, if you want to see more, just submit a feature request or create a new Driver and
+submit a pull request.
 
 | API         | File Read         |   Examples     |
 |-------------|-------------------|----------------|
