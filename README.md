@@ -1,7 +1,7 @@
 <p align="center">
-  <img alt="GitHub Logo" src="docs/github_logo.png" height="140" />
+  <img alt="Gopher" src="docs/github_logo.png" height="140" />
   <h3 align="center">Go Mail</h3>
-  <p align="center">A cross platform Mailer for GoLang.</p>
+  <p align="center">A cross platform mail driver for GoLang.</p>
   <p align="center">
     <a href="https://github.com/ainsleyclark/go-mail/latest"><img alt="Release" src="https://img.shields.io/github/release/ainsleyclark/go-mail.svg?style=flat-square"></a>
     <a href="https://travis-ci.com/ainsleyclark/go-mail"><img alt="Travis" src="https://www.travis-ci.com/ainsleyclark/go-mail.svg?branch=main"></a>
@@ -13,6 +13,8 @@
 </p>
 
 ## Introduction
+
+aims to unify multiple 
 
 Go Mail combines popular mail API's into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to 
 choose what platform they use. 
@@ -57,11 +59,17 @@ go get -u github.com/ainsleyclark/go-mail
 Currently, Sparkpost, MailGun and SendGrid is supported, if you want to see more, just submit a feature request or create a new Driver and
 submit a pull request.
 
-| API         | File Read         |   Examples     |
-|-------------|-------------------|----------------|
-| SparkPost   | **VERSION**       | [Here](test-files/VERSION) |
-| MailGun     | **VERSION**       | [Here](test-files/VERSION) |
-| SendGrid    | **VERSION**       | [Here](test-files/VERSION) |
+| API         | Dependency                                                                   | Examples                      |
+|-------------|------------------------------------------------------------------------------|-------------------------------|
+| SparkPost   | [github.com/SparkPost/gosparkpost](https://github.com/SparkPost/gosparkpost) | [Here](examples/sparkpost.go) |
+| MailGun     | [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4])        | [Here](examples/mailgun.go)   |
+| SendGrid    | [github.com/sendgrid/sendgrid-go](github.com/sendgrid/sendgrid-go)           | [Here](examples/sendgrid.go)  |
+
+## Docs
+
+
+
+
 
 
 ## Todo

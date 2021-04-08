@@ -1,5 +1,3 @@
-// Copyright 2020 The Go Mail Authors. All rights reserved.
-//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,9 +14,10 @@ package mail
 import (
 	"fmt"
 	"github.com/ainsleyclark/go-mail"
+	"io/ioutil"
 )
 
-func Sparkpost() {
+func Attachments() {
 	cfg := mail.Config{
 		URL:         "https://api.eu.sparkpost.com",
 		APIKey:      "my-key",
@@ -32,11 +31,23 @@ func Sparkpost() {
 		return
 	}
 
+	image, err := ioutil.ReadFile("gopher.jpg")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	tx := &mail.Transmission{
 		Recipients: []string{"hello@gophers.com"},
 		Subject:    "My email",
 		HTML:       "<h1>Hello from go mail!</h1>",
 		PlainText:  "plain text",
+		Attachments: mail.Attachments{
+			mail.Attachment{
+				Filename: "gopher.jpg",
+				Bytes:    image,
+			},
+		},
 	}
 
 	result, err := driver.Send(tx)

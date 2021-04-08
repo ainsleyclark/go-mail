@@ -18,15 +18,14 @@ import (
 	"github.com/ainsleyclark/go-mail"
 )
 
-func Sparkpost() {
+func SendGrid() {
 	cfg := mail.Config{
-		URL:         "https://api.eu.sparkpost.com",
 		APIKey:      "my-key",
 		FromAddress: "hello@gophers.com",
 		FromName:    "Gopher",
 	}
 
-	driver, err := mail.NewClient(mail.SparkPost, cfg)
+	driver, err := mail.NewClient(mail.SendGrid, cfg)
 	if err != nil {
 		fmt.Println(err)
 		return
