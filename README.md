@@ -14,10 +14,9 @@
 
 ## Introduction
 
-aims to unify multiple 
-
-Go Mail combines popular mail API's into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to 
+Go Mail aims to unify multiple popular mail API's (SparkPost, MailGun & SendGrid) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to 
 choose what platform they use. 
+
 
 ```go
 cfg := mail.Config{
