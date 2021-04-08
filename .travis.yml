@@ -23,7 +23,7 @@ before_install:
   go mod download
 
 before_script:
-  - go install -mod vendor github.com/golangci/golangci-lint/cmd/golangci-lint
+  - go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
 script:
   - go vet ./...
