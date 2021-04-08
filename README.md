@@ -3,7 +3,6 @@
   <h3 align="center">Go Mail</h3>
   <p align="center">A cross platform mail driver for GoLang.</p>
   <p align="center">
-    <a href="https://github.com/ainsleyclark/go-mail/latest"><img alt="Release" src="https://img.shields.io/github/release/ainsleyclark/go-mail.svg?style=flat-square"></a>
     <a href="https://travis-ci.com/ainsleyclark/go-mail"><img alt="Travis" src="https://www.travis-ci.com/ainsleyclark/go-mail.svg?branch=main"></a>
     <a href="/LICENSE.md"><img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"></a>
     <a href='https://coveralls.io/github/ainsleyclark/go-mail?branch=main'><img src='https://coveralls.io/repos/github/ainsleyclark/go-mail/badge.svg?branch=main' alt='Coverage Status' /></a>
