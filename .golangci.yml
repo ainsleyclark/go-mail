@@ -1,0 +1,141 @@
+# This file contains all available configuration options
+# with their default values.
+
+# options for analysis running
+run:
+    # default concurrency is a available CPU number
+    concurrency: 8
+
+    # timeout for analysis, e.g. 30s, 5m, default is 1m
+    timeout: 1m
+
+    # exit code when at least one issue was found, default is 1
+    issues-exit-code: 1
+
+    # include test files or not, default is true
+    tests: true
+
+    # which dirs to skip: issues from them won't be reported;
+    # can use regexp here: generated.*, regexp is applied on full path;
+    # default value is empty list, but default dirs are skipped independently
+    # from this option's value (see skip-dirs-use-default).
+    # "/" will be replaced by current OS file path separator to properly work
+    # on Windows.
+    skip-dirs:
+        - api/database/builder/*
+        - api/server/hammer_test.go
+        - api/http/sockets/*
+
+# output configuration options
+output:
+    # colored-line-number|line-number|json|tab|checkstyle|code-climate, default is "colored-line-number"
+    format: colored-line-number
+
+    # print lines of code with issue, default is true
+    print-issued-lines: true
+
+    # print linter name in the end of issue text, default is true
+    print-linter-name: true
+
+    # make issues output unique by line, default is true
+    uniq-by-line: true
+
+    # add a prefix to the output file references; default is no prefix
+    path-prefix: ""
+
+    # sorts results by: filepath, line and column
+    sort-results: false
+
+issues:
+    # List of regexps of issue texts to exclude, empty list by default.
+    # But independently from this option we use default exclude patterns,
+    # it can be disabled by `exclude-use-default: false`. To list all
+    # excluded by default patterns execute `golangci-lint run --help`
+    exclude:
+        - op
+
+linters:
+    # please, do not use `enable-all`: it's deprecated and will be removed soon.
+    # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
+    disable-all: true
+    enable:
+        - deadcode
+        - depguard
+        - dogsled
+        - errcheck
+        - gocritic
+        - gocyclo
+        - gofmt
+        - golint
+        - gomnd
+        - goprintffuncname
+        - gosimple
+        - govet
+        - ineffassign
+        - misspell
+        - nakedret
+        - nolintlint
+        - rowserrcheck
+        - exportloopref
+        - staticcheck
+        - structcheck
+        - stylecheck
+        - typecheck
+        - unconvert
+        - unparam
+        - unused
+        - varcheck
+        - whitespace
+
+linters-settings:
+    dupl:
+        threshold: 100
+    funlen:
+        lines: 100
+        statements: 50
+    gci:
+        local-prefixes: github.com/golangci/golangci-lint
+    goconst:
+        min-len: 2
+        min-occurrences: 2
+    gocritic:
+        enabled-tags:
+            - diagnostic
+            - experimental
+            - opinionated
+            - performance
+            - style
+        disabled-checks:
+            - dupImport # https://github.com/go-critic/go-critic/issues/845
+            - ifElseChain
+            - octalLiteral
+            - whyNoLint
+            - wrapperFunc
+            - hugeParam
+            - commentedOutCode
+            - unnamedResult
+            - filepathJoin
+            - commentFormatting
+    gocyclo:
+        min-complexity: 15
+    golint:
+        min-confidence: 0
+    gomnd:
+        settings:
+            mnd:
+                # don't include the "operation" and "assign"
+                checks: argument,case,condition,return
+    lll:
+        line-length: 140
+    maligned:
+        suggest-new: true
+    misspell:
+        locale: UK
+        ignore-words:
+            - color
+            - colour
+    nolintlint:
+        allow-leading-space: true # don't require machine-readable nolint directives (i.e. with no leading space)
+        allow-unused: false # report any unused nolint directives
+        require-explanation: false # don't require an explanation for nolint directives
+        require-specific: false # don't require nolint directives to be specific about which linter is being skipped
