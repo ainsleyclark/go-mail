@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="Gopher" src="testdata/gopher.jpg" height="140" />
+  <img alt="Gopher" src="logo.png" height="250" />
   <h3 align="center">Go Mail</h3>
   <p align="center">A cross platform mail driver for GoLang.</p>
   <p align="center">
