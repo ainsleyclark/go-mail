@@ -20,15 +20,8 @@ before_install:
   - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
 
 script:
-  - make all
+  - make travis
   - goverage -v -coverprofile=c.out ./
 
 after_success:
   - goveralls -coverprofile=c.out -service travis-ci -repotoken $COVERALLS_TOKEN
-  - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    git config credential.helper "store --file=.git/credentials";
-    echo "https://${GITHUB_TOKEN}:@github.com" > .git/credentials;
-    go install;
-    go-tag;
-    fi
