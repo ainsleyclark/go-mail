@@ -1,4 +1,5 @@
 language: go
+
 go:
   - 1.16
 
@@ -8,16 +9,27 @@ branches:
   only:
     - main
 
+# Only clone the most recent commit.
+git:
+  depth: 1
+
+# Don't email me the results of the test runs.
+notifications:
+  email: false
+
 sudo: false
 
 before_install:
   go mod download
 
+before_script:
+  - go install -mod vendor github.com/golangci/golangci-lint/cmd/golangci-lint
+
 script:
   - go vet ./...
   - go fmt ./...
-  - go test -v -race $(go list ./... | grep -v tests)
   - golangci-lint run ./...
+  - go test -v -race $(go list ./... | grep -v tests)
 #  - golint -set_exit_status .
 #  - goverage -v -coverprofile=c.out ./...
 #  - goveralls -coverprofile=c.out -service travis-ci -repotoken $COVERALLS_TOKEN
