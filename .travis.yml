@@ -20,16 +20,19 @@ notifications:
 sudo: false
 
 before_install:
-  go mod download
+  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
+  - go mod download
+  - go get -u github.com/haya14busa/goverage
 
-before_script:
-  - go install github.com/golangci/golangci-lint/cmd/golangci-lint
+#before_script:
+ # - go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
 script:
   - go vet ./...
   - go fmt ./...
   - golangci-lint run ./...
   - go test -v -race $(go list ./... | grep -v tests)
+  - goverage -v -coverprofile=c.out ./...
 #  - golint -set_exit_status .
 #  - goverage -v -coverprofile=c.out ./...
 #  - goveralls -coverprofile=c.out -service travis-ci -repotoken $COVERALLS_TOKEN
