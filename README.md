@@ -67,10 +67,82 @@ submit a pull request.
 
 ## Docs
 
+Documentation can be found at the [Go Docs](https://pkg.go.dev/github.com/ainsleyclark/go-mail), but we have included a kick start guide below to get you started.
 
+### Creating a new client:
 
+The driver type is the first argument to be passed to the `NewClient` function, being one of the following:
 
+- `mail.SparkPost`
+- `mail.MailGun`
+- `mail.SendGrid`
 
+A new configuration type is needed to create a new mailer as the second argument, each platform requires its own data, 
+for example, MailGun requires a domain, but SparkPost doesn't.
+This is based of the requirements for the API. For more details see the examples above.
+
+```go
+cfg := mail.Config{
+    URL:         "https://api.eu.sparkpost.com",
+    APIKey:      "my-key",
+    FromAddress: "hello@gophers.com",
+    FromName:    "Gopher",
+}
+
+driver, err := mail.NewClient(mail.SparkPost, cfg)
+if err != nil {
+    fmt.Println(err)
+    return
+}
+```
+
+### Sending Data
+
+A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Result` and error will be returned 
+indicating if the transmission was successful.
+
+```go
+tx := &mail.Transmission{
+    Recipients: []string{"hello@gophers.com"},
+    Subject:    "My email",
+    HTML:       "<h1>Hello from go mail!</h1>",
+    PlainText:  "plain text",
+}
+
+result, err := driver.Send(tx)
+if err != nil {
+    fmt.Println(err)
+    return
+}
+
+fmt.Println(result)
+```
+
+## Adding attachments:
+
+Adding attachments to the transmission is as simple as passing a byte slice and filename, 
+Go Mail takes care of the rest for you.
+
+```go
+image, err := ioutil.ReadFile("gopher.jpg")
+if err != nil {
+    fmt.Println(err)
+    return
+}
+
+tx := &mail.Transmission{
+    Recipients: []string{"hello@gophers.com"},
+    Subject:    "My email",
+    HTML:       "<h1>Hello from go mail!</h1>",
+    PlainText:  "plain text",
+    Attachments: mail.Attachments{
+        mail.Attachment{
+            Filename: "gopher.jpg",
+            Bytes:    image,
+        },
+    },
+}
+```
 
 ## Todo
 
