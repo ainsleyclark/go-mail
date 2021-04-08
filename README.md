@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="Gopher" src="docs/github_logo.png" height="140" />
+  <img alt="Gopher" src="testdata/gopher.jpg" height="140" />
   <h3 align="center">Go Mail</h3>
   <p align="center">A cross platform mail driver for GoLang.</p>
   <p align="center">
@@ -118,7 +118,7 @@ if err != nil {
 fmt.Println(result)
 ```
 
-## Adding attachments:
+### Adding attachments:
 
 Adding attachments to the transmission is as simple as passing a byte slice and filename, 
 Go Mail takes care of the rest for you.
