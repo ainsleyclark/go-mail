@@ -21,14 +21,14 @@ sudo: false
 
 before_install:
   - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
-  - go mod download
   - pwd
-  - go get -u github.com/haya14busa/goverage
+  #- go get -u github.com/haya14busa/goverage
 
 #before_script:
  # - go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
 script:
+  - make all
   - go vet ./...
   - go fmt ./...
   #- golangci-lint run ./...
