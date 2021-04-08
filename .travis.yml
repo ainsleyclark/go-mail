@@ -1,0 +1,30 @@
+language: go
+go:
+  - 1.16
+
+# Don't build other branches that are being used for PRs.
+# Currently only the main branch is used in this repo.
+branches:
+  only:
+    - main
+
+sudo: false
+
+before_install:
+
+
+script:
+  - go vet ./...
+  - go test $$(go list ./... | grep -v tests)
+  - golint -set_exit_status .
+  - goverage -v -coverprofile=c.out ./...
+  - goveralls -coverprofile=c.out -service travis-ci -repotoken $COVERALLS_TOKEN
+
+after_success:
+  - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    git config credential.helper "store --file=.git/credentials";
+    echo "https://${GITHUB_TOKEN}:@github.com" > .git/credentials;
+    go install;
+    go-tag;
+    fi
