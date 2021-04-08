@@ -22,6 +22,7 @@ sudo: false
 before_install:
   - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
   - go mod download
+  - pwd
   - go get -u github.com/haya14busa/goverage
 
 #before_script:
@@ -30,7 +31,7 @@ before_install:
 script:
   - go vet ./...
   - go fmt ./...
-  - golangci-lint run ./...
+  #- golangci-lint run ./...
   - go test -v -race $(go list ./... | grep -v tests)
   - goverage -v -coverprofile=c.out ./...
 #  - golint -set_exit_status .
