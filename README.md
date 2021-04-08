@@ -3,7 +3,7 @@
   <h3 align="center">Go Mail</h3>
   <p align="center">Automatically tag your repository!</p>
   <p align="center">
-    <a href="https://github.com/ainsleyclark/go-mail/latest"><img alt="Release" src="https://img.shields.io/github/release/oshalygin/go-tag.svg?style=flat-square"></a>
+    <a href="https://github.com/ainsleyclark/go-mail/latest"><img alt="Release" src="https://img.shields.io/github/release/ainsleyclark/go-mail.svg?style=flat-square"></a>
     <a href="https://travis-ci.org/ainsleyclark/go-mail"><img alt="Travis" src="https://travis-ci.org/ainsleyclark/go-mail?branch=main"></a>
     <a href="/LICENSE.md"><img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"></a>
     <a href="https://coveralls.io/github.com/ainsleyclark/go-mail?branch=main"><img alt="Coveralls" src="https://coveralls.io/repos/github.com/ainsleyclark/go-mail/badge.svg?branch=main"></a>

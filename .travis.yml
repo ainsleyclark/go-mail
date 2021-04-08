@@ -11,14 +11,16 @@ branches:
 sudo: false
 
 before_install:
-
+  go mod download
 
 script:
   - go vet ./...
-  - go test $$(go list ./... | grep -v tests)
-  - golint -set_exit_status .
-  - goverage -v -coverprofile=c.out ./...
-  - goveralls -coverprofile=c.out -service travis-ci -repotoken $COVERALLS_TOKEN
+  - go fmt ./...
+  - go test -v -race $(go list ./... | grep -v tests)
+  - golangci-lint run ./...
+#  - golint -set_exit_status .
+#  - goverage -v -coverprofile=c.out ./...
+#  - goveralls -coverprofile=c.out -service travis-ci -repotoken $COVERALLS_TOKEN
 
 after_success:
   - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
