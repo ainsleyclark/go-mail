@@ -3,36 +3,27 @@ language: go
 go:
   - 1.16
 
-# Don't build other branches that are being used for PRs.
-# Currently only the main branch is used in this repo.
 branches:
   only:
     - main
 
-# Only clone the most recent commit.
 git:
   depth: 1
 
-# Don't email me the results of the test runs.
 notifications:
   email: false
 
-sudo: false
-
 before_install:
-  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
-  - pwd
+  - go get -t .
   - go get -u github.com/haya14busa/goverage
-
-#before_script:
- # - go install github.com/golangci/golangci-lint/cmd/golangci-lint
+  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
 
 script:
-  - go vet ./....
-  - make all
-  - go test -v -race $(go list ./... | grep -v tests)
-  - goverage -v -coverprofile=c.out ./...
-#  - goveralls -coverprofile=c.out -service travis-ci -repotoken $COVERALLS_TOKEN
+  - go fmt ./...
+  - golangci-lint run ./...
+  - go clean -testcache && go test -race $(go list ./... | grep -v tests)
+  - goverage -v -coverprofile=c.out ./
+  - goveralls -coverprofile=c.out -service travis-ci
 
 after_success:
   - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
