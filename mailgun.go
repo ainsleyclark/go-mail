@@ -55,7 +55,8 @@ func (m *mailGun) Send(t *Transmission) (Response, error) {
 		return Response{}, err
 	}
 
-	message := m.client.NewMessage(m.cfg.FromAddress, t.Subject, t.HTML, t.Recipients...)
+	message := m.client.NewMessage(m.cfg.FromAddress, t.Subject, t.PlainText, t.Recipients...)
+	message.SetHtml(t.HTML)
 
 	if t.Attachments.Exists() {
 		for _, v := range t.Attachments {
