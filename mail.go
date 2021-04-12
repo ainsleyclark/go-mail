@@ -42,6 +42,8 @@ const (
 	MailGun = "mailgun"
 	// SendGrid driver type.
 	SendGrid = "sendgrid"
+	// SMTP driver type.
+	SMTP = "smtp"
 )
 
 // NewClient
@@ -58,6 +60,8 @@ func NewClient(driver string, cfg Config) (Mailer, error) {
 		return newMailGun(cfg), nil
 	case SendGrid:
 		return newSendGrid(cfg), nil
+	case SMTP:
+		return newSMTP(cfg), nil
 	}
 	return nil, errors.New(driver + " not supported")
 }

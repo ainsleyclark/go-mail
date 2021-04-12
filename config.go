@@ -25,6 +25,8 @@ type Config struct {
 	Domain      string
 	FromAddress string
 	FromName    string
+	Password    string
+	Port        int
 }
 
 // Validate runs sanity checks of a Config struct.

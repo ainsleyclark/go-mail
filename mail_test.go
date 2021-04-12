@@ -100,6 +100,15 @@ func (t *MailTestSuite) TestNewClient() {
 			},
 			nil,
 		},
+		"SMTP": {
+			SMTP,
+			Config{
+				APIKey:      "key",
+				FromAddress: "hello@test.com",
+				FromName:    "Test",
+			},
+			nil,
+		},
 		"Error": {
 			"wrong",
 			Config{},

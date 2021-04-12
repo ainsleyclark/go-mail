@@ -13,7 +13,7 @@
 
 ## Introduction
 
-Go Mail aims to unify multiple popular mail API's (SparkPost, MailGun & SendGrid) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to 
+Go Mail aims to unify multiple popular mail API's (SparkPost, MailGun, SendGrid & SMTP) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to 
 choose what platform they use. 
 
 
@@ -62,6 +62,7 @@ submit a pull request.
 | SparkPost   | [github.com/SparkPost/gosparkpost](https://github.com/SparkPost/gosparkpost) | [Here](examples/sparkpost.go) |
 | MailGun     | [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4])        | [Here](examples/mailgun.go)   |
 | SendGrid    | [github.com/sendgrid/sendgrid-go](github.com/sendgrid/sendgrid-go)           | [Here](examples/sendgrid.go)  |
+| SMTP        |  None - only use in development.                                             | [Here](examples/smtp.go)      |
 
 ## Docs
 
@@ -74,6 +75,7 @@ The driver type is the first argument to be passed to the `NewClient` function, 
 - `mail.SparkPost`
 - `mail.MailGun`
 - `mail.SendGrid`
+- `mail.SMTP`
 
 A new configuration type is needed to create a new mailer as the second argument, each platform requires its own data, 
 for example, MailGun requires a domain, but SparkPost doesn't.
@@ -145,6 +147,7 @@ tx := &mail.Transmission{
 ## Todo
 
 - Add CC & BCC
+- Remove external dependencies.
 
 ## Contributing
 
