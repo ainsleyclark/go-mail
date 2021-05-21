@@ -76,9 +76,12 @@ func (s *sparkPost) Send(t *Transmission) (Response, error) {
 	}
 
 	content := sp.Content{
-		HTML:    t.HTML,
-		Text:    t.PlainText,
-		From:    s.cfg.FromAddress,
+		HTML: t.HTML,
+		Text: t.PlainText,
+		From: sp.From{
+			Email: s.cfg.FromAddress,
+			Name:  s.cfg.FromName,
+		},
 		Subject: t.Subject,
 	}
 
