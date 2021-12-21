@@ -3,10 +3,10 @@
   <h3 align="center">Go Mail</h3>
   <p align="center">A cross platform mail driver for GoLang.</p>
   <p align="center">
-    <a href="https://travis-ci.com/ainsleyclark/go-mail"><img alt="Travis" src="https://www.travis-ci.com/ainsleyclark/go-mail.svg?branch=main"></a>
+		<a href="https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml"><img src="https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml/badge.svg?branch=main"></a>
     <a href="/LICENSE.md"><img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"></a>
-    <a href='https://coveralls.io/github/ainsleyclark/go-mail?branch=main'><img src='https://coveralls.io/repos/github/ainsleyclark/go-mail/badge.svg?branch=main' alt='Coverage Status' /></a>
-    <a href="https://goreportcard.com/report/github.com/ainsleyclark/go-mail"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/ainsleyclark/go-mail"></a>
+		<a href="https://codecov.io/gh/ainsleyclark/go-mail"><img src="https://codecov.io/gh/ainsleyclark/go-mail/branch/main/graph/badge.svg?token=1ZI9R34CHQ"/></a>
+    <a href="https://goreportcard.com/report/github.com/ainsleyclark/go-mail"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/ainsleyclark/go-mail?update=true"></a>
     <a href="https://pkg.go.dev/github.com/ainsleyclark/go-mail"><img src="https://godoc.org/github.com/ainsleyclark/go-mail?status.svg" alt="GoDoc"></a>
   </p>
 </p>
