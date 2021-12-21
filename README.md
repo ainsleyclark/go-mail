@@ -13,8 +13,8 @@
 
 ## Introduction
 
-Go Mail aims to unify multiple popular mail API's (SparkPost, MailGun, SendGrid & SMTP) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to 
-choose what platform they use. 
+Go Mail aims to unify multiple popular mail API's (SparkPost, MailGun, SendGrid & SMTP) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
+choose what platform they use.
 
 
 ```go
@@ -77,7 +77,7 @@ The driver type is the first argument to be passed to the `NewClient` function, 
 - `mail.SendGrid`
 - `mail.SMTP`
 
-A new configuration type is needed to create a new mailer as the second argument, each platform requires its own data, 
+A new configuration type is needed to create a new mailer as the second argument, each platform requires its own data,
 for example, MailGun requires a domain, but SparkPost doesn't.
 This is based of the requirements for the API. For more details see the examples above.
 
@@ -98,7 +98,7 @@ if err != nil {
 
 ### Sending Data
 
-A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Result` and error will be returned 
+A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Result` and error will be returned
 indicating if the transmission was successful.
 
 ```go
@@ -120,7 +120,7 @@ fmt.Println(result)
 
 ### Adding attachments:
 
-Adding attachments to the transmission is as simple as passing a byte slice and filename, 
+Adding attachments to the transmission is as simple as passing a byte slice and filename,
 Go Mail takes care of the rest for you.
 
 ```go
