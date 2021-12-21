@@ -30,17 +30,17 @@ type Attachment struct {
 	Bytes    []byte
 }
 
-// Determines if there are any attachments in the slice.
+// Exists determines if there are any attachments in the slice.
 func (a Attachments) Exists() bool {
 	return len(a) != 0
 }
 
-// Returns the Mime type of the byte data.
+// Mime returns the Mime type of the byte data.
 func (a Attachment) Mime() string {
 	return mimetype.Detect(a.Bytes).String()
 }
 
-// Returns the base 64 encode of the byte data.
+// B64 returns the base 64 encode of the byte data.
 func (a Attachment) B64() string {
 	return base64.StdEncoding.EncodeToString(a.Bytes)
 }

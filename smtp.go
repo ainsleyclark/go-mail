@@ -70,7 +70,7 @@ func (m *smtpClient) Send(t *Transmission) (Response, error) {
 }
 
 // Processes the transmission and returns the bytes for
-// sending. Mime types are set dependant on the
+// sending. Mime types are set dependent on the
 // content passed.
 func (m *smtpClient) bytes(t *Transmission) []byte {
 	buf := bytes.NewBuffer(nil)

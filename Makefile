@@ -1,24 +1,35 @@
+# Setup
+setup:
+	go mod tidy
+.PHONY: setup
+
+# Run gofmt
 format:
 	go fmt ./...
+.PHONY: format
 
+# Run linter
 lint:
 	golangci-lint run ./
+.PHONY: lint
 
+# Test uses race and coverage
 test:
-	go clean -testcache && go test -race $$(go list ./... | grep -v tests)
+	go clean -testcache && go test -race $$(go list ./... | grep -v tests) -coverprofile=coverage.out -covermode=atomic
+.PHONY: test
 
+# Test with -v
 test-v:
-	go clean -testcache && go test -race $$(go list ./... | grep -v tests) -v
+	go clean -testcache && go test -race -v $$(go list ./... | grep -v tests) -coverprofile=coverage.out -covermode=atomic
+.PHONY: test-v
 
-test-cover:
-	go clean -testcache && go test -v -cover -race $$(go list ./... | grep -v tests)
+# Run all the tests and opens the coverage report
+cover: test
+	go tool cover -html=coverage.out
+.PHONY: cover
 
+# Make format, lint and test
 all:
 	$(MAKE) format
 	$(MAKE) lint
 	$(MAKE) test
-
-travis:
-	$(MAKE) format
-	$(MAKE) lint
-	$(MAKE) test-cover
