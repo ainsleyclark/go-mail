@@ -71,11 +71,23 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 	}
 
 	m := postalMessage{
-		To:        t.Recipients,
-		From:      p.cfg.FromAddress,
-		Sender:    p.cfg.FromName,
-		HTML:      t.HTML,
-		PlainText: t.PlainText,
+		To:          t.Recipients,
+		From:        p.cfg.FromAddress,
+		Sender:      p.cfg.FromName,
+		Subject:     t.Subject,
+		HTML:        t.HTML,
+		PlainText:   t.PlainText,
+		Attachments: nil,
+	}
+
+	if t.Attachments.Exists() {
+		for _, v := range t.Attachments {
+			m.Attachments = append(m.Attachments, postalAttachment{
+				Name:        v.Filename,
+				ContentType: v.Mime(),
+				Data:        v.B64(),
+			})
+		}
 	}
 
 	data, err := json.Marshal(m)
@@ -83,15 +95,13 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 		return Response{}, err
 	}
 
-	fmt.Println(string(data))
-
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/v1/send/message", p.cfg.URL), bytes.NewBuffer(data))
 	if err != nil {
 		return Response{}, err
 	}
 
-	// Ensure the token is set for authorisation
-	// on the API along with the app name.
+	// Ensure the API Key is set for authorisation
+	// and add the JSON content type.
 	req.Header.Set("X-Server-API-Key", p.cfg.APIKey)
 	req.Header.Add("Content-Type", "application/json")
 
@@ -107,8 +117,11 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 	}
 
 	fmt.Println(string(body))
+	fmt.Println(resp.StatusCode)
 
 	// TODO: Unmarshal postal response.
+	// {"status":"success","time":0.07,"flags":{},"data":{"message_id":"2cdf0f8f-18e5-4286-bb66-a22fb0c3c30a@rp.postal.example.com","messages":{"ainsley@reddico.co.uk":{"id":3,"token":"y5ChzHNHWVnR"}}}}
+	// {"status":"error","time":0.0,"flags":{},"data":{"code":"FromAddressMissing","message":"The From address is missing and is required"}}
 	return Response{
 		StatusCode: resp.StatusCode,
 		Body:       "",
