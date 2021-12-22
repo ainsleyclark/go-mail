@@ -46,9 +46,7 @@ const (
 	SMTP = "smtp"
 )
 
-// NewClient
-//
-// Creates a new Mailer based on the input driver.
+// NewClient creates a new Mailer based on the input driver.
 // Sparkpost, MailGun or SendGrid can be passed.
 // Returns an error if a driver did not match,
 // Or there was an error creating the client.
