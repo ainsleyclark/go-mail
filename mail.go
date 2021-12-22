@@ -42,6 +42,8 @@ const (
 	MailGun = "mailgun"
 	// SendGrid driver type.
 	SendGrid = "sendgrid"
+	// Postal driver type.
+	Postal = "postal"
 	// SMTP driver type.
 	SMTP = "smtp"
 )
@@ -58,6 +60,8 @@ func NewClient(driver string, cfg Config) (Mailer, error) {
 		return newMailGun(cfg), nil
 	case SendGrid:
 		return newSendGrid(cfg), nil
+	case Postal:
+		return newPostal(cfg)
 	case SMTP:
 		return newSMTP(cfg), nil
 	}

@@ -14,87 +14,106 @@
 package mail
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-	sp "github.com/SparkPost/gosparkpost"
 	"io/ioutil"
 	"net/http"
-	"strings"
+	"time"
 )
-
 
 type postal struct {
 	cfg    Config
-	client sp.Client
-	send   sparkSendFunc
+	client *http.Client
 }
 
 //// sparkSendFunc defines the function for ending SparkPost
 //// transmissions.
 //type sparkSendFunc func(t *sp.Transmission) (id string, res *sp.Response, err error)
 
-
 // Creates a new Postal client. Configuration is
 // validated before initialisation.
-func newPostal(cfg Config) (*sparkPost, error) {
+func newPostal(cfg Config) (*postal, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err
 	}
-
-
-
-	return &sparkPost{
-		cfg:    cfg,
-
+	return &postal{
+		cfg: cfg,
+		client: &http.Client{
+			Timeout: time.Second * 10,
+		},
 	}, nil
 }
 
+type postalMessage struct {
+	To          []string           `json:"to"`
+	CC          []string           `json:"cc"`
+	BCC         []string           `json:"bcc"`
+	From        string             `json:"from"`
+	Sender      string             `json:"sender"`
+	Subject     string             `json:"subject"`
+	HTML        string             `json:"html_body"`
+	PlainText   string             `json:"plain_body"`
+	Attachments []postalAttachment `json:"attachments"`
+}
 
-func (s *postal) Send(t *Transmission) (Response, error) {
+type postalAttachment struct {
+	Name        string `json:"name"`
+	ContentType string `json:"content_type"`
+	Data        string `json:"data"`
+}
+
+func (p *postal) Send(t *Transmission) (Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return Response{}, err
 	}
 
-	return Response{}, nil
-}
-
-
-func main() {
-
-	url := "https://postal.reddico.io/api/v1/send/message"
-	method := "POST"
-
-	payload := strings.NewReader(`{
-    "to": [
-        "ainsley@reddico.co.uk"
-    ],
-    "from": "ainsley@reddico.io",
-    "html_body": "This is a test"
-}`)
-
-	client := &http.Client{}
-
-	req, err := http.NewRequest(method, url, payload)
-	if err != nil {
-		fmt.Println(err)
-		return
+	m := postalMessage{
+		To:        t.Recipients,
+		From:      p.cfg.FromAddress,
+		Sender:    p.cfg.FromName,
+		HTML:      t.HTML,
+		PlainText: t.PlainText,
 	}
 
-	req.Header.Add("X-Server-API-Key", "Iw0mO9rOsRjKU1thvEmZbGXm")
+	data, err := json.Marshal(m)
+	if err != nil {
+		return Response{}, err
+	}
+
+	fmt.Println(string(data))
+
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/v1/send/message", p.cfg.URL), bytes.NewBuffer(data))
+	if err != nil {
+		return Response{}, err
+	}
+
+	// Ensure the token is set for authorisation
+	// on the API along with the app name.
+	req.Header.Set("X-Server-API-Key", p.cfg.APIKey)
 	req.Header.Add("Content-Type", "application/json")
 
-	res, err := client.Do(req)
+	resp, err := p.client.Do(req)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return Response{}, err
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return Response{}, err
 	}
+
 	fmt.Println(string(body))
+
+	// TODO: Unmarshal postal response.
+	return Response{
+		StatusCode: resp.StatusCode,
+		Body:       "",
+		Headers:    nil,
+		ID:         "",
+		Message:    nil,
+	}, nil
 }
