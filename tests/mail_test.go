@@ -14,7 +14,6 @@
 package mail
 
 import (
-	"fmt"
 	"github.com/ainsleyclark/go-mail"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/suite"
