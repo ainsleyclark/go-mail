@@ -72,6 +72,8 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 
 	m := postalMessage{
 		To:          t.Recipients,
+		CC:          t.CC,
+		BCC:         t.BCC,
 		From:        p.cfg.FromAddress,
 		Sender:      p.cfg.FromName,
 		Subject:     t.Subject,

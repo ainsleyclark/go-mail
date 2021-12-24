@@ -58,6 +58,18 @@ func (m *mailGun) Send(t *Transmission) (Response, error) {
 	message := m.client.NewMessage(m.cfg.FromAddress, t.Subject, t.PlainText, t.Recipients...)
 	message.SetHtml(t.HTML)
 
+	if t.HasCC() {
+		for _, v := range t.CC {
+			message.AddCC(v)
+		}
+	}
+
+	if t.HasBCC() {
+		for _, v := range t.BCC {
+			message.AddBCC(v)
+		}
+	}
+
 	if t.Attachments.Exists() {
 		for _, v := range t.Attachments {
 			message.AddBufferAttachment(v.Filename, v.Bytes)

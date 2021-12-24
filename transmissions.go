@@ -23,6 +23,8 @@ import (
 // email.
 type Transmission struct {
 	Recipients  []string
+	CC          []string
+	BCC         []string
 	Subject     string
 	HTML        string
 	PlainText   string
@@ -50,4 +52,12 @@ func (t *Transmission) Validate() error {
 	}
 
 	return nil
+}
+
+func (t *Transmission) HasCC() bool {
+	return len(t.CC) == 0
+}
+
+func (t *Transmission) HasBCC() bool {
+	return len(t.BCC) == 0
 }

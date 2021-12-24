@@ -15,30 +15,33 @@ package mail
 
 import (
 	"github.com/ainsleyclark/go-mail"
-)
-
-var (
-	smtpCfg = mail.Config{
-		URL:         "CHANGE ME",
-		FromAddress: "CHANGE ME",
-		FromName:    "CHANGE ME",
-		Password:    "CHANGE ME",
-		Port:        587,
-	}
+	"os"
+	"strconv"
 )
 
 func (t *MailTestSuite) Test_SMTP() {
 	tx := t.GetTransmission()
 
-	driver, err := mail.NewClient(mail.SMTP, smtpCfg)
+	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
-		t.Fail("error creating client", err)
+		t.Fail("Error parsing SMTP port")
+	}
+
+	driver, err := mail.NewClient(mail.SMTP, mail.Config{
+		URL:         os.Getenv("SMTP_URL"),
+		FromAddress: os.Getenv("SMTP_FROM_ADDRESS"),
+		FromName:    os.Getenv("SMTP_FROM_NAME"),
+		Password:    os.Getenv("SMTP_PASSWORD"),
+		Port:        port,
+	})
+	if err != nil {
+		t.Fail("Error creating client", err)
 		return
 	}
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		t.Fail("error sending smtp email", err)
+		t.Fail("Error sending smtp email", err)
 		return
 	}
 

@@ -14,33 +14,28 @@
 package mail
 
 import (
-	"fmt"
 	"github.com/ainsleyclark/go-mail"
-)
-
-var (
-	mailGunCfg = mail.Config{
-		URL:         "CHANGE ME",
-		APIKey:      "CHANGE ME",
-		FromAddress: "CHANGE ME",
-		FromName:    "CHANGE ME",
-		Domain:      "CHANGE ME",
-	}
+	"os"
 )
 
 func (t *MailTestSuite) Test_MailGun() {
 	tx := t.GetTransmission()
 
-	driver, err := mail.NewClient(mail.MailGun, mailGunCfg)
+	driver, err := mail.NewClient(mail.MailGun, mail.Config{
+		URL:         os.Getenv("MAILGUN_URL"),
+		APIKey:      os.Getenv("MAILGUN_API_KEY"),
+		FromAddress: os.Getenv("MAILGUN_FROM_ADDRESS"),
+		FromName:    os.Getenv("MAILGUN_FROM_NAME"),
+		Domain:      os.Getenv("MAILGUN_DOMAIN"),
+	})
 	if err != nil {
-		t.Fail("error creating client", err)
+		t.Fail("Error creating client", err)
 		return
 	}
 
 	result, err := driver.Send(tx)
-	fmt.Println(err)
 	if err != nil {
-		t.Fail("error sending mailgun email", err)
+		t.Fail("Error sending mailgun email", err)
 		return
 	}
 

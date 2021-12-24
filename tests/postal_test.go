@@ -15,21 +15,18 @@ package mail
 
 import (
 	"github.com/ainsleyclark/go-mail"
-)
-
-var (
-	postalCfg = mail.Config{
-		URL:         "CHANGE ME",
-		APIKey:      "CHANGE ME",
-		FromAddress: "CHANGE ME",
-		FromName:    "CHANGE ME",
-	}
+	"os"
 )
 
 func (t *MailTestSuite) Test_Postal() {
 	tx := t.GetTransmission()
 
-	driver, err := mail.NewClient(mail.Postal, postalCfg)
+	driver, err := mail.NewClient(mail.Postal, mail.Config{
+		URL:         os.Getenv("POSTAL_URL"),
+		APIKey:      os.Getenv("POSTAL_API_KEY"),
+		FromAddress: os.Getenv("POSTAL_FROM_ADDRESS"),
+		FromName:    os.Getenv("POSTAL_FROM_NAME"),
+	})
 	if err != nil {
 		t.Fail("error creating client", err)
 		return

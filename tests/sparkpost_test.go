@@ -15,21 +15,18 @@ package mail
 
 import (
 	"github.com/ainsleyclark/go-mail"
-)
-
-var (
-	sparkCfg = mail.Config{
-		URL:         "https://api.eu.sparkpost.com",
-		APIKey:      "CHANGE ME",
-		FromAddress: "CHANGE ME",
-		FromName:    "CHANGE ME",
-	}
+	"os"
 )
 
 func (t *MailTestSuite) Test_SparkPost() {
 	tx := t.GetTransmission()
 
-	driver, err := mail.NewClient(mail.SparkPost, sparkCfg)
+	driver, err := mail.NewClient(mail.SparkPost, mail.Config{
+		URL:         os.Getenv("SPARKPOST_URL"),
+		APIKey:      os.Getenv("SPARKPOST_API_KEY"),
+		FromAddress: os.Getenv("SPARKPOST_FROM_ADDRESS"),
+		FromName:    os.Getenv("SPARKPOST_FROM_NAME"),
+	})
 	if err != nil {
 		t.Fail("error creating client", err)
 		return

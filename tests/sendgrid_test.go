@@ -16,28 +16,25 @@ package mail
 import (
 	"github.com/ainsleyclark/go-mail"
 	"net/http"
-)
-
-var (
-	sendGridCfg = mail.Config{
-		APIKey:      "CHANGE ME",
-		FromAddress: "CHANGE ME",
-		FromName:    "CHANGE ME",
-	}
+	"os"
 )
 
 func (t *MailTestSuite) Test_SendGrid() {
 	tx := t.GetTransmission()
 
-	driver, err := mail.NewClient(mail.SendGrid, sendGridCfg)
+	driver, err := mail.NewClient(mail.SendGrid, mail.Config{
+		APIKey:      os.Getenv("SENDGRID_API_KEY"),
+		FromAddress: os.Getenv("SENDGRID_FROM_ADDRESS"),
+		FromName:    os.Getenv("SENDGRID_FROM_NAME"),
+	})
 	if err != nil {
-		t.Fail("error creating client", err)
+		t.Fail("Error creating client", err)
 		return
 	}
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		t.Fail("error sending sendgrid email", err)
+		t.Fail("Error sending sendgrid email", err)
 		return
 	}
 
