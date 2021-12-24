@@ -13,7 +13,7 @@
 
 ## Introduction
 
-Go Mail aims to unify multiple popular mail API's (SparkPost, MailGun, SendGrid & SMTP) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
+Go Mail aims to unify multiple popular mail API's (SparkPost, MailGun, SendGrid, Postal & SMTP) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
 choose what platform they use.
 
 
@@ -60,6 +60,7 @@ submit a pull request.
 | SparkPost   | [github.com/SparkPost/gosparkpost](https://github.com/SparkPost/gosparkpost) | [Here](examples/sparkpost.go) |
 | MailGun     | [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4])        | [Here](examples/mailgun.go)   |
 | SendGrid    | [github.com/sendgrid/sendgrid-go](github.com/sendgrid/sendgrid-go)           | [Here](examples/sendgrid.go)  |
+| Postal      |  None         																														   | [Here](examples/postal.go)  |
 | SMTP        |  None - only use in development.                                             | [Here](examples/smtp.go)      |
 
 ## Docs
