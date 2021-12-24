@@ -14,12 +14,14 @@
 package mail
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -49,17 +51,19 @@ func (t *MailTestSuite) GetTransmission() *mail.Transmission {
 
 	err = godotenv.Load(filepath.Join(filepath.Dir(wd), "/.env"))
 	if err != nil {
-		t.Fail("Error loading .env file")
+		t.FailNow("Error loading .env file")
 	}
 
 	path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
-		t.Fail("Error getting attachment with the path: "+path, err)
+		t.FailNow("Error getting attachment with the path: "+path, err)
 	}
 
 	return &mail.Transmission{
-		Recipients: []string{"ainsley@reddico.co.uk"},
+		Recipients: strings.Split(os.Getenv("EMAIL_TO"), ","),
+		CC:         strings.Split(os.Getenv("EMAIL_CC"), ","),
+		BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
 		Subject:    "Test - Go Mail",
 		HTML:       "<h1>Hello from Go Mail!</h1>",
 		PlainText:  "Hello from Go Mail!",

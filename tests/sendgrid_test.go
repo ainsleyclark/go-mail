@@ -28,14 +28,12 @@ func (t *MailTestSuite) Test_SendGrid() {
 		FromName:    os.Getenv("SENDGRID_FROM_NAME"),
 	})
 	if err != nil {
-		t.Fail("Error creating client", err)
-		return
+		t.FailNow("Error creating client: " + err.Error())
 	}
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		t.Fail("Error sending sendgrid email", err)
-		return
+		t.FailNow("Error sending SendGrid email: " + err.Error())
 	}
 
 	t.Equal(http.StatusAccepted, result.StatusCode)

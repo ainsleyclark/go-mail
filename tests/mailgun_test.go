@@ -29,14 +29,12 @@ func (t *MailTestSuite) Test_MailGun() {
 		Domain:      os.Getenv("MAILGUN_DOMAIN"),
 	})
 	if err != nil {
-		t.Fail("Error creating client", err)
-		return
+		t.FailNow("Error creating client: " + err.Error())
 	}
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		t.Fail("Error sending mailgun email", err)
-		return
+		t.FailNow("Error sending MailGun email: " + err.Error())
 	}
 
 	t.Equal(200, result.StatusCode)
