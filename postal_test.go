@@ -15,18 +15,25 @@ package mail
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"github.com/mailgun/mailgun-go/v4"
 )
 
-func (t *MailTestSuite) TestMailGun_Send() {
+func (t *MailTestSuite) TestPostal_Send() {
+	trans := Transmission{
+		Recipients: []string{"recipient@test.com"},
+		Subject:    "Subject",
+		HTML:       "<h1>HTML</h1>",
+		PlainText:  "PlainText",
+	}
+
 	tt := map[string]struct {
 		input *Transmission
 		send  mailGunSendFunc
 		want  interface{}
 	}{
 		"Success": {
-			Trans,
+			&trans,
 			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
 				return "success", "1", nil
 			},
@@ -37,50 +44,14 @@ func (t *MailTestSuite) TestMailGun_Send() {
 				ID:         "1",
 				Message:    "success",
 			},
-		},
-		"With Attachment": {
-			TransWithAttachment,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "success", "1", nil
-			},
-			Response{
-				StatusCode: 200,
-				Body:       "",
-				Headers:    nil,
-				ID:         "1",
-				Message:    "success",
-			},
-		},
-		"Validation Failed": {
-			nil,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "", "", nil
-			},
-			"can't validate a nil transmission",
-		},
-		"Send Error": {
-			Trans,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "", "", errors.New("send error")
-			},
-			"send error",
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			spark := mailGun{
-				cfg: Config{
-					FromAddress: "from",
-				},
-				send: test.send,
-			}
-			resp, err := spark.Send(test.input)
-			if err != nil {
-				t.Contains(err.Error(), test.want)
-				return
-			}
-			t.Equal(test.want, resp)
+			fmt.Println(test)
+			//httptest.NewServer(handler)
+			//t.Equal(test.want, resp)
 		})
 	}
 }

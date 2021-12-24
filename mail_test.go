@@ -52,6 +52,29 @@ const (
 	SVGName = "gopher.svg"
 )
 
+var (
+	// Trans is the transmission used for testing.
+	Trans = &Transmission{
+		Recipients: []string{"recipient@test.com"},
+		Subject:    "Subject",
+		HTML:       "<h1>HTML</h1>",
+		PlainText:  "PlainText",
+	}
+	// Trans is the transmission with an
+	// attachment used for testing.
+	TransWithAttachment = &Transmission{
+		Recipients: []string{"recipient@test.com"},
+		Subject:    "Subject",
+		HTML:       "<h1>HTML</h1>",
+		PlainText:  "PlainText",
+		Attachments: Attachments{
+			Attachment{
+				Filename: "test.jpg",
+			},
+		},
+	}
+)
+
 // Returns a PNG attachment for testing.
 func (t *MailTestSuite) Attachment(name string) Attachment {
 	path := t.base + string(os.PathSeparator) + DataPath + string(os.PathSeparator) + name
