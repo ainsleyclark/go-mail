@@ -27,8 +27,8 @@ import (
 // https://docs.postalserver.io/developer/api
 // https://apiv1.postalserver.io/controllers/send/message.html
 type postal struct {
-	cfg    Config
-	client *http.Client
+	cfg        Config
+	client     *http.Client
 	marshaller func(v interface{}) ([]byte, error)
 	bodyReader func(r io.Reader) ([]byte, error)
 }
@@ -76,10 +76,10 @@ type postalAttachment struct {
 }
 
 type postalResponse struct {
-	Status string `json:"status"`
-	Time float32 `json:"time"`
-	Flags map[string]interface{} `json:"flags"`
-	Data map[string]interface{} `json:"data"`
+	Status string                 `json:"status"`
+	Time   float32                `json:"time"`
+	Flags  map[string]interface{} `json:"flags"`
+	Data   map[string]interface{} `json:"data"`
 }
 
 func (p *postal) Send(t *Transmission) (Response, error) {
@@ -89,9 +89,9 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 	}
 
 	m := postalMessage{
-		To:          t.Recipients,
-		CC:          t.CC,
-		BCC:         t.BCC,
+		To:  t.Recipients,
+		CC:  t.CC,
+		BCC: t.BCC,
 		//From:        p.cfg.FromAddress,
 		Sender:      p.cfg.FromName,
 		Subject:     t.Subject,

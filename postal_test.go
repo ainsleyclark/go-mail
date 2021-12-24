@@ -58,12 +58,12 @@ func (t *MailTestSuite) TestNewPostal() {
 
 func (t *MailTestSuite) TestPostal_Send() {
 	tt := map[string]struct {
-		input   *Transmission
-		handler http.HandlerFunc
-		url string
+		input      *Transmission
+		handler    http.HandlerFunc
+		url        string
 		marshaller func(v interface{}) ([]byte, error)
 		bodyReader func(r io.Reader) ([]byte, error)
-		want    interface{}
+		want       interface{}
 	}{
 		"Success": {
 			Trans,
@@ -82,8 +82,8 @@ func (t *MailTestSuite) TestPostal_Send() {
 			io.ReadAll,
 			Response{
 				StatusCode: http.StatusOK,
-				Body: `{"status":"success","time":0,"flags":null,"data":null}`,
-				Message: "Successfully sent Postal email",
+				Body:       `{"status":"success","time":0,"flags":null,"data":null}`,
+				Message:    "Successfully sent Postal email",
 			},
 		},
 		"With ID": {
@@ -92,7 +92,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 				w.WriteHeader(http.StatusOK)
 				res := postalResponse{
 					Status: "success",
-					Data: map[string]interface{}{"message_id": "1"},
+					Data:   map[string]interface{}{"message_id": "1"},
 				}
 				buf, err := json.Marshal(&res)
 				t.NoError(err)
@@ -104,9 +104,9 @@ func (t *MailTestSuite) TestPostal_Send() {
 			io.ReadAll,
 			Response{
 				StatusCode: http.StatusOK,
-				Body: `{"status":"success","time":0,"flags":null,"data":{"message_id":"1"}}`,
-				Message: "Successfully sent Postal email",
-				ID: "1",
+				Body:       `{"status":"success","time":0,"flags":null,"data":{"message_id":"1"}}`,
+				Message:    "Successfully sent Postal email",
+				ID:         "1",
 			},
 		},
 		"With Attachment": {
@@ -126,8 +126,8 @@ func (t *MailTestSuite) TestPostal_Send() {
 			io.ReadAll,
 			Response{
 				StatusCode: http.StatusOK,
-				Body: `{"status":"success","time":0,"flags":null,"data":null}`,
-				Message: "Successfully sent Postal email",
+				Body:       `{"status":"success","time":0,"flags":null,"data":null}`,
+				Message:    "Successfully sent Postal email",
 			},
 		},
 		"Validation Failed": {
@@ -224,7 +224,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 				w.WriteHeader(http.StatusOK)
 				res := postalResponse{
 					Status: "error",
-					Data: map[string]interface{}{"code": "ValidationFailed"},
+					Data:   map[string]interface{}{"code": "ValidationFailed"},
 				}
 				buf, err := json.Marshal(&res)
 				t.NoError(err)
@@ -242,7 +242,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 				w.WriteHeader(http.StatusOK)
 				res := postalResponse{
 					Status: "error",
-					Data: map[string]interface{}{"code": "ValidationFailed", "message": "Postal Message"},
+					Data:   map[string]interface{}{"code": "ValidationFailed", "message": "Postal Message"},
 				}
 				buf, err := json.Marshal(&res)
 				t.NoError(err)
@@ -271,7 +271,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 					URL:         url,
 					FromAddress: "from",
 				},
-				client: server.Client(),
+				client:     server.Client(),
 				marshaller: test.marshaller,
 				bodyReader: test.bodyReader,
 			}
