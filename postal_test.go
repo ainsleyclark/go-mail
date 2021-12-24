@@ -56,6 +56,91 @@ func (t *MailTestSuite) TestNewPostal() {
 	}
 }
 
+func (t *MailTestSuite) TestPostalResponse_HasError() {
+	tt := map[string]struct {
+		input postalResponse
+		want  bool
+	}{
+		"Error": {
+			postalResponse{Status: "success"},
+			false,
+		},
+		"No Error": {
+			postalResponse{Status: "error"},
+			true,
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.input.HasError()
+			t.Equal(test.want, got)
+		})
+	}
+}
+
+func (t *MailTestSuite) TestPostalResponse_Error() {
+	tt := map[string]struct {
+		input postalResponse
+		want  string
+	}{
+		"Default": {
+			postalResponse{},
+			postalErrorMessage,
+		},
+		"Code": {
+			postalResponse{Data:   map[string]interface{}{"code": "ValidationFailed"},},
+			fmt.Sprintf("%s - code: ValidationFailed", postalErrorMessage),
+		},
+		"All": {
+			postalResponse{Data:   map[string]interface{}{"code": "ValidationFailed", "message": "Postal Message"}},
+			fmt.Sprintf("%s - code: ValidationFailed, message: Postal Message", postalErrorMessage),
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.input.Error()
+			t.Contains(got.Error(), test.want)
+		})
+	}
+}
+
+func (t *MailTestSuite) TestPostalResponse_ToResponse() {
+	tt := map[string]struct {
+		input []byte
+		resp postalResponse
+		want  Response
+	}{
+		"Default": {
+			[]byte("body"),
+			postalResponse{},
+			Response{
+				StatusCode: http.StatusOK,
+				Body: "body",
+				Message: "Successfully sent Postal email",
+			},
+		},
+		"With ID": {
+			[]byte("body"),
+			postalResponse{Data: map[string]interface{}{"message_id": "1"},},
+			Response{
+				StatusCode: http.StatusOK,
+				Body: "body",
+				Message: "Successfully sent Postal email",
+				ID: "1",
+			},
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.resp.ToResponse(test.input)
+			t.Equal(test.want, got)
+		})
+	}
+}
+
 func (t *MailTestSuite) TestPostal_Send() {
 	tt := map[string]struct {
 		input      *Transmission
@@ -203,40 +288,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 			io.ReadAll,
 			postalErrorMessage,
 		},
-		"Empty Data Error": {
-			Trans,
-			func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				res := postalResponse{Status: "error"}
-				buf, err := json.Marshal(&res)
-				t.NoError(err)
-				_, err = w.Write(buf)
-				t.NoError(err)
-			},
-			"",
-			json.Marshal,
-			io.ReadAll,
-			postalErrorMessage,
-		},
-		"With Error Code": {
-			Trans,
-			func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				res := postalResponse{
-					Status: "error",
-					Data:   map[string]interface{}{"code": "ValidationFailed"},
-				}
-				buf, err := json.Marshal(&res)
-				t.NoError(err)
-				_, err = w.Write(buf)
-				t.NoError(err)
-			},
-			"",
-			json.Marshal,
-			io.ReadAll,
-			fmt.Sprintf("%s - code: ValidationFailed", postalErrorMessage),
-		},
-		"With Error Message": {
+		"With Error": {
 			Trans,
 			func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
