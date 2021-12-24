@@ -27,7 +27,7 @@ cfg := mail.Config{
 
 driver, err := mail.NewClient(mail.SparkPost, cfg)
 if err != nil {
-		log.Fatalln(err)
+	log.Fatalln(err)
 }
 
 tx := &mail.Transmission{
@@ -38,7 +38,7 @@ tx := &mail.Transmission{
 
 result, err := driver.Send(tx)
 if err != nil {
-		log.Fatalln(err)
+	log.Fatalln(err)
 }
 
 fmt.Printf("%+v\n", result)
@@ -90,7 +90,7 @@ cfg := mail.Config{
 
 driver, err := mail.NewClient(mail.SparkPost, cfg)
 if err != nil {
-		log.Fatalln(err)
+	log.Fatalln(err)
 }
 ```
 
@@ -109,7 +109,7 @@ tx := &mail.Transmission{
 
 result, err := driver.Send(tx)
 if err != nil {
-		log.Fatalln(err)
+	log.Fatalln(err)
 }
 
 fmt.Printf("%+v\n", result)
@@ -123,7 +123,7 @@ Go Mail takes care of the rest for you.
 ```go
 image, err := ioutil.ReadFile("gopher.jpg")
 if err != nil {
-		log.Fatalln(err)
+	log.Fatalln(err)
 }
 
 tx := &mail.Transmission{
