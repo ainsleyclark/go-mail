@@ -56,10 +56,8 @@ func (m *smtpClient) Send(t *Transmission) (Response, error) {
 	}
 
 	auth := smtp.PlainAuth("", m.cfg.FromAddress, m.cfg.Password, m.cfg.URL)
-
 	err = m.send(m.cfg.URL+":"+strconv.Itoa(m.cfg.Port), auth, m.cfg.FromAddress, m.getTo(t), m.bytes(t))
 	if err != nil {
-		fmt.Println(err)
 		return Response{}, err
 	}
 

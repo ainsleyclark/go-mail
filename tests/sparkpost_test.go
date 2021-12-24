@@ -28,14 +28,12 @@ func (t *MailTestSuite) Test_SparkPost() {
 		FromName:    os.Getenv("SPARKPOST_FROM_NAME"),
 	})
 	if err != nil {
-		t.Fail("error creating client", err)
-		return
+		t.FailNow("Error creating client: " + err.Error())
 	}
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		t.Fail("error sending sparkpost email", err)
-		return
+		t.FailNow("Error sending SparkPost email: " + err.Error())
 	}
 
 	t.Equal(200, result.StatusCode)

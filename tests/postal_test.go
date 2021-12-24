@@ -28,16 +28,14 @@ func (t *MailTestSuite) Test_Postal() {
 		FromName:    os.Getenv("POSTAL_FROM_NAME"),
 	})
 	if err != nil {
-		t.Fail("Error creating client", err)
-		return
+		t.FailNow("Error creating client: " + err.Error())
 	}
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		t.Fail("Error sending smtp email", err)
-		return
+		t.FailNow("Error sending Postal email: " + err.Error())
 	}
 
 	t.Equal(200, result.StatusCode)
-	//t.NotEmpty(result.Message)
+	t.NotEmpty(result.Message)
 }
