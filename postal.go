@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -29,6 +30,7 @@ type postal struct {
 	cfg    Config
 	client *http.Client
 	marshaller func(v interface{}) ([]byte, error)
+	bodyReader func(r io.Reader) ([]byte, error)
 }
 
 // Creates a new Postal client. Configuration is
@@ -44,6 +46,7 @@ func newPostal(cfg Config) (*postal, error) {
 			Timeout: time.Second * 10,
 		},
 		marshaller: json.Marshal,
+		bodyReader: io.ReadAll,
 	}, nil
 }
 
@@ -97,7 +100,6 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 		Attachments: nil,
 	}
 
-
 	if t.Attachments.Exists() {
 		for _, v := range t.Attachments {
 			m.Attachments = append(m.Attachments, postalAttachment{
@@ -129,8 +131,13 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 	}
 	defer resp.Body.Close()
 
-	response := postalResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&response)
+	buf, err := p.bodyReader(resp.Body)
+	if err != nil {
+		return Response{}, err
+	}
+
+	pResponse := postalResponse{}
+	err = json.Unmarshal(buf, &pResponse)
 	if err != nil {
 		return Response{}, err
 	}
@@ -139,26 +146,26 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 		return Response{}, errors.New(postalErrorMessage)
 	}
 
-	if response.Status != "success" {
+	if pResponse.Status != "success" {
 		msg := postalErrorMessage
-		if code, ok := response.Data["code"]; ok {
+		if code, ok := pResponse.Data["code"]; ok {
 			msg = fmt.Sprintf("%s - code: %s", msg, code)
 		}
-		if message, ok := response.Data["message"]; ok {
+		if message, ok := pResponse.Data["message"]; ok {
 			msg = fmt.Sprintf("%s, message: %s", msg, message)
 		}
 		return Response{}, errors.New(msg)
 	}
 
-	returnR := Response{
+	response := Response{
 		StatusCode: resp.StatusCode,
-		Body:       fmt.Sprintf("%+v", response),
+		Body:       string(buf),
 		Message:    "Successfully sent Postal email",
 	}
 
-	if val, ok := response.Data["message_id"]; ok {
-		returnR.ID = fmt.Sprintf("%v", val)
+	if val, ok := pResponse.Data["message_id"]; ok {
+		response.ID = fmt.Sprintf("%v", val)
 	}
 
-	return returnR, nil
+	return response, nil
 }
