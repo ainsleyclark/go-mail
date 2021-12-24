@@ -131,6 +131,10 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return Response{}, errors.New(postalErrorMessage)
+	}
+
 	buf, err := p.bodyReader(resp.Body)
 	if err != nil {
 		return Response{}, err
@@ -140,10 +144,6 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 	err = json.Unmarshal(buf, &pResponse)
 	if err != nil {
 		return Response{}, err
-	}
-
-	if resp.StatusCode != 200 {
-		return Response{}, errors.New(postalErrorMessage)
 	}
 
 	if pResponse.Status != "success" {
@@ -158,7 +158,7 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 	}
 
 	response := Response{
-		StatusCode: resp.StatusCode,
+		StatusCode: http.StatusOK,
 		Body:       string(buf),
 		Message:    "Successfully sent Postal email",
 	}
