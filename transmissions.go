@@ -55,9 +55,9 @@ func (t *Transmission) Validate() error {
 }
 
 func (t *Transmission) HasCC() bool {
-	return len(t.CC) == 0
+	return len(t.CC) != 0
 }
 
 func (t *Transmission) HasBCC() bool {
-	return len(t.BCC) == 0
+	return len(t.BCC) != 0
 }

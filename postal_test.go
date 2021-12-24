@@ -14,44 +14,55 @@
 package mail
 
 import (
-	"context"
-	"fmt"
-	"github.com/mailgun/mailgun-go/v4"
+	"net/http"
+	"net/http/httptest"
 )
 
 func (t *MailTestSuite) TestPostal_Send() {
-	trans := Transmission{
-		Recipients: []string{"recipient@test.com"},
-		Subject:    "Subject",
-		HTML:       "<h1>HTML</h1>",
-		PlainText:  "PlainText",
-	}
-
 	tt := map[string]struct {
-		input *Transmission
-		send  mailGunSendFunc
-		want  interface{}
+		input   *Transmission
+		handler http.HandlerFunc
+		want    interface{}
 	}{
 		"Success": {
-			&trans,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "success", "1", nil
+			Trans,
+			func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte("ok"))
 			},
 			Response{
 				StatusCode: 200,
 				Body:       "",
 				Headers:    nil,
-				ID:         "1",
-				Message:    "success",
+				//ID:         "",
+				//Message:    "success",
 			},
+		},
+		"Validation Failed": {
+			nil,
+			nil,
+			"can't validate a nil transmission",
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			fmt.Println(test)
-			//httptest.NewServer(handler)
-			//t.Equal(test.want, resp)
+			server := httptest.NewServer(test.handler)
+			defer server.Close()
+
+			ptl := postal{
+				cfg: Config{
+					URL:         server.URL,
+					FromAddress: "from",
+				},
+				client: server.Client(),
+			}
+
+			resp, err := ptl.Send(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.Equal(test.want, resp)
 		})
 	}
 }

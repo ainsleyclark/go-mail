@@ -56,6 +56,8 @@ var (
 	// Trans is the transmission used for testing.
 	Trans = &Transmission{
 		Recipients: []string{"recipient@test.com"},
+		CC:         []string{"recipient@test.com"},
+		BCC:        []string{"recipient@test.com"},
 		Subject:    "Subject",
 		HTML:       "<h1>HTML</h1>",
 		PlainText:  "PlainText",
@@ -91,6 +93,12 @@ func (t *MailTestSuite) Attachment(name string) Attachment {
 }
 
 func (t *MailTestSuite) TestNewClient() {
+	cfg := Config{
+		APIKey:      "key",
+		FromAddress: "hello@test.com",
+		FromName:    "Test",
+	}
+
 	tt := map[string]struct {
 		driver string
 		input  Config
@@ -98,38 +106,27 @@ func (t *MailTestSuite) TestNewClient() {
 	}{
 		"SparkPost": {
 			SparkPost,
-			Config{
-				APIKey:      "key",
-				FromAddress: "hello@test.com",
-				FromName:    "Test",
-			},
+			cfg,
 			nil,
 		},
 		"MailGun": {
 			MailGun,
-			Config{
-				APIKey:      "key",
-				FromAddress: "hello@test.com",
-				FromName:    "Test",
-			},
+			cfg,
 			nil,
 		},
 		"SendGrid": {
 			SendGrid,
-			Config{
-				APIKey:      "key",
-				FromAddress: "hello@test.com",
-				FromName:    "Test",
-			},
+			cfg,
+			nil,
+		},
+		"Postal": {
+			Postal,
+			cfg,
 			nil,
 		},
 		"SMTP": {
 			SMTP,
-			Config{
-				APIKey:      "key",
-				FromAddress: "hello@test.com",
-				FromName:    "Test",
-			},
+			cfg,
 			nil,
 		},
 		"Error": {
