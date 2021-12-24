@@ -15,6 +15,7 @@ package mail
 
 import (
 	"errors"
+	"github.com/ainsleyclark/go-mail/internal/types"
 )
 
 // Mailer defines the sender for go-mail returning a
@@ -65,5 +66,7 @@ func NewClient(driver string, cfg Config) (Mailer, error) {
 	case SMTP:
 		return newSMTP(cfg), nil
 	}
+	t := types.Test{}
+	t.Hey(Transmission{})
 	return nil, errors.New(driver + " not supported")
 }
