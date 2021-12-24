@@ -56,8 +56,8 @@ var (
 	// Trans is the transmission used for testing.
 	Trans = &Transmission{
 		Recipients: []string{"recipient@test.com"},
-		CC:         []string{"recipient@test.com"},
-		BCC:        []string{"recipient@test.com"},
+		CC:         []string{"cc@test.com"},
+		BCC:        []string{"bcc@test.com"},
 		Subject:    "Subject",
 		HTML:       "<h1>HTML</h1>",
 		PlainText:  "PlainText",
