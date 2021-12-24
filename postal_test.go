@@ -89,11 +89,11 @@ func (t *MailTestSuite) TestPostalResponse_Error() {
 			postalErrorMessage,
 		},
 		"Code": {
-			postalResponse{Data:   map[string]interface{}{"code": "ValidationFailed"},},
+			postalResponse{Data: map[string]interface{}{"code": "ValidationFailed"}},
 			fmt.Sprintf("%s - code: ValidationFailed", postalErrorMessage),
 		},
 		"All": {
-			postalResponse{Data:   map[string]interface{}{"code": "ValidationFailed", "message": "Postal Message"}},
+			postalResponse{Data: map[string]interface{}{"code": "ValidationFailed", "message": "Postal Message"}},
 			fmt.Sprintf("%s - code: ValidationFailed, message: Postal Message", postalErrorMessage),
 		},
 	}
@@ -109,7 +109,7 @@ func (t *MailTestSuite) TestPostalResponse_Error() {
 func (t *MailTestSuite) TestPostalResponse_ToResponse() {
 	tt := map[string]struct {
 		input []byte
-		resp postalResponse
+		resp  postalResponse
 		want  Response
 	}{
 		"Default": {
@@ -117,18 +117,18 @@ func (t *MailTestSuite) TestPostalResponse_ToResponse() {
 			postalResponse{},
 			Response{
 				StatusCode: http.StatusOK,
-				Body: "body",
-				Message: "Successfully sent Postal email",
+				Body:       "body",
+				Message:    "Successfully sent Postal email",
 			},
 		},
 		"With ID": {
 			[]byte("body"),
-			postalResponse{Data: map[string]interface{}{"message_id": "1"},},
+			postalResponse{Data: map[string]interface{}{"message_id": "1"}},
 			Response{
 				StatusCode: http.StatusOK,
-				Body: "body",
-				Message: "Successfully sent Postal email",
-				ID: "1",
+				Body:       "body",
+				Message:    "Successfully sent Postal email",
+				ID:         "1",
 			},
 		},
 	}
@@ -288,7 +288,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 			io.ReadAll,
 			postalErrorMessage,
 		},
-		"With Error": {
+		"Postal Error": {
 			Trans,
 			func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
