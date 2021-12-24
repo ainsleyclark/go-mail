@@ -14,14 +14,13 @@
 package drivers
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/client"
 	"github.com/ainsleyclark/go-mail/mail"
 	"io"
 	"net/http"
-	"time"
 )
 
 // postal represents the data for sending mail via the
@@ -33,7 +32,7 @@ import (
 // See: https://apiv1.postalserver.io/controllers/send/message.html
 type postal struct {
 	cfg        mail.Config
-	client     *http.Client
+	client     *client.Client
 	marshaller func(v interface{}) ([]byte, error)
 	bodyReader func(r io.Reader) ([]byte, error)
 }
@@ -47,11 +46,7 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postal{
 		cfg: cfg,
-		client: &http.Client{
-			Timeout: time.Second * 10,
-		},
-		marshaller: json.Marshal,
-		bodyReader: io.ReadAll,
+		client: client.New(),
 	}, nil
 }
 
@@ -154,34 +149,13 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	data, err := p.marshaller(m)
-	if err != nil {
-		return mail.Response{}, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/v1/send/message", p.cfg.URL), bytes.NewBuffer(data))
-	if err != nil {
-		return mail.Response{}, err
-	}
-
 	// Ensure the API Key is set for authorisation
 	// and add the JSON content type.
-	req.Header.Set("X-Server-API-Key", p.cfg.APIKey)
-	req.Header.Add("Content-Type", "application/json")
+	headers := http.Header{}
+	headers.Set("X-Server-API-Key", p.cfg.APIKey)
+	headers.Add("Content-Type", "application/json")
 
-	resp, err := p.client.Do(req)
-	if err != nil {
-		return mail.Response{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return mail.Response{}, errors.New(postalErrorMessage)
-	}
-
-	// Read the response body into a buffer for processing using
-	// the bodyReader function.
-	buf, err := p.bodyReader(resp.Body)
+	buf, _, err := p.client.Do(m, fmt.Sprintf("%s/api/v1/send/message", p.cfg.URL), headers)
 	if err != nil {
 		return mail.Response{}, err
 	}

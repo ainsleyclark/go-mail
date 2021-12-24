@@ -13,21 +13,14 @@
 
 package mail
 
-// Mailer defines the sender for go-mail returning a
-// Response or error when an email is sent.
-type Mailer interface {
-	Send(t *Transmission) (Response, error)
+// Response represents the data passed back from a
+// successful transmission. Where possible, a
+// status code, body, headers will be
+// returned within the response.
+type Response struct {
+	StatusCode int                 // e.g. 200
+	Body       string              // e.g. {"result: success"}
+	Headers    map[string][]string // e.g. map[X-Ratelimit-Limit:[600]]
+	ID         string              // e.g "100"
+	Message    interface{}         // e.g "Email sent successfully"
 }
-
-const (
-	// SparkPost driver type.
-	SparkPost = "sparkpost"
-	// MailGun driver type.
-	MailGun = "mailgun"
-	// SendGrid driver type.
-	SendGrid = "sendgrid"
-	// Postal driver type.
-	Postal = "postal"
-	// SMTP driver type.
-	SMTP = "smtp"
-)

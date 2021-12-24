@@ -61,8 +61,8 @@ func (t *MailTestSuite) GetTransmission() *mail.Transmission {
 
 	return &mail.Transmission{
 		Recipients: strings.Split(os.Getenv("EMAIL_TO"), ","),
-		CC:         strings.Split(os.Getenv("EMAIL_CC"), ","),
-		BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
+		//CC:         strings.Split(os.Getenv("EMAIL_CC"), ","),
+		//BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
 		Subject:    "Test - Go Mail",
 		HTML:       "<h1>Hello from Go Mail!</h1>",
 		PlainText:  "Hello from Go Mail!",
