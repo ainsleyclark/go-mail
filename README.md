@@ -27,8 +27,7 @@ cfg := mail.Config{
 
 driver, err := mail.NewClient(mail.SparkPost, cfg)
 if err != nil {
-    fmt.Println(err)
-    return
+		log.Fatalln(err)
 }
 
 tx := &mail.Transmission{
@@ -39,11 +38,10 @@ tx := &mail.Transmission{
 
 result, err := driver.Send(tx)
 if err != nil {
-    fmt.Println(err)
-    return
+		log.Fatalln(err)
 }
 
-fmt.Println(result)
+fmt.Printf("%+v\n", result)
 ```
 
 ## Installation
@@ -91,8 +89,7 @@ cfg := mail.Config{
 
 driver, err := mail.NewClient(mail.SparkPost, cfg)
 if err != nil {
-    fmt.Println(err)
-    return
+		log.Fatalln(err)
 }
 ```
 
@@ -111,11 +108,10 @@ tx := &mail.Transmission{
 
 result, err := driver.Send(tx)
 if err != nil {
-    fmt.Println(err)
-    return
+		log.Fatalln(err)
 }
 
-fmt.Println(result)
+fmt.Printf("%+v\n", result)
 ```
 
 ### Adding attachments:
@@ -126,8 +122,7 @@ Go Mail takes care of the rest for you.
 ```go
 image, err := ioutil.ReadFile("gopher.jpg")
 if err != nil {
-    fmt.Println(err)
-    return
+		log.Fatalln(err)
 }
 
 tx := &mail.Transmission{

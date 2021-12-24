@@ -16,8 +16,10 @@ package mail
 import (
 	"fmt"
 	"github.com/ainsleyclark/go-mail"
+	"log"
 )
 
+// SMTP example for Go Mail
 func SMTP() {
 	cfg := mail.Config{
 		URL:         "smtp.gmail.com",
@@ -29,8 +31,7 @@ func SMTP() {
 
 	driver, err := mail.NewClient(mail.SMTP, cfg)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	tx := &mail.Transmission{
@@ -42,9 +43,8 @@ func SMTP() {
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
-	fmt.Println(result)
+	fmt.Printf("%+v\n", result)
 }

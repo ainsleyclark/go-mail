@@ -19,17 +19,16 @@ import (
 	"log"
 )
 
-// MailGun example for Go Mail
-func MailGun() {
+// Postal example for Go Mail
+func Postal() {
 	cfg := mail.Config{
-		URL:         "my-url",
+		URL:         "https://postal.example.com",
 		APIKey:      "my-key",
 		FromAddress: "hello@gophers.com",
 		FromName:    "Gopher",
-		Domain:      "my-domain",
 	}
 
-	driver, err := mail.NewClient(mail.MailGun, cfg)
+	driver, err := mail.NewClient(mail.Postal, cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}

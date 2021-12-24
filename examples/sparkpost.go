@@ -16,8 +16,10 @@ package mail
 import (
 	"fmt"
 	"github.com/ainsleyclark/go-mail"
+	"log"
 )
 
+// Sparkpost example for Go Mail
 func Sparkpost() {
 	cfg := mail.Config{
 		URL:         "https://api.eu.sparkpost.com",
@@ -28,8 +30,7 @@ func Sparkpost() {
 
 	driver, err := mail.NewClient(mail.SparkPost, cfg)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	tx := &mail.Transmission{
@@ -41,9 +42,8 @@ func Sparkpost() {
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
-	fmt.Println(result)
+	fmt.Printf("%+v\n", result)
 }
