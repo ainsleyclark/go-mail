@@ -27,7 +27,7 @@ type Requester interface {
 }
 
 type Client struct {
-	http *http.Client
+	http       *http.Client
 	marshaller func(v interface{}) ([]byte, error)
 	bodyReader func(r io.Reader) ([]byte, error)
 }

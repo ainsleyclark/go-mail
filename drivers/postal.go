@@ -45,7 +45,7 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 		return nil, err
 	}
 	return &postal{
-		cfg: cfg,
+		cfg:    cfg,
 		client: client.New(),
 	}, nil
 }
