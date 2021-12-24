@@ -13,11 +13,6 @@
 
 package mail
 
-import (
-	"errors"
-	"github.com/ainsleyclark/go-mail/internal/types"
-)
-
 // Mailer defines the sender for go-mail returning a
 // Response or error when an email is sent.
 type Mailer interface {
@@ -48,25 +43,3 @@ const (
 	// SMTP driver type.
 	SMTP = "smtp"
 )
-
-// NewClient creates a new Mailer based on the input driver.
-// Sparkpost, MailGun or SendGrid can be passed.
-// Returns an error if a driver did not match,
-// Or there was an error creating the client.
-func NewClient(driver string, cfg Config) (Mailer, error) {
-	switch driver {
-	case SparkPost:
-		return newSparkPost(cfg)
-	case MailGun:
-		return newMailGun(cfg), nil
-	case SendGrid:
-		return newSendGrid(cfg), nil
-	case Postal:
-		return newPostal(cfg)
-	case SMTP:
-		return newSMTP(cfg), nil
-	}
-	t := types.Test{}
-	t.Hey(Transmission{})
-	return nil, errors.New(driver + " not supported")
-}

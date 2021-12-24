@@ -11,13 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/mail"
 	"io"
 	"net/http"
 	"time"
@@ -31,15 +32,15 @@ import (
 // See: https://docs.postalserver.io/developer/api
 // See: https://apiv1.postalserver.io/controllers/send/message.html
 type postal struct {
-	cfg        Config
+	cfg        mail.Config
 	client     *http.Client
 	marshaller func(v interface{}) ([]byte, error)
 	bodyReader func(r io.Reader) ([]byte, error)
 }
 
-// Creates a new Postal client. Configuration is
-// validated before initialisation.
-func newPostal(cfg Config) (*postal, error) {
+// NewPostal creates a new Postal client. Configuration
+// is validated before initialisation.
+func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err
@@ -110,8 +111,8 @@ func (p *postalResponse) Error() error {
 
 // ToResponse transforms a postalResponse into a Go Mail response.
 // Checks if the message_id is attached and sets accordingly.
-func (p *postalResponse) ToResponse(buf []byte) Response {
-	response := Response{
+func (p *postalResponse) ToResponse(buf []byte) mail.Response {
+	response := mail.Response{
 		StatusCode: http.StatusOK,
 		Body:       string(buf),
 		Message:    "Successfully sent Postal email",
@@ -126,21 +127,21 @@ func (p *postalResponse) ToResponse(buf []byte) Response {
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error
 // upon failure.
-func (p *postal) Send(t *Transmission) (Response, error) {
+func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	m := postalMessage{
-		To:          t.Recipients,
-		CC:          t.CC,
-		BCC:         t.BCC,
-		From:        p.cfg.FromAddress,
-		Sender:      p.cfg.FromName,
-		Subject:     t.Subject,
-		HTML:        t.HTML,
-		PlainText:   t.PlainText,
+		To:        t.Recipients,
+		CC:        t.CC,
+		BCC:       t.BCC,
+		From:      p.cfg.FromAddress,
+		Sender:    p.cfg.FromName,
+		Subject:   t.Subject,
+		HTML:      t.HTML,
+		PlainText: t.PlainText,
 	}
 
 	if t.Attachments.Exists() {
@@ -155,12 +156,12 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 
 	data, err := p.marshaller(m)
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/v1/send/message", p.cfg.URL), bytes.NewBuffer(data))
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	// Ensure the API Key is set for authorisation
@@ -170,32 +171,32 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return Response{}, errors.New(postalErrorMessage)
+		return mail.Response{}, errors.New(postalErrorMessage)
 	}
 
 	// Read the response body into a buffer for processing using
 	// the bodyReader function.
 	buf, err := p.bodyReader(resp.Body)
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	// Unmarshal the buffer into a postalResponse.
 	response := postalResponse{}
 	err = json.Unmarshal(buf, &response)
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	// Bail if the status is not `success` and return formatted
 	// error code.
 	if response.HasError() {
-		return Response{}, response.Error()
+		return mail.Response{}, response.Error()
 	}
 
 	return response.ToResponse(buf), nil

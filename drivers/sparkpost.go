@@ -11,11 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	sp "github.com/SparkPost/gosparkpost"
-	"github.com/ainsleyclark/go-mail"
+	"github.com/ainsleyclark/go-mail/mail"
 	"strings"
 )
 
@@ -39,9 +39,9 @@ const (
 	SparkAPIVersion = 1
 )
 
-// Creates a new SparkPost client. Configuration is
-// validated before initialisation.
-func newSparkPost(cfg mail.Config) (*sparkPost, error) {
+// NewSparkPost creates a new SparkPost client. Configuration
+// is validated before initialisation.
+func NewSparkPost(cfg mail.Config) (mail.Mailer, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err

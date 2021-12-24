@@ -10,7 +10,7 @@ format:
 
 # Run linter
 lint:
-	golangci-lint run ./
+	golangci-lint run ./...
 .PHONY: lint
 
 # Test uses race and coverage

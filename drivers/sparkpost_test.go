@@ -11,21 +11,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	"errors"
 	sp "github.com/SparkPost/gosparkpost"
+	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
 )
 
-func (t *MailTestSuite) TestNewSparkPost() {
+func (t *DriversTestSuite) TestNewSparkPost() {
 	tt := map[string]struct {
-		input Config
+		input mail.Config
 		want  interface{}
 	}{
 		"Success": {
-			Config{
+			mail.Config{
 				URL:         "https://api.eu.sparkpost.com",
 				APIKey:      "key",
 				FromAddress: "addr",
@@ -34,11 +35,11 @@ func (t *MailTestSuite) TestNewSparkPost() {
 			nil,
 		},
 		"Validation Failed": {
-			Config{},
+			mail.Config{},
 			"mailer requires from address",
 		},
 		"Error": {
-			Config{
+			mail.Config{
 				URL:         "http://",
 				APIKey:      "key",
 				FromAddress: "addr",
@@ -50,21 +51,19 @@ func (t *MailTestSuite) TestNewSparkPost() {
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			got, err := newSparkPost(test.input)
+			got, err := NewSparkPost(test.input)
 			if err != nil {
 				t.Contains(err.Error(), test.want)
 				return
 			}
-			t.Equal(test.input, got.cfg)
-			t.NotNil(got.client)
-			t.NotNil(got.send)
+			t.NotNil(got)
 		})
 	}
 }
 
-func (t *MailTestSuite) TestSparkPost_Send() {
+func (t *DriversTestSuite) TestSparkPost_Send() {
 	tt := map[string]struct {
-		input *Transmission
+		input *mail.Transmission
 		send  sparkSendFunc
 		want  interface{}
 	}{
@@ -77,7 +76,7 @@ func (t *MailTestSuite) TestSparkPost_Send() {
 					Body:    []byte("body"),
 				}, nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: 200,
 				Body:       "body",
 				Headers:    nil,
@@ -94,7 +93,7 @@ func (t *MailTestSuite) TestSparkPost_Send() {
 					Body:    []byte("body"),
 				}, nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: 200,
 				Body:       "body",
 				Headers:    nil,
@@ -132,7 +131,7 @@ func (t *MailTestSuite) TestSparkPost_Send() {
 	for name, test := range tt {
 		t.Run(name, func() {
 			spark := sparkPost{
-				cfg: Config{
+				cfg: mail.Config{
 					FromAddress: "from",
 				},
 				send: test.send,

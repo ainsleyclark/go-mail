@@ -15,7 +15,8 @@ package mail
 
 import (
 	"fmt"
-	"github.com/ainsleyclark/go-mail"
+	"github.com/ainsleyclark/go-mail/drivers"
+	"github.com/ainsleyclark/go-mail/mail"
 	"log"
 )
 
@@ -28,7 +29,7 @@ func Sparkpost() {
 		FromName:    "Gopher",
 	}
 
-	driver, err := mail.NewClient(mail.SparkPost, cfg)
+	mailer, err := drivers.NewSparkPost(cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -40,7 +41,7 @@ func Sparkpost() {
 		PlainText:  "plain text",
 	}
 
-	result, err := driver.Send(tx)
+	result, err := mailer.Send(tx)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -15,7 +15,8 @@ package mail
 
 import (
 	"fmt"
-	"github.com/ainsleyclark/go-mail"
+	"github.com/ainsleyclark/go-mail/drivers"
+	"github.com/ainsleyclark/go-mail/mail"
 	"log"
 )
 
@@ -27,7 +28,7 @@ func SendGrid() {
 		FromName:    "Gopher",
 	}
 
-	driver, err := mail.NewClient(mail.SendGrid, cfg)
+	mailer, err := drivers.NewSendGrid(cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -39,7 +40,7 @@ func SendGrid() {
 		PlainText:  "plain text",
 	}
 
-	result, err := driver.Send(tx)
+	result, err := mailer.Send(tx)
 	if err != nil {
 		log.Fatalln(err)
 	}

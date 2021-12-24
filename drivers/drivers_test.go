@@ -11,31 +11,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
-	"errors"
-	"fmt"
+	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"os"
 	"testing"
 )
 
-// MailTestSuite defines the helper used for mail
+// DriversTestSuite defines the helper used for mail
 // testing.
-type MailTestSuite struct {
+type DriversTestSuite struct {
 	suite.Suite
 	base string
 }
 
 // Assert testing has begun.
 func TestMail(t *testing.T) {
-	suite.Run(t, new(MailTestSuite))
+	suite.Run(t, new(DriversTestSuite))
 }
 
 // Assigns test base.
-func (t *MailTestSuite) SetupSuite() {
+func (t *DriversTestSuite) SetupSuite() {
 	wd, err := os.Getwd()
 	t.NoError(err)
 	t.base = wd
@@ -44,17 +43,11 @@ func (t *MailTestSuite) SetupSuite() {
 const (
 	// DataPath defines where the test data resides.
 	DataPath = "testdata"
-	// PNGName defines the PNG name for testing.
-	PNGName = "gopher.png"
-	// JPGName defines the JPG name for testing.
-	JPGName = "gopher.jpg"
-	// SVGName defines the SVG name testing.
-	SVGName = "gopher.svg"
 )
 
 var (
 	// Trans is the transmission used for testing.
-	Trans = &Transmission{
+	Trans = &mail.Transmission{
 		Recipients: []string{"recipient@test.com"},
 		CC:         []string{"cc@test.com"},
 		BCC:        []string{"bcc@test.com"},
@@ -64,13 +57,13 @@ var (
 	}
 	// Trans is the transmission with an
 	// attachment used for testing.
-	TransWithAttachment = &Transmission{
+	TransWithAttachment = &mail.Transmission{
 		Recipients: []string{"recipient@test.com"},
 		Subject:    "Subject",
 		HTML:       "<h1>HTML</h1>",
 		PlainText:  "PlainText",
-		Attachments: Attachments{
-			Attachment{
+		Attachments: mail.Attachments{
+			mail.Attachment{
 				Filename: "test.jpg",
 			},
 		},
@@ -78,7 +71,7 @@ var (
 )
 
 // Returns a PNG attachment for testing.
-func (t *MailTestSuite) Attachment(name string) Attachment {
+func (t *DriversTestSuite) Attachment(name string) mail.Attachment {
 	path := t.base + string(os.PathSeparator) + DataPath + string(os.PathSeparator) + name
 	file, err := ioutil.ReadFile(path)
 
@@ -86,79 +79,8 @@ func (t *MailTestSuite) Attachment(name string) Attachment {
 		t.Fail("error getting attachment with the path: "+path, err)
 	}
 
-	return Attachment{
+	return mail.Attachment{
 		Filename: name,
 		Bytes:    file,
 	}
-}
-
-func (t *MailTestSuite) TestNewClient() {
-	cfg := Config{
-		APIKey:      "key",
-		FromAddress: "hello@test.com",
-		FromName:    "Test",
-	}
-
-	tt := map[string]struct {
-		driver string
-		input  Config
-		want   error
-	}{
-		"SparkPost": {
-			SparkPost,
-			cfg,
-			nil,
-		},
-		"MailGun": {
-			MailGun,
-			cfg,
-			nil,
-		},
-		"SendGrid": {
-			SendGrid,
-			cfg,
-			nil,
-		},
-		"Postal": {
-			Postal,
-			cfg,
-			nil,
-		},
-		"SMTP": {
-			SMTP,
-			cfg,
-			nil,
-		},
-		"Error": {
-			"wrong",
-			Config{},
-			errors.New("wrong not supported"),
-		},
-	}
-
-	for name, test := range tt {
-		t.Run(name, func() {
-			got, err := NewClient(test.driver, test.input)
-			if err != nil {
-				t.Equal(test.want, err)
-				return
-			}
-			t.NotNil(got)
-		})
-	}
-}
-
-// Docs
-func ExampleNewClient() {
-	mailer, err := NewClient(SparkPost, Config{
-		APIKey:      "my-key",
-		FromAddress: "hello@test.com",
-		FromName:    "Test",
-	})
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(mailer)
 }

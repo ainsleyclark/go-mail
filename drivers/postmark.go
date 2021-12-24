@@ -11,11 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/mail"
 	"io"
 	"net/http"
 	"strings"
@@ -23,18 +24,18 @@ import (
 )
 
 type postmark struct {
-	cfg        Config
+	cfg        mail.Config
 	client     *http.Client
 	marshaller func(v interface{}) ([]byte, error)
 	bodyReader func(r io.Reader) ([]byte, error)
 }
 
-func newPostmark(cfg Config) (*postal, error) {
+func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err
 	}
-	return &postal{
+	return &postmark{
 		cfg: cfg,
 		client: &http.Client{
 			Timeout: time.Second * 10,
@@ -46,23 +47,23 @@ func newPostmark(cfg Config) (*postal, error) {
 
 // postmarkMessage defines the data to be sent to the Postmark API.
 type postmarkMessage struct {
-	From     string `json:"From"`
-	To       string `json:"To"`
-	CC       string `json:"Cc"`
-	BCC      string `json:"Bcc"`
-	Subject  string `json:"Subject"`
-	Tag      string `json:"Tag"`
-	HTML string `json:"HtmlBody"`
+	From      string `json:"From"`
+	To        string `json:"To"`
+	CC        string `json:"Cc"`
+	BCC       string `json:"Bcc"`
+	Subject   string `json:"Subject"`
+	Tag       string `json:"Tag"`
+	HTML      string `json:"HtmlBody"`
 	PlainText string `json:"TextBody"`
-	ReplyTo  string `json:"ReplyTo"`
-	Headers  []struct {
+	ReplyTo   string `json:"ReplyTo"`
+	Headers   []struct {
 		Name  string `json:"Name"`
 		Value string `json:"Value"`
 	} `json:"Headers"`
-	TrackOpens  bool   `json:"TrackOpens"`
-	TrackLinks  string `json:"TrackLinks"`
+	TrackOpens  bool                 `json:"TrackOpens"`
+	TrackLinks  string               `json:"TrackLinks"`
 	Attachments []postmarkAttachment `json:"Attachments"`
-	Metadata struct {
+	Metadata    struct {
 		Color    string `json:"color"`
 		ClientID string `json:"client-id"`
 	} `json:"Metadata"`
@@ -76,20 +77,20 @@ type postmarkAttachment struct {
 	ContentID   string `json:"ContentID,omitempty"`
 }
 
-func (p *postmark) Send(t *Transmission) (Response, error) {
+func (p *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	m := postmarkMessage{
-		To:          strings.Join(t.Recipients, ","),
-		CC:          strings.Join(t.CC, ","),
-		BCC:         strings.Join(t.BCC, ","),
-		From:        fmt.Sprintf("%s <%s>", p.cfg.FromName, p.cfg.FromAddress),
-		Subject:     t.Subject,
-		HTML:        t.HTML,
-		PlainText:   t.PlainText,
+		To:        strings.Join(t.Recipients, ","),
+		CC:        strings.Join(t.CC, ","),
+		BCC:       strings.Join(t.BCC, ","),
+		From:      fmt.Sprintf("%s <%s>", p.cfg.FromName, p.cfg.FromAddress),
+		Subject:   t.Subject,
+		HTML:      t.HTML,
+		PlainText: t.PlainText,
 	}
 
 	if t.Attachments.Exists() {
@@ -102,5 +103,5 @@ func (p *postmark) Send(t *Transmission) (Response, error) {
 		}
 	}
 
-	return Response{}, err
+	return mail.Response{}, err
 }

@@ -11,50 +11,58 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
+	"context"
 	"errors"
-	"net/smtp"
+	"github.com/ainsleyclark/go-mail/mail"
+	"github.com/mailgun/mailgun-go/v4"
 )
 
-func (t *MailTestSuite) TestSMTP_Send() {
+func (t *DriversTestSuite) TestMailGun_Send() {
 	tt := map[string]struct {
-		input *Transmission
-		send  smtpSendFunc
+		input *mail.Transmission
+		send  mailGunSendFunc
 		want  interface{}
 	}{
 		"Success": {
 			Trans,
-			func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
-				return nil
+			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
+				return "success", "1", nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: 200,
-				Message:    "Email sent successfully",
+				Body:       "",
+				Headers:    nil,
+				ID:         "1",
+				Message:    "success",
 			},
 		},
 		"With Attachment": {
 			TransWithAttachment,
-			func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
-				return nil
+			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
+				return "success", "1", nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: 200,
-				Message:    "Email sent successfully",
+				Body:       "",
+				Headers:    nil,
+				ID:         "1",
+				Message:    "success",
 			},
 		},
 		"Validation Failed": {
 			nil,
-			func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
-				return nil
+			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
+				return "", "", nil
 			},
 			"can't validate a nil transmission",
 		},
 		"Send Error": {
 			Trans,
-			func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
-				return errors.New("send error")
+			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
+				return "", "", errors.New("send error")
 			},
 			"send error",
 		},
@@ -62,8 +70,8 @@ func (t *MailTestSuite) TestSMTP_Send() {
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			spark := smtpClient{
-				cfg: Config{
+			spark := mailGun{
+				cfg: mail.Config{
 					FromAddress: "from",
 				},
 				send: test.send,

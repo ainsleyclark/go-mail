@@ -11,11 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/mail"
 	"mime/multipart"
 	"net/http"
 	"net/smtp"
@@ -28,58 +29,58 @@ import (
 // main send function are parsed for sending
 // data.
 type smtpClient struct {
-	cfg  Config
+	cfg  mail.Config
 	send smtpSendFunc
 }
 
 // smtpSendFunc defines the function for ending
-// SMTP transmissions.
+// SMTP mail.Transmissions.
 type smtpSendFunc func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
 
-// Creates a new smtp client. Configuration is
-// validated before initialisation.
-func newSMTP(cfg Config) *smtpClient {
+// NewSMTP creates a new smtp client. Configuration
+// is validated before initialisation.
+func NewSMTP(cfg mail.Config) (mail.Mailer, error) {
 	fmt.Println("Warning, using SMTP is insecure, only use for development.")
 	return &smtpClient{
 		cfg:  cfg,
 		send: smtp.SendMail,
-	}
+	}, nil
 }
 
-// Send mail via plain SMTP. Transmissions are validated
+// Send mail via plain SMTP. mail.Transmissions are validated
 // before sending and attachments are added. Returns
 // an error upon failure.
-func (m *smtpClient) Send(t *Transmission) (Response, error) {
+func (m *smtpClient) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	auth := smtp.PlainAuth("", m.cfg.FromAddress, m.cfg.Password, m.cfg.URL)
 	err = m.send(m.cfg.URL+":"+strconv.Itoa(m.cfg.Port), auth, m.cfg.FromAddress, m.getTo(t), m.bytes(t))
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
-	return Response{
+	return mail.Response{
 		StatusCode: http.StatusOK,
 		Message:    "Email sent successfully",
 	}, nil
 }
 
-// getTo returns the merged transmission recipients, CC and
+// getTo returns the merged mail.Transmission recipients, CC and
 // BCC email addresses.
-func (m *smtpClient) getTo(t *Transmission) []string {
+func (m *smtpClient) getTo(t *mail.Transmission) []string {
 	var to []string
 	to = append(t.Recipients, t.CC...)
 	to = append(to, t.BCC...)
 	return to
 }
 
-// Processes the transmission and returns the bytes for
+// Processes the mail.Transmission and returns the bytes for
 // sending. Mime types are set dependent on the
 // content passed.
-func (m *smtpClient) bytes(t *Transmission) []byte {
+func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 	buf := bytes.NewBuffer(nil)
 
 	buf.WriteString(fmt.Sprintf("Subject: %s\n", t.Subject))

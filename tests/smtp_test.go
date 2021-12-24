@@ -14,7 +14,8 @@
 package mail
 
 import (
-	"github.com/ainsleyclark/go-mail"
+	"github.com/ainsleyclark/go-mail/drivers"
+	"github.com/ainsleyclark/go-mail/mail"
 	"os"
 	"strconv"
 )
@@ -27,7 +28,7 @@ func (t *MailTestSuite) Test_SMTP() {
 		t.FailNow("Error parsing SMTP port")
 	}
 
-	driver, err := mail.NewClient(mail.SMTP, mail.Config{
+	driver, err := drivers.NewSMTP(mail.Config{
 		URL:         os.Getenv("SMTP_URL"),
 		FromAddress: os.Getenv("SMTP_FROM_ADDRESS"),
 		FromName:    os.Getenv("SMTP_FROM_NAME"),

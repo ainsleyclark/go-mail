@@ -11,23 +11,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/mail"
 	"io"
 	"net/http"
 	"net/http/httptest"
 )
 
-func (t *MailTestSuite) TestNewPostal() {
+func (t *DriversTestSuite) TestNewPostal() {
 	tt := map[string]struct {
-		input Config
+		input mail.Config
 		want  interface{}
 	}{
 		"Success": {
-			Config{
+			mail.Config{
 				URL:         "https://postal.example.com",
 				APIKey:      "key",
 				FromAddress: "addr",
@@ -36,27 +37,24 @@ func (t *MailTestSuite) TestNewPostal() {
 			nil,
 		},
 		"Validation Failed": {
-			Config{},
+			mail.Config{},
 			"mailer requires from address",
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			got, err := newPostal(test.input)
+			got, err := NewPostal(test.input)
 			if err != nil {
 				t.Contains(err.Error(), test.want)
 				return
 			}
-			t.Equal(test.input, got.cfg)
-			t.NotNil(got.client)
-			t.NotNil(got.marshaller)
-			t.NotNil(got.bodyReader)
+			t.NotNil(got)
 		})
 	}
 }
 
-func (t *MailTestSuite) TestPostalResponse_HasError() {
+func (t *DriversTestSuite) TestPostalResponse_HasError() {
 	tt := map[string]struct {
 		input postalResponse
 		want  bool
@@ -79,7 +77,7 @@ func (t *MailTestSuite) TestPostalResponse_HasError() {
 	}
 }
 
-func (t *MailTestSuite) TestPostalResponse_Error() {
+func (t *DriversTestSuite) TestPostalResponse_Error() {
 	tt := map[string]struct {
 		input postalResponse
 		want  string
@@ -106,16 +104,16 @@ func (t *MailTestSuite) TestPostalResponse_Error() {
 	}
 }
 
-func (t *MailTestSuite) TestPostalResponse_ToResponse() {
+func (t *DriversTestSuite) TestPostalResponse_ToResponse() {
 	tt := map[string]struct {
 		input []byte
 		resp  postalResponse
-		want  Response
+		want  mail.Response
 	}{
 		"Default": {
 			[]byte("body"),
 			postalResponse{},
-			Response{
+			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       "body",
 				Message:    "Successfully sent Postal email",
@@ -124,7 +122,7 @@ func (t *MailTestSuite) TestPostalResponse_ToResponse() {
 		"With ID": {
 			[]byte("body"),
 			postalResponse{Data: map[string]interface{}{"message_id": "1"}},
-			Response{
+			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       "body",
 				Message:    "Successfully sent Postal email",
@@ -141,9 +139,9 @@ func (t *MailTestSuite) TestPostalResponse_ToResponse() {
 	}
 }
 
-func (t *MailTestSuite) TestPostal_Send() {
+func (t *DriversTestSuite) TestPostal_Send() {
 	tt := map[string]struct {
-		input      *Transmission
+		input      *mail.Transmission
 		handler    http.HandlerFunc
 		url        string
 		marshaller func(v interface{}) ([]byte, error)
@@ -165,7 +163,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 			"",
 			json.Marshal,
 			io.ReadAll,
-			Response{
+			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       `{"status":"success","time":0,"flags":null,"data":null}`,
 				Message:    "Successfully sent Postal email",
@@ -187,7 +185,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 			"",
 			json.Marshal,
 			io.ReadAll,
-			Response{
+			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       `{"status":"success","time":0,"flags":null,"data":{"message_id":"1"}}`,
 				Message:    "Successfully sent Postal email",
@@ -209,7 +207,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 			"",
 			json.Marshal,
 			io.ReadAll,
-			Response{
+			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       `{"status":"success","time":0,"flags":null,"data":null}`,
 				Message:    "Successfully sent Postal email",
@@ -319,7 +317,7 @@ func (t *MailTestSuite) TestPostal_Send() {
 			}
 
 			ptl := postal{
-				cfg: Config{
+				cfg: mail.Config{
 					URL:         url,
 					FromAddress: "from",
 				},
