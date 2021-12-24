@@ -15,8 +15,10 @@ package mail
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -46,12 +48,12 @@ func newPostmark(cfg Config) (*postal, error) {
 type postmarkMessage struct {
 	From     string `json:"From"`
 	To       string `json:"To"`
-	Cc       string `json:"Cc"`
-	Bcc      string `json:"Bcc"`
+	CC       string `json:"Cc"`
+	BCC      string `json:"Bcc"`
 	Subject  string `json:"Subject"`
 	Tag      string `json:"Tag"`
-	HTMLBody string `json:"HtmlBody"`
-	TextBody string `json:"TextBody"`
+	HTML string `json:"HtmlBody"`
+	PlainText string `json:"TextBody"`
 	ReplyTo  string `json:"ReplyTo"`
 	Headers  []struct {
 		Name  string `json:"Name"`
@@ -59,7 +61,7 @@ type postmarkMessage struct {
 	} `json:"Headers"`
 	TrackOpens  bool   `json:"TrackOpens"`
 	TrackLinks  string `json:"TrackLinks"`
-	Attachments postmarkAttachment `json:"Attachments"`
+	Attachments []postmarkAttachment `json:"Attachments"`
 	Metadata struct {
 		Color    string `json:"color"`
 		ClientID string `json:"client-id"`
@@ -80,12 +82,11 @@ func (p *postmark) Send(t *Transmission) (Response, error) {
 		return Response{}, err
 	}
 
-	m := postalMessage{
-		To:          t.Recipients,
-		CC:          t.CC,
-		BCC:         t.BCC,
-		From:        p.cfg.FromAddress,
-		Sender:      p.cfg.FromName,
+	m := postmarkMessage{
+		To:          strings.Join(t.Recipients, ","),
+		CC:          strings.Join(t.CC, ","),
+		BCC:         strings.Join(t.BCC, ","),
+		From:        fmt.Sprintf("%s <%s>", p.cfg.FromName, p.cfg.FromAddress),
 		Subject:     t.Subject,
 		HTML:        t.HTML,
 		PlainText:   t.PlainText,
