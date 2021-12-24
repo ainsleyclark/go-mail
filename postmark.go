@@ -42,10 +42,63 @@ func newPostmark(cfg Config) (*postal, error) {
 	}, nil
 }
 
+// postmarkMessage defines the data to be sent to the Postmark API.
+type postmarkMessage struct {
+	From     string `json:"From"`
+	To       string `json:"To"`
+	Cc       string `json:"Cc"`
+	Bcc      string `json:"Bcc"`
+	Subject  string `json:"Subject"`
+	Tag      string `json:"Tag"`
+	HTMLBody string `json:"HtmlBody"`
+	TextBody string `json:"TextBody"`
+	ReplyTo  string `json:"ReplyTo"`
+	Headers  []struct {
+		Name  string `json:"Name"`
+		Value string `json:"Value"`
+	} `json:"Headers"`
+	TrackOpens  bool   `json:"TrackOpens"`
+	TrackLinks  string `json:"TrackLinks"`
+	Attachments postmarkAttachment `json:"Attachments"`
+	Metadata struct {
+		Color    string `json:"color"`
+		ClientID string `json:"client-id"`
+	} `json:"Metadata"`
+	MessageStream string `json:"MessageStream"`
+}
+
+type postmarkAttachment struct {
+	Name        string `json:"Name"`
+	Content     string `json:"Content"`
+	ContentType string `json:"ContentType"`
+	ContentID   string `json:"ContentID,omitempty"`
+}
+
 func (p *postmark) Send(t *Transmission) (Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return Response{}, err
+	}
+
+	m := postalMessage{
+		To:          t.Recipients,
+		CC:          t.CC,
+		BCC:         t.BCC,
+		From:        p.cfg.FromAddress,
+		Sender:      p.cfg.FromName,
+		Subject:     t.Subject,
+		HTML:        t.HTML,
+		PlainText:   t.PlainText,
+	}
+
+	if t.Attachments.Exists() {
+		for _, v := range t.Attachments {
+			m.Attachments = append(m.Attachments, postmarkAttachment{
+				Name:        v.Filename,
+				ContentType: v.Mime(),
+				Content:     v.B64(),
+			})
+		}
 	}
 
 	return Response{}, err

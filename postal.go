@@ -141,7 +141,6 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 		Subject:     t.Subject,
 		HTML:        t.HTML,
 		PlainText:   t.PlainText,
-		Attachments: nil,
 	}
 
 	if t.Attachments.Exists() {
