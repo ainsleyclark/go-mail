@@ -14,6 +14,8 @@
 package mail
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 )
@@ -22,25 +24,54 @@ func (t *MailTestSuite) TestPostal_Send() {
 	tt := map[string]struct {
 		input   *Transmission
 		handler http.HandlerFunc
+		url string
+		marshaller func(v interface{}) ([]byte, error)
 		want    interface{}
 	}{
-		"Success": {
-			Trans,
-			func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("ok"))
-			},
-			Response{
-				StatusCode: 200,
-				Body:       "",
-				Headers:    nil,
-				//ID:         "",
-				//Message:    "success",
-			},
-		},
+		//"Success": {
+		//	Trans,
+		//	func(w http.ResponseWriter, r *http.Request) {
+		//		w.Write([]byte("ok"))
+		//	},
+		//	"",
+		//	json.Marshal,
+		//	Response{
+		//		StatusCode: 200,
+		//		Body:       "",
+		//		Headers:    nil,
+		//		//ID:         "",
+		//		//Message:    "success",
+		//	},
+		//},
 		"Validation Failed": {
 			nil,
 			nil,
+			"",
+			json.Marshal,
 			"can't validate a nil transmission",
+		},
+		"Marshal Error": {
+			Trans,
+			nil,
+			"",
+			func(v interface{}) ([]byte, error) {
+				return nil, fmt.Errorf("marshal error")
+			},
+			"marshal error",
+		},
+		"Bad Request": {
+			Trans,
+			nil,
+			"@#@#$$%$",
+			json.Marshal,
+			"invalid URL",
+		},
+		"Do Error": {
+			Trans,
+			nil,
+			"@#@#$$%$",
+			json.Marshal,
+			"invalid URL",
 		},
 	}
 
@@ -49,12 +80,18 @@ func (t *MailTestSuite) TestPostal_Send() {
 			server := httptest.NewServer(test.handler)
 			defer server.Close()
 
+			url := server.URL
+			if test.url != "" {
+				url = test.url
+			}
+
 			ptl := postal{
 				cfg: Config{
-					URL:         server.URL,
+					URL:         url,
 					FromAddress: "from",
 				},
 				client: server.Client(),
+				marshaller: test.marshaller,
 			}
 
 			resp, err := ptl.Send(test.input)

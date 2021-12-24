@@ -16,20 +16,20 @@ package mail
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 )
 
+// TODO
+// https://docs.postalserver.io/developer/api
+// https://apiv1.postalserver.io/controllers/send/message.html
 type postal struct {
 	cfg    Config
 	client *http.Client
+	marshaller func(v interface{}) ([]byte, error)
 }
-
-//// sparkSendFunc defines the function for ending SparkPost
-//// transmissions.
-//type sparkSendFunc func(t *sp.Transmission) (id string, res *sp.Response, err error)
 
 // Creates a new Postal client. Configuration is
 // validated before initialisation.
@@ -43,8 +43,16 @@ func newPostal(cfg Config) (*postal, error) {
 		client: &http.Client{
 			Timeout: time.Second * 10,
 		},
+		marshaller: json.Marshal,
 	}, nil
 }
+
+const (
+	postalErrorMessage = "error sending message to Postal api"
+)
+
+// {"status":"success","time":0.07,"flags":{},"data":{"message_id":"2cdf0f8f-18e5-4286-bb66-a22fb0c3c30a@rp.postal.example.com","messages":{"ainsley@reddico.co.uk":{"id":3,"token":"y5ChzHNHWVnR"}}}}
+// {"status":"error","time":0.0,"flags":{},"data":{"code":"FromAddressMissing","message":"The From address is missing and is required"}}
 
 type postalMessage struct {
 	To          []string           `json:"to"`
@@ -64,6 +72,13 @@ type postalAttachment struct {
 	Data        string `json:"data"`
 }
 
+type postalResponse struct {
+	Status string `json:"status"`
+	Time float32 `json:"time"`
+	Flags map[string]interface{} `json:"flags"`
+	Data map[string]interface{} `json:"data"`
+}
+
 func (p *postal) Send(t *Transmission) (Response, error) {
 	err := t.Validate()
 	if err != nil {
@@ -74,13 +89,14 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 		To:          t.Recipients,
 		CC:          t.CC,
 		BCC:         t.BCC,
-		From:        p.cfg.FromAddress,
+		//From:        p.cfg.FromAddress,
 		Sender:      p.cfg.FromName,
 		Subject:     t.Subject,
 		HTML:        t.HTML,
 		PlainText:   t.PlainText,
 		Attachments: nil,
 	}
+
 
 	if t.Attachments.Exists() {
 		for _, v := range t.Attachments {
@@ -92,7 +108,7 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 		}
 	}
 
-	data, err := json.Marshal(m)
+	data, err := p.marshaller(m)
 	if err != nil {
 		return Response{}, err
 	}
@@ -113,22 +129,36 @@ func (p *postal) Send(t *Transmission) (Response, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	response := postalResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		return Response{}, err
 	}
 
-	fmt.Println(string(body))
-	fmt.Println(resp.StatusCode)
+	if resp.StatusCode != 200 {
+		return Response{}, errors.New(postalErrorMessage)
+	}
 
-	// TODO: Unmarshal postal response.
-	// {"status":"success","time":0.07,"flags":{},"data":{"message_id":"2cdf0f8f-18e5-4286-bb66-a22fb0c3c30a@rp.postal.example.com","messages":{"ainsley@reddico.co.uk":{"id":3,"token":"y5ChzHNHWVnR"}}}}
-	// {"status":"error","time":0.0,"flags":{},"data":{"code":"FromAddressMissing","message":"The From address is missing and is required"}}
-	return Response{
+	if response.Status != "success" {
+		msg := postalErrorMessage
+		if code, ok := response.Data["code"]; ok {
+			msg = fmt.Sprintf("%s - code: %s", msg, code)
+		}
+		if message, ok := response.Data["message"]; ok {
+			msg = fmt.Sprintf("%s, message: %s", msg, message)
+		}
+		return Response{}, errors.New(msg)
+	}
+
+	returnR := Response{
 		StatusCode: resp.StatusCode,
-		Body:       "",
-		Headers:    nil,
-		ID:         "",
-		Message:    nil,
-	}, nil
+		Body:       fmt.Sprintf("%+v", response),
+		Message:    "Successfully sent Postal email",
+	}
+
+	if val, ok := response.Data["message_id"]; ok {
+		returnR.ID = fmt.Sprintf("%v", val)
+	}
+
+	return returnR, nil
 }
