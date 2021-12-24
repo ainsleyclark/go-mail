@@ -94,7 +94,7 @@ if err != nil {
 }
 ```
 
-### Sending Data
+### Sending Data:
 
 A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Result` and error will be returned
 indicating if the transmission was successful.
