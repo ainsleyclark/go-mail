@@ -58,3 +58,49 @@ func (t *MailTestSuite) TestConfig_Validate() {
 		})
 	}
 }
+
+func (t *MailTestSuite) TestConfig_HasCC() {
+	tt := map[string]struct {
+		input Transmission
+		want  bool
+	}{
+		"With": {
+			Transmission{CC: []string{"hello@test.com"}},
+			true,
+		},
+		"Without": {
+			Transmission{},
+			false,
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.input.HasCC()
+			t.Equal(test.want, got)
+		})
+	}
+}
+
+func (t *MailTestSuite) TestConfig_HasBCC() {
+	tt := map[string]struct {
+		input Transmission
+		want  bool
+	}{
+		"With": {
+			Transmission{BCC: []string{"hello@test.com"}},
+			true,
+		},
+		"Without": {
+			Transmission{},
+			false,
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.input.HasBCC()
+			t.Equal(test.want, got)
+		})
+	}
+}
