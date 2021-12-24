@@ -15,8 +15,10 @@ import (
 	"fmt"
 	"github.com/ainsleyclark/go-mail"
 	"io/ioutil"
+	"log"
 )
 
+// Attachments example for Go Mail
 func Attachments() {
 	cfg := mail.Config{
 		URL:         "https://api.eu.sparkpost.com",
@@ -27,14 +29,12 @@ func Attachments() {
 
 	driver, err := mail.NewClient(mail.SparkPost, cfg)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	image, err := ioutil.ReadFile("gopher.jpg")
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	tx := &mail.Transmission{
@@ -52,9 +52,8 @@ func Attachments() {
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
-	fmt.Println(result)
+	fmt.Printf("%+v\n", result)
 }

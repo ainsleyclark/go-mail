@@ -19,20 +19,13 @@ import (
 )
 
 func (t *MailTestSuite) TestSMTP_Send() {
-	trans := Transmission{
-		Recipients: []string{"recipient@test.com"},
-		Subject:    "Subject",
-		HTML:       "<h1>HTML</h1>",
-		PlainText:  "PlainText",
-	}
-
 	tt := map[string]struct {
 		input *Transmission
 		send  smtpSendFunc
 		want  interface{}
 	}{
 		"Success": {
-			&trans,
+			Trans,
 			func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 				return nil
 			},
@@ -42,17 +35,7 @@ func (t *MailTestSuite) TestSMTP_Send() {
 			},
 		},
 		"With Attachment": {
-			&Transmission{
-				Recipients: []string{"recipient@test.com"},
-				Subject:    "Subject",
-				HTML:       "<h1>HTML</h1>",
-				PlainText:  "PlainText",
-				Attachments: Attachments{
-					Attachment{
-						Filename: "test.jpg",
-					},
-				},
-			},
+			TransWithAttachment,
 			func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 				return nil
 			},
@@ -69,7 +52,7 @@ func (t *MailTestSuite) TestSMTP_Send() {
 			"can't validate a nil transmission",
 		},
 		"Send Error": {
-			&trans,
+			Trans,
 			func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 				return errors.New("send error")
 			},

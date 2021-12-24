@@ -20,20 +20,13 @@ import (
 )
 
 func (t *MailTestSuite) TestMailGun_Send() {
-	trans := Transmission{
-		Recipients: []string{"recipient@test.com"},
-		Subject:    "Subject",
-		HTML:       "<h1>HTML</h1>",
-		PlainText:  "PlainText",
-	}
-
 	tt := map[string]struct {
 		input *Transmission
 		send  mailGunSendFunc
 		want  interface{}
 	}{
 		"Success": {
-			&trans,
+			Trans,
 			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
 				return "success", "1", nil
 			},
@@ -46,17 +39,7 @@ func (t *MailTestSuite) TestMailGun_Send() {
 			},
 		},
 		"With Attachment": {
-			&Transmission{
-				Recipients: []string{"recipient@test.com"},
-				Subject:    "Subject",
-				HTML:       "<h1>HTML</h1>",
-				PlainText:  "PlainText",
-				Attachments: Attachments{
-					Attachment{
-						Filename: "test.jpg",
-					},
-				},
-			},
+			TransWithAttachment,
 			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
 				return "success", "1", nil
 			},
@@ -76,7 +59,7 @@ func (t *MailTestSuite) TestMailGun_Send() {
 			"can't validate a nil transmission",
 		},
 		"Send Error": {
-			&trans,
+			Trans,
 			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
 				return "", "", errors.New("send error")
 			},

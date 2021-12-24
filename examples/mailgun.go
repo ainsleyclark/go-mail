@@ -16,8 +16,10 @@ package mail
 import (
 	"fmt"
 	"github.com/ainsleyclark/go-mail"
+	"log"
 )
 
+// MailGun example for Go Mail
 func MailGun() {
 	cfg := mail.Config{
 		URL:         "my-url",
@@ -29,8 +31,7 @@ func MailGun() {
 
 	driver, err := mail.NewClient(mail.MailGun, cfg)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	tx := &mail.Transmission{
@@ -42,9 +43,8 @@ func MailGun() {
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
-	fmt.Println(result)
+	fmt.Printf("%+v\n", result)
 }

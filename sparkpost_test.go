@@ -63,20 +63,13 @@ func (t *MailTestSuite) TestNewSparkPost() {
 }
 
 func (t *MailTestSuite) TestSparkPost_Send() {
-	trans := Transmission{
-		Recipients: []string{"recipient@test.com"},
-		Subject:    "Subject",
-		HTML:       "<h1>HTML</h1>",
-		PlainText:  "PlainText",
-	}
-
 	tt := map[string]struct {
 		input *Transmission
 		send  sparkSendFunc
 		want  interface{}
 	}{
 		"Success": {
-			&trans,
+			Trans,
 			func(t *sp.Transmission) (id string, res *sp.Response, err error) {
 				return "1", &sp.Response{
 					HTTP:    &http.Response{StatusCode: 200, Header: nil},
@@ -93,17 +86,7 @@ func (t *MailTestSuite) TestSparkPost_Send() {
 			},
 		},
 		"With Attachment": {
-			&Transmission{
-				Recipients: []string{"recipient@test.com"},
-				Subject:    "Subject",
-				HTML:       "<h1>HTML</h1>",
-				PlainText:  "PlainText",
-				Attachments: Attachments{
-					Attachment{
-						Filename: "test.jpg",
-					},
-				},
-			},
+			TransWithAttachment,
 			func(t *sp.Transmission) (id string, res *sp.Response, err error) {
 				return "1", &sp.Response{
 					HTTP:    &http.Response{StatusCode: 200, Header: nil},
@@ -127,14 +110,14 @@ func (t *MailTestSuite) TestSparkPost_Send() {
 			"can't validate a nil transmission",
 		},
 		"Send Error": {
-			&trans,
+			Trans,
 			func(t *sp.Transmission) (id string, res *sp.Response, err error) {
 				return "", nil, errors.New("send error")
 			},
 			"send error",
 		},
 		"Response Error": {
-			&trans,
+			Trans,
 			func(t *sp.Transmission) (id string, res *sp.Response, err error) {
 				return "0", &sp.Response{
 					Errors: sp.SPErrors{

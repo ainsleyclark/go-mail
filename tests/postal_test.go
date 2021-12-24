@@ -16,23 +16,16 @@ package mail
 import (
 	"github.com/ainsleyclark/go-mail"
 	"os"
-	"strconv"
 )
 
-func (t *MailTestSuite) Test_SMTP() {
+func (t *MailTestSuite) Test_Postal() {
 	tx := t.GetTransmission()
 
-	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
-	if err != nil {
-		t.Fail("Error parsing SMTP port")
-	}
-
-	driver, err := mail.NewClient(mail.SMTP, mail.Config{
-		URL:         os.Getenv("SMTP_URL"),
-		FromAddress: os.Getenv("SMTP_FROM_ADDRESS"),
-		FromName:    os.Getenv("SMTP_FROM_NAME"),
-		Password:    os.Getenv("SMTP_PASSWORD"),
-		Port:        port,
+	driver, err := mail.NewClient(mail.Postal, mail.Config{
+		URL:         os.Getenv("POSTAL_URL"),
+		APIKey:      os.Getenv("POSTAL_API_KEY"),
+		FromAddress: os.Getenv("POSTAL_FROM_ADDRESS"),
+		FromName:    os.Getenv("POSTAL_FROM_NAME"),
 	})
 	if err != nil {
 		t.Fail("Error creating client", err)
@@ -46,5 +39,5 @@ func (t *MailTestSuite) Test_SMTP() {
 	}
 
 	t.Equal(200, result.StatusCode)
-	t.NotEmpty(result.Message)
+	//t.NotEmpty(result.Message)
 }

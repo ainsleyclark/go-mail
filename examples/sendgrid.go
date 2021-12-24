@@ -16,8 +16,10 @@ package mail
 import (
 	"fmt"
 	"github.com/ainsleyclark/go-mail"
+	"log"
 )
 
+// SendGrid example for Go Mail
 func SendGrid() {
 	cfg := mail.Config{
 		APIKey:      "my-key",
@@ -27,8 +29,7 @@ func SendGrid() {
 
 	driver, err := mail.NewClient(mail.SendGrid, cfg)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
 	tx := &mail.Transmission{
@@ -40,9 +41,8 @@ func SendGrid() {
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
-	fmt.Println(result)
+	fmt.Printf("%+v\n", result)
 }

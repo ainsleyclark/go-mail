@@ -21,20 +21,13 @@ import (
 )
 
 func (t *MailTestSuite) TestSendGrid_Send() {
-	trans := Transmission{
-		Recipients: []string{"recipient@test.com"},
-		Subject:    "Subject",
-		HTML:       "<h1>HTML</h1>",
-		PlainText:  "PlainText",
-	}
-
 	tt := map[string]struct {
 		input *Transmission
 		send  sendGridSendFunc
 		want  interface{}
 	}{
 		"Success": {
-			&trans,
+			Trans,
 			func(email *mail.SGMailV3) (*rest.Response, error) {
 				return &rest.Response{
 					StatusCode: http.StatusOK,
@@ -51,17 +44,7 @@ func (t *MailTestSuite) TestSendGrid_Send() {
 			},
 		},
 		"With Attachment": {
-			&Transmission{
-				Recipients: []string{"recipient@test.com"},
-				Subject:    "Subject",
-				HTML:       "<h1>HTML</h1>",
-				PlainText:  "PlainText",
-				Attachments: Attachments{
-					Attachment{
-						Filename: "test.jpg",
-					},
-				},
-			},
+			TransWithAttachment,
 			func(email *mail.SGMailV3) (*rest.Response, error) {
 				return &rest.Response{
 					StatusCode: http.StatusOK,
@@ -85,7 +68,7 @@ func (t *MailTestSuite) TestSendGrid_Send() {
 			"can't validate a nil transmission",
 		},
 		"Send Error": {
-			&trans,
+			Trans,
 			func(email *mail.SGMailV3) (*rest.Response, error) {
 				return nil, errors.New("send error")
 			},

@@ -42,13 +42,13 @@ const (
 	MailGun = "mailgun"
 	// SendGrid driver type.
 	SendGrid = "sendgrid"
+	// Postal driver type.
+	Postal = "postal"
 	// SMTP driver type.
 	SMTP = "smtp"
 )
 
-// NewClient
-//
-// Creates a new Mailer based on the input driver.
+// NewClient creates a new Mailer based on the input driver.
 // Sparkpost, MailGun or SendGrid can be passed.
 // Returns an error if a driver did not match,
 // Or there was an error creating the client.
@@ -60,6 +60,8 @@ func NewClient(driver string, cfg Config) (Mailer, error) {
 		return newMailGun(cfg), nil
 	case SendGrid:
 		return newSendGrid(cfg), nil
+	case Postal:
+		return newPostal(cfg)
 	case SMTP:
 		return newSMTP(cfg), nil
 	}

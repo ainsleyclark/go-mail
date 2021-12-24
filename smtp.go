@@ -57,7 +57,7 @@ func (m *smtpClient) Send(t *Transmission) (Response, error) {
 
 	auth := smtp.PlainAuth("", m.cfg.FromAddress, m.cfg.Password, m.cfg.URL)
 
-	err = m.send(m.cfg.URL+":"+strconv.Itoa(m.cfg.Port), auth, m.cfg.FromAddress, t.Recipients, m.bytes(t))
+	err = m.send(m.cfg.URL+":"+strconv.Itoa(m.cfg.Port), auth, m.cfg.FromAddress, m.getTo(t), m.bytes(t))
 	if err != nil {
 		fmt.Println(err)
 		return Response{}, err
@@ -69,6 +69,15 @@ func (m *smtpClient) Send(t *Transmission) (Response, error) {
 	}, nil
 }
 
+// getTo returns the merged transmission recipients, CC and
+// BCC email addresses.
+func (m *smtpClient) getTo(t *Transmission) []string {
+	var to []string
+	to = append(t.Recipients, t.CC...)
+	to = append(to, t.BCC...)
+	return to
+}
+
 // Processes the transmission and returns the bytes for
 // sending. Mime types are set dependent on the
 // content passed.
@@ -77,6 +86,10 @@ func (m *smtpClient) bytes(t *Transmission) []byte {
 
 	buf.WriteString(fmt.Sprintf("Subject: %s\n", t.Subject))
 	buf.WriteString(fmt.Sprintf("To: %s\n", strings.Join(t.Recipients, ",")))
+
+	if t.HasCC() {
+		buf.WriteString(fmt.Sprintf("CC: %s\n", strings.Join(t.CC, ",")))
+	}
 
 	buf.WriteString("MIME-Version: 1.0\n")
 	writer := multipart.NewWriter(buf)

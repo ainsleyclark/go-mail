@@ -15,6 +15,7 @@ package mail
 
 import (
 	sp "github.com/SparkPost/gosparkpost"
+	"strings"
 )
 
 // sparkPost represents the data for sending mail via the
@@ -75,6 +76,8 @@ func (s *sparkPost) Send(t *Transmission) (Response, error) {
 		return Response{}, err
 	}
 
+	headerTo := strings.Join(t.Recipients, ",")
+
 	content := sp.Content{
 		HTML: t.HTML,
 		Text: t.PlainText,
@@ -83,16 +86,41 @@ func (s *sparkPost) Send(t *Transmission) (Response, error) {
 			Name:  s.cfg.FromName,
 		},
 		Subject: t.Subject,
+		Headers: make(map[string]string),
+	}
+
+	tx := &sp.Transmission{
+		Recipients: []sp.Recipient{},
+	}
+
+	for _, r := range t.Recipients {
+		tx.Recipients = append(tx.Recipients.([]sp.Recipient), sp.Recipient{
+			Address: sp.Address{Email: r, HeaderTo: headerTo},
+		})
+	}
+
+	if t.HasCC() {
+		for _, c := range t.CC {
+			tx.Recipients = append(tx.Recipients.([]sp.Recipient), sp.Recipient{
+				Address: sp.Address{Email: c, HeaderTo: headerTo},
+			})
+			content.Headers["cc"] = strings.Join(t.CC, ",")
+		}
+	}
+
+	if t.HasBCC() {
+		for _, b := range t.BCC {
+			tx.Recipients = append(tx.Recipients.([]sp.Recipient), sp.Recipient{
+				Address: sp.Address{Email: b, HeaderTo: headerTo},
+			})
+		}
 	}
 
 	if t.Attachments.Exists() {
 		content.Attachments = s.addAttachments(t.Attachments)
 	}
 
-	tx := &sp.Transmission{
-		Recipients: t.Recipients,
-		Content:    content,
-	}
+	tx.Content = content
 
 	id, response, err := s.send(tx)
 	if err != nil {

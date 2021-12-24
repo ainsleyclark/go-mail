@@ -15,6 +15,7 @@ package mail
 
 import (
 	"github.com/ainsleyclark/go-mail"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"os"
@@ -45,18 +46,23 @@ const (
 func (t *MailTestSuite) GetTransmission() *mail.Transmission {
 	wd, err := os.Getwd()
 	t.NoError(err)
-	path := filepath.Dir(wd) + string(os.PathSeparator) + DataPath + string(os.PathSeparator) + PNGName
 
+	err = godotenv.Load(filepath.Join(filepath.Dir(wd), "/.env"))
+	if err != nil {
+		t.Fail("Error loading .env file")
+	}
+
+	path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
-		t.Fail("error getting attachment with the path: "+path, err)
+		t.Fail("Error getting attachment with the path: "+path, err)
 	}
 
 	return &mail.Transmission{
 		Recipients: []string{"ainsley@reddico.co.uk"},
 		Subject:    "Test - Go Mail",
 		HTML:       "<h1>Hello from Go Mail!</h1>",
-		PlainText:  "",
+		PlainText:  "Hello from Go Mail!",
 		Attachments: mail.Attachments{
 			mail.Attachment{
 				Filename: "gopher.png",

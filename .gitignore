@@ -23,3 +23,6 @@ credentials.md
 
 # System Files
 .DS_Store
+
+# Go Mail Specifc
+.env

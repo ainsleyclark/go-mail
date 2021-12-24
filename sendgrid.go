@@ -71,6 +71,24 @@ func (m *sendGrid) Send(t *Transmission) (Response, error) {
 	}
 	p.AddTos(to...)
 
+	// Add CC
+	if t.HasCC() {
+		var cc []*mail.Email
+		for _, v := range t.CC {
+			cc = append(cc, mail.NewEmail("", v))
+		}
+		p.AddCCs(cc...)
+	}
+
+	// Add BCC
+	if t.HasBCC() {
+		var bcc []*mail.Email
+		for _, v := range t.BCC {
+			bcc = append(bcc, mail.NewEmail("", v))
+		}
+		p.AddBCCs(bcc...)
+	}
+
 	// Add Plain Text
 	if t.PlainText != "" {
 		content := mail.NewContent("text/plain", t.PlainText)

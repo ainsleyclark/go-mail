@@ -14,37 +14,36 @@
 package mail
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail"
-	"os"
-	"strconv"
+	"log"
 )
 
-func (t *MailTestSuite) Test_SMTP() {
-	tx := t.GetTransmission()
-
-	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
-	if err != nil {
-		t.Fail("Error parsing SMTP port")
+// Postal example for Go Mail
+func Postal() {
+	cfg := mail.Config{
+		URL:         "https://postal.example.com",
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
 	}
 
-	driver, err := mail.NewClient(mail.SMTP, mail.Config{
-		URL:         os.Getenv("SMTP_URL"),
-		FromAddress: os.Getenv("SMTP_FROM_ADDRESS"),
-		FromName:    os.Getenv("SMTP_FROM_NAME"),
-		Password:    os.Getenv("SMTP_PASSWORD"),
-		Port:        port,
-	})
+	driver, err := mail.NewClient(mail.Postal, cfg)
 	if err != nil {
-		t.Fail("Error creating client", err)
-		return
+		log.Fatalln(err)
+	}
+
+	tx := &mail.Transmission{
+		Recipients: []string{"hello@gophers.com"},
+		Subject:    "My email",
+		HTML:       "<h1>Hello from go mail!</h1>",
+		PlainText:  "plain text",
 	}
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		t.Fail("Error sending smtp email", err)
-		return
+		log.Fatalln(err)
 	}
 
-	t.Equal(200, result.StatusCode)
-	t.NotEmpty(result.Message)
+	fmt.Printf("%+v\n", result)
 }
