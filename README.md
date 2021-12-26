@@ -60,6 +60,7 @@ submit a pull request.
 | SparkPost   | [github.com/SparkPost/gosparkpost](https://github.com/SparkPost/gosparkpost) | [Here](examples/sparkpost.go) |
 | MailGun     | [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4])        | [Here](examples/mailgun.go)   |
 | SendGrid    | [github.com/sendgrid/sendgrid-go](github.com/sendgrid/sendgrid-go)           | [Here](examples/sendgrid.go)  |
+| Postmark    |  None         																														   | [Here](examples/postmark.go)  |
 | Postal      |  None         																														   | [Here](examples/postal.go)  |
 | SMTP        |  None - only use in development.                                             | [Here](examples/smtp.go)      |
 
