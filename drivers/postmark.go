@@ -16,18 +16,16 @@ package drivers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	"io"
 	"net/http"
 	"strings"
 	"time"
 )
 
 type postmark struct {
-	cfg        mail.Config
-	client     *http.Client
-	marshaller func(v interface{}) ([]byte, error)
-	bodyReader func(r io.Reader) ([]byte, error)
+	cfg    mail.Config
+	client client.Requester
 }
 
 func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
@@ -36,14 +34,17 @@ func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 		return nil, err
 	}
 	return &postmark{
-		cfg: cfg,
-		client: &http.Client{
-			Timeout: time.Second * 10,
-		},
-		marshaller: json.Marshal,
-		bodyReader: io.ReadAll,
+		cfg:    cfg,
+		client: client.New("https://api.postmarkapp.com"),
 	}, nil
 }
+
+const (
+	postmarkEndpoint = "/email"
+	// postmarkErrorMessage defines the message when an error occurred
+	// when sending mail via the Postmark API.
+	postmarkErrorMessage = "error sending transmission to Postmark API"
+)
 
 // postmarkMessage defines the data to be sent to the Postmark API.
 type postmarkMessage struct {
@@ -77,6 +78,28 @@ type postmarkAttachment struct {
 	ContentID   string `json:"ContentID,omitempty"`
 }
 
+type postmarkResponse struct {
+	To          string    `json:"To"`
+	SubmittedAt time.Time `json:"SubmittedAt"`
+	MessageID   string    `json:"MessageID"`
+	ErrorCode   int       `json:"ErrorCode"` // 0 represents a successfull transmission.
+	Message     string    `json:"Message"`
+}
+
+// HasError determines if the Postal call was successful
+// by comparing the status.
+func (p *postmarkResponse) HasError() bool {
+	return p.ErrorCode != 0
+}
+
+// Error returns a formatted response error.
+func (p *postmarkResponse) Error() error {
+	return fmt.Errorf("%s - code: %d, message: %s", postmarkErrorMessage, p.ErrorCode, p.Message)
+}
+
+// {"ErrorCode":10,"Message":"The Server Token you provided in the X-Postmark-Server-Token request header was invalid. Please verify that you are using a valid token."}
+// {"To":"info@ainsleyclark.com","SubmittedAt":"2021-12-26T19:29:33.0764359Z","MessageID":"9e0b42ba-cb8c-49be-a1ce-1342e30a2605","ErrorCode":0,"Message":"OK"}
+
 func (p *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
@@ -84,13 +107,14 @@ func (p *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 	}
 
 	m := postmarkMessage{
-		To:        strings.Join(t.Recipients, ","),
-		CC:        strings.Join(t.CC, ","),
-		BCC:       strings.Join(t.BCC, ","),
-		From:      fmt.Sprintf("%s <%s>", p.cfg.FromName, p.cfg.FromAddress),
-		Subject:   t.Subject,
-		HTML:      t.HTML,
-		PlainText: t.PlainText,
+		To:            strings.Join(t.Recipients, ","),
+		CC:            strings.Join(t.CC, ","),
+		BCC:           strings.Join(t.BCC, ","),
+		From:          fmt.Sprintf("%s <%s>", p.cfg.FromName, p.cfg.FromAddress),
+		Subject:       t.Subject,
+		HTML:          t.HTML,
+		PlainText:     t.PlainText,
+		MessageStream: "outbound",
 	}
 
 	if t.Attachments.Exists() {
@@ -103,5 +127,33 @@ func (p *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	return mail.Response{}, err
+	// Ensure the API Key is set for authorisation
+	// and add the JSON content type.
+	headers := http.Header{}
+	headers.Set("X-Postmark-Server-Token", p.cfg.APIKey)
+	headers.Add("Content-Type", "application/json")
+
+	buf, resp, err := p.client.Do(m, postmarkEndpoint, headers)
+	if err != nil {
+		return mail.Response{}, err
+	}
+
+	// Unmarshal the buffer into a postmarkResponse.
+	response := postmarkResponse{}
+	err = json.Unmarshal(buf, &response)
+	if err != nil {
+		return mail.Response{}, err
+	}
+
+	if response.HasError() {
+		return mail.Response{}, response.Error()
+	}
+
+	return mail.Response{
+		StatusCode: resp.StatusCode,
+		Body:       string(buf),
+		Headers:    resp.Header,
+		ID:         response.MessageID,
+		Message:    response.Message,
+	}, nil
 }

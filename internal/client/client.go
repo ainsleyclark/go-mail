@@ -35,10 +35,14 @@ type Client struct {
 	bodyReader func(r io.Reader) ([]byte, error)
 }
 
+const (
+	Timeout = time.Second * 10
+)
+
 func New(baseURL string) *Client {
 	return &Client{
 		http: &http.Client{
-			Timeout: time.Second * 10,
+			Timeout: Timeout,
 		},
 		baseURL:    strings.TrimSuffix(baseURL, "/"),
 		marshaller: json.Marshal,
@@ -54,7 +58,7 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 
 	// Setup request with URL, ensures URL's are
 	// trimmed.
-	url = fmt.Sprintf("%s/%s", strings.TrimPrefix(url, "/"), c.baseURL)
+	url = fmt.Sprintf("%s/%s", c.baseURL, strings.TrimPrefix(url, "/"))
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, nil, err
@@ -67,17 +71,18 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 	}
 	defer resp.Body.Close()
 
+	// Read the response body into a buffer for processing using
+	// the bodyReader function.
+	buf, err := c.bodyReader(resp.Body)
+	if err != nil {
+		return nil, resp, err
+	}
+
 	// Successful response
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		// Read the response body into a buffer for processing using
-		// the bodyReader function.
-		buf, err := c.bodyReader(resp.Body)
-		if err != nil {
-			return nil, resp, err
-		}
 		return buf, resp, nil
 	}
 
 	// Invalid request, not between 200 & 300
-	return nil, resp, errors.New("go-mail client: invalid request")
+	return buf, resp, errors.New("go-mail client: invalid request")
 }

@@ -22,6 +22,10 @@ import (
 	"net/http"
 )
 
+var (
+	PostalHeaders = http.Header{"Content-Type": []string{"application/json"}, "X-Server-Api-Key": []string{""}}
+)
+
 func (t *DriversTestSuite) TestNewPostal() {
 	tt := map[string]struct {
 		input mail.Config
@@ -116,6 +120,7 @@ func (t *DriversTestSuite) TestPostalResponse_ToResponse() {
 			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       "body",
+				Headers:    PostalHeaders,
 				Message:    "Successfully sent Postal email",
 			},
 		},
@@ -125,6 +130,7 @@ func (t *DriversTestSuite) TestPostalResponse_ToResponse() {
 			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       "body",
+				Headers:    PostalHeaders,
 				Message:    "Successfully sent Postal email",
 				ID:         "1",
 			},
@@ -133,25 +139,23 @@ func (t *DriversTestSuite) TestPostalResponse_ToResponse() {
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			got := test.resp.ToResponse(test.input)
+			got := test.resp.ToResponse(&http.Response{Header: PostalHeaders}, test.input)
 			t.Equal(test.want, got)
 		})
 	}
 }
 
 func (t *DriversTestSuite) TestPostal_Send() {
-	headers := http.Header{"Content-Type":[]string{"application/json"}, "X-Server-Api-Key":[]string{""}}
-
 	tt := map[string]struct {
-		input      *mail.Transmission
-		handler    func (m *mocks.Requester)
-		want       interface{}
+		input   *mail.Transmission
+		handler func(m *mocks.Requester)
+		want    interface{}
 	}{
 		"Success": {
 			Trans,
 			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postalSendURL, headers).
-					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), nil, nil)
+				m.On("Do", mock.Anything, postalEndpoint, PostalHeaders).
+					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), &http.Response{}, nil)
 			},
 			mail.Response{
 				StatusCode: http.StatusOK,
@@ -162,8 +166,8 @@ func (t *DriversTestSuite) TestPostal_Send() {
 		"With Attachment": {
 			TransWithAttachment,
 			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postalSendURL, headers).
-					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), nil, nil)
+				m.On("Do", mock.Anything, postalEndpoint, PostalHeaders).
+					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), &http.Response{}, nil)
 			},
 			mail.Response{
 				StatusCode: http.StatusOK,
@@ -179,7 +183,7 @@ func (t *DriversTestSuite) TestPostal_Send() {
 		"Do Error": {
 			Trans,
 			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postalSendURL, headers).
+				m.On("Do", mock.Anything, postalEndpoint, PostalHeaders).
 					Return([]byte("output"), nil, errors.New("do error"))
 			},
 			"do error",
@@ -187,7 +191,7 @@ func (t *DriversTestSuite) TestPostal_Send() {
 		"Unmarshal Error": {
 			Trans,
 			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postalSendURL, headers).
+				m.On("Do", mock.Anything, postalEndpoint, PostalHeaders).
 					Return([]byte(`wrong`), nil, nil)
 			},
 			"invalid character",
@@ -195,7 +199,7 @@ func (t *DriversTestSuite) TestPostal_Send() {
 		"Response Error": {
 			Trans,
 			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postalSendURL, headers).
+				m.On("Do", mock.Anything, postalEndpoint, PostalHeaders).
 					Return([]byte(`{"status": "error"}`), nil, nil)
 			},
 			postalErrorMessage,
@@ -210,10 +214,8 @@ func (t *DriversTestSuite) TestPostal_Send() {
 			}
 
 			ptl := postal{
-				cfg: mail.Config{
-					FromAddress: "from",
-				},
-				client:  m,
+				cfg:    mail.Config{FromAddress: "from"},
+				client: m,
 			}
 
 			resp, err := ptl.Send(test.input)
@@ -221,6 +223,7 @@ func (t *DriversTestSuite) TestPostal_Send() {
 				t.Contains(err.Error(), test.want)
 				return
 			}
+
 			t.Equal(test.want, resp)
 		})
 	}

@@ -120,11 +120,12 @@ func TestClient_Do(t *testing.T) {
 
 			c := Client{
 				http:       server.Client(),
+				baseURL:    url,
 				marshaller: test.marshaller,
 				bodyReader: test.bodyReader,
 			}
 
-			buf, resp, err := c.Do("input", url, nil)
+			buf, resp, err := c.Do("input", "", nil)
 			if err != nil {
 				assert.Contains(t, err.Error(), test.want)
 				return

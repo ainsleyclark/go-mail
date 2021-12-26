@@ -30,8 +30,8 @@ import (
 // See: https://docs.postalserver.io/developer/api
 // See: https://apiv1.postalserver.io/controllers/send/message.html
 type postal struct {
-	cfg        mail.Config
-	client     client.Requester
+	cfg    mail.Config
+	client client.Requester
 }
 
 // NewPostal creates a new Postal client. Configuration
@@ -48,10 +48,10 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 }
 
 const (
-	postalSendURL = "/api/v1/send/message"
+	postalEndpoint = "/api/v1/send/message"
 	// postalErrorMessage defines the message when an error occurred
 	// when sending mail via the Postal API.
-	postalErrorMessage = "error sending message to Postal api"
+	postalErrorMessage = "error sending transmission to Postal API"
 )
 
 // postalMessage defines the data to be sent to the Postal API.
@@ -104,10 +104,11 @@ func (p *postalResponse) Error() error {
 
 // ToResponse transforms a postalResponse into a Go Mail response.
 // Checks if the message_id is attached and sets accordingly.
-func (p *postalResponse) ToResponse(buf []byte) mail.Response {
+func (p *postalResponse) ToResponse(resp *http.Response, buf []byte) mail.Response {
 	response := mail.Response{
 		StatusCode: http.StatusOK,
 		Body:       string(buf),
+		Headers:    resp.Header,
 		Message:    "Successfully sent Postal email",
 	}
 	if val, ok := p.Data["message_id"]; ok {
@@ -153,7 +154,7 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 	headers.Set("X-Server-API-Key", p.cfg.APIKey)
 	headers.Add("Content-Type", "application/json")
 
-	buf, _, err := p.client.Do(m, "/api/v1/send/message", headers)
+	buf, resp, err := p.client.Do(m, postalEndpoint, headers)
 	if err != nil {
 		return mail.Response{}, err
 	}
@@ -171,5 +172,5 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 		return mail.Response{}, response.Error()
 	}
 
-	return response.ToResponse(buf), nil
+	return response.ToResponse(resp, buf), nil
 }
