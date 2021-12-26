@@ -36,7 +36,7 @@ func (t *DriversTestSuite) TestNewSparkPost() {
 		},
 		"Validation Failed": {
 			mail.Config{},
-			"mailer requires from address",
+			"driver requires from address",
 		},
 		"Error": {
 			mail.Config{

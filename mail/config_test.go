@@ -33,21 +33,21 @@ func (t *MailTestSuite) TestConfig_Validate() {
 				APIKey:   "key",
 				FromName: "Test",
 			},
-			errors.New("mailer requires from address"),
+			errors.New("driver requires from address"),
 		},
 		"No From Name": {
 			Config{
 				APIKey:      "key",
 				FromAddress: "hello@test.com",
 			},
-			errors.New("mailer requires from name"),
+			errors.New("driver requires from name"),
 		},
 		"No Key": {
 			Config{
 				FromAddress: "hello@test.com",
 				FromName:    "Test",
 			},
-			errors.New("mailer requires api key"),
+			errors.New("driver requires api key"),
 		},
 	}
 

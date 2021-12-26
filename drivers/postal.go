@@ -22,10 +22,8 @@ import (
 	"net/http"
 )
 
-// postal represents the data for sending mail via the
-// Postal API. Configuration, the http.client and the
-// main send function are parsed for sending
-// data.
+// postal represents the entity for sending mail via the
+// Postal API.
 //
 // See: https://docs.postalserver.io/developer/api
 // See: https://apiv1.postalserver.io/controllers/send/message.html
@@ -48,6 +46,7 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 }
 
 const (
+	// postalEndpoint defines the endpoint to POST to.
 	postalEndpoint = "/api/v1/send/message"
 	// postalErrorMessage defines the message when an error occurred
 	// when sending mail via the Postal API.
@@ -106,7 +105,7 @@ func (p *postalResponse) Error() error {
 // Checks if the message_id is attached and sets accordingly.
 func (p *postalResponse) ToResponse(resp *http.Response, buf []byte) mail.Response {
 	response := mail.Response{
-		StatusCode: http.StatusOK,
+		StatusCode: resp.StatusCode,
 		Body:       string(buf),
 		Headers:    resp.Header,
 		Message:    "Successfully sent Postal email",

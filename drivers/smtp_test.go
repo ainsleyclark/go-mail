@@ -19,6 +19,59 @@ import (
 	"net/smtp"
 )
 
+func (t *DriversTestSuite) TestNewSMTP() {
+	tt := map[string]struct {
+		input mail.Config
+		want  interface{}
+	}{
+		"Success": {
+			mail.Config{
+				URL:         "https://smtp.example.com",
+				FromAddress: "addr",
+				FromName:    "name",
+				Password:    "password",
+			},
+			nil,
+		},
+		"No URL": {
+			mail.Config{},
+			"driver requires a URL",
+		},
+		"No From Address": {
+			mail.Config{
+				URL: "https://smtp.example.com",
+			},
+			"driver requires from address",
+		},
+		"No From Name": {
+			mail.Config{
+				URL:         "https://smtp.example.com",
+				FromAddress: "hello@gophers.com",
+			},
+			"driver requires from name",
+		},
+		"No Password": {
+			mail.Config{
+				URL:         "https://smtp.example.com",
+				FromAddress: "hello@gophers.com",
+				FromName:    "name",
+			},
+			"driver requires a password",
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got, err := NewSMTP(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.NotNil(got)
+		})
+	}
+}
+
 func (t *DriversTestSuite) TestSMTP_Send() {
 	tt := map[string]struct {
 		input *mail.Transmission

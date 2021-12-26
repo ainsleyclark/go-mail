@@ -21,6 +21,38 @@ import (
 	"net/http"
 )
 
+func (t *DriversTestSuite) TestNewSendgrid() {
+	tt := map[string]struct {
+		input mail.Config
+		want  interface{}
+	}{
+		"Success": {
+			mail.Config{
+				URL:         "https://postal.example.com",
+				APIKey:      "key",
+				FromAddress: "addr",
+				FromName:    "name",
+			},
+			nil,
+		},
+		"Validation Failed": {
+			mail.Config{},
+			"driver requires from address",
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got, err := NewSendGrid(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.NotNil(got)
+		})
+	}
+}
+
 func (t *DriversTestSuite) TestSendGrid_Send() {
 	tt := map[string]struct {
 		input *mail.Transmission

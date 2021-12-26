@@ -41,7 +41,7 @@ func (t *DriversTestSuite) TestNewPostmark() {
 		},
 		"Validation Failed": {
 			mail.Config{},
-			"mailer requires from address",
+			"driver requires from address",
 		},
 	}
 

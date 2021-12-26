@@ -15,6 +15,7 @@ package drivers
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
 	"mime/multipart"
@@ -40,7 +41,18 @@ type smtpSendFunc func(addr string, a smtp.Auth, from string, to []string, msg [
 // NewSMTP creates a new smtp client. Configuration
 // is validated before initialisation.
 func NewSMTP(cfg mail.Config) (mail.Mailer, error) {
-	fmt.Println("Warning, using SMTP is insecure, only use for development.")
+	if cfg.URL == "" {
+		return nil, errors.New("driver requires a URL")
+	}
+	if cfg.FromAddress == "" {
+		return nil, errors.New("driver requires from address")
+	}
+	if cfg.FromName == "" {
+		return nil, errors.New("driver requires from name")
+	}
+	if cfg.Password == "" {
+		return nil, errors.New("driver requires a password")
+	}
 	return &smtpClient{
 		cfg:  cfg,
 		send: smtp.SendMail,

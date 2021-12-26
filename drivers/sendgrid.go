@@ -37,6 +37,10 @@ type sendGridSendFunc func(email *mailsg.SGMailV3) (*rest.Response, error)
 // NewSendGrid creates a new sendGrid client. Configuration
 // is validated before initialisation.
 func NewSendGrid(cfg mail.Config) (mail.Mailer, error) {
+	err := cfg.Validate()
+	if err != nil {
+		return nil, err
+	}
 	client := sendgrid.NewSendClient(cfg.APIKey)
 	return &sendGrid{
 		cfg:    cfg,

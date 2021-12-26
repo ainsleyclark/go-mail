@@ -35,16 +35,13 @@ type Config struct {
 // calls.
 func (c *Config) Validate() error {
 	if c.FromAddress == "" {
-		return errors.New("mailer requires from address")
+		return errors.New("driver requires from address")
 	}
-
 	if c.FromName == "" {
-		return errors.New("mailer requires from name")
+		return errors.New("driver requires from name")
 	}
-
 	if c.APIKey == "" {
-		return errors.New("mailer requires api key")
+		return errors.New("driver requires api key")
 	}
-
 	return nil
 }

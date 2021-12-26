@@ -42,7 +42,7 @@ func (t *DriversTestSuite) TestNewPostal() {
 		},
 		"Validation Failed": {
 			mail.Config{},
-			"mailer requires from address",
+			"driver requires from address",
 		},
 	}
 
@@ -139,7 +139,7 @@ func (t *DriversTestSuite) TestPostalResponse_ToResponse() {
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			got := test.resp.ToResponse(&http.Response{Header: PostalHeaders}, test.input)
+			got := test.resp.ToResponse(&http.Response{Header: PostalHeaders, StatusCode: http.StatusOK}, test.input)
 			t.Equal(test.want, got)
 		})
 	}
@@ -155,7 +155,7 @@ func (t *DriversTestSuite) TestPostal_Send() {
 			Trans,
 			func(m *mocks.Requester) {
 				m.On("Do", mock.Anything, postalEndpoint, PostalHeaders).
-					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), &http.Response{}, nil)
+					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), &http.Response{StatusCode: http.StatusOK}, nil)
 			},
 			mail.Response{
 				StatusCode: http.StatusOK,
@@ -167,7 +167,7 @@ func (t *DriversTestSuite) TestPostal_Send() {
 			TransWithAttachment,
 			func(m *mocks.Requester) {
 				m.On("Do", mock.Anything, postalEndpoint, PostalHeaders).
-					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), &http.Response{}, nil)
+					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), &http.Response{StatusCode: http.StatusOK}, nil)
 			},
 			mail.Response{
 				StatusCode: http.StatusOK,

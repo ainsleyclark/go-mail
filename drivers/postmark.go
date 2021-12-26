@@ -23,11 +23,17 @@ import (
 	"time"
 )
 
+// postal represents the entity for sending mail via the
+// Postmark API.
+//
+// See: https://postmarkapp.com/developer/api/email-api
 type postmark struct {
 	cfg    mail.Config
 	client client.Requester
 }
 
+// NewPostmark creates a new Postmark client. Configuration
+// is validated before initialisation.
 func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 	err := cfg.Validate()
 	if err != nil {
@@ -40,6 +46,7 @@ func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 }
 
 const (
+	// postalEndpoint defines the endpoint to POST to.
 	postmarkEndpoint = "/email"
 	// postmarkErrorMessage defines the message when an error occurred
 	// when sending mail via the Postmark API.
@@ -71,6 +78,7 @@ type postmarkMessage struct {
 	MessageStream string `json:"MessageStream"`
 }
 
+// postmarkAttachment defines a singular Postmark mail attachment.
 type postmarkAttachment struct {
 	Name        string `json:"Name"`
 	Content     string `json:"Content"`
@@ -78,11 +86,13 @@ type postmarkAttachment struct {
 	ContentID   string `json:"ContentID,omitempty"`
 }
 
+// postmarkResponse defines the data sent back from the Postmark API.
+// An error code of 0 represents a successful transmission.
 type postmarkResponse struct {
 	To          string    `json:"To"`
 	SubmittedAt time.Time `json:"SubmittedAt"`
 	MessageID   string    `json:"MessageID"`
-	ErrorCode   int       `json:"ErrorCode"` // 0 represents a successfull transmission.
+	ErrorCode   int       `json:"ErrorCode"`
 	Message     string    `json:"Message"`
 }
 
@@ -97,9 +107,10 @@ func (p *postmarkResponse) Error() error {
 	return fmt.Errorf("%s - code: %d, message: %s", postmarkErrorMessage, p.ErrorCode, p.Message)
 }
 
-// {"ErrorCode":10,"Message":"The Server Token you provided in the X-Postmark-Server-Token request header was invalid. Please verify that you are using a valid token."}
-// {"To":"info@ainsleyclark.com","SubmittedAt":"2021-12-26T19:29:33.0764359Z","MessageID":"9e0b42ba-cb8c-49be-a1ce-1342e30a2605","ErrorCode":0,"Message":"OK"}
-
+// Send posts the go mail Transmission to the Postal
+// API. Transmissions are validated before sending
+// and attachments are added. Returns an error
+// upon failure.
 func (p *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {

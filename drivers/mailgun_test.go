@@ -20,6 +20,47 @@ import (
 	"github.com/mailgun/mailgun-go/v4"
 )
 
+func (t *DriversTestSuite) TestNewMailGun() {
+	tt := map[string]struct {
+		input mail.Config
+		want  interface{}
+	}{
+		"Success": {
+			mail.Config{
+				URL:         "https://mailgun.example.com",
+				FromAddress: "addr",
+				FromName:    "name",
+				APIKey:      "key",
+				Domain:      "domain",
+			},
+			nil,
+		},
+		"Validation Failed": {
+			mail.Config{},
+			"driver requires from address",
+		},
+		"No Domain": {
+			mail.Config{
+				FromName:    "name",
+				FromAddress: "hello@gophers.com",
+				APIKey:      "key",
+			},
+			"driver requires a domain",
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got, err := NewMailGun(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.NotNil(got)
+		})
+	}
+}
+
 func (t *DriversTestSuite) TestMailGun_Send() {
 	tt := map[string]struct {
 		input *mail.Transmission

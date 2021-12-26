@@ -15,6 +15,7 @@ package drivers
 
 import (
 	"context"
+	"errors"
 	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/mailgun/mailgun-go/v4"
 	"net/http"
@@ -38,6 +39,13 @@ type mailGunSendFunc func(ctx context.Context, message *mailgun.Message) (mes st
 // NewMailGun creates a new MailGun client. Configuration
 // is validated before initialisation.
 func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
+	err := cfg.Validate()
+	if err != nil {
+		return nil, err
+	}
+	if cfg.Domain == "" {
+		return nil, errors.New("driver requires a domain")
+	}
 	client := mailgun.NewMailgun(cfg.Domain, cfg.APIKey)
 	return &mailGun{
 		cfg:    cfg,
