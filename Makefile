@@ -10,7 +10,7 @@ format:
 
 # Run linter
 lint:
-	golangci-lint run ./
+	golangci-lint run ./...
 .PHONY: lint
 
 # Test uses race and coverage
@@ -27,6 +27,11 @@ test-v:
 cover: test
 	go tool cover -html=coverage.out
 .PHONY: cover
+
+# Make mocks keeping directory tree
+mock:
+	rm -rf mocks && mockery --all
+.PHONY: mock
 
 # Make format, lint and test
 all:

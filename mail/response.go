@@ -13,16 +13,6 @@
 
 package mail
 
-import (
-	"errors"
-)
-
-// Mailer defines the sender for go-mail returning a
-// Response or error when an email is sent.
-type Mailer interface {
-	Send(t *Transmission) (Response, error)
-}
-
 // Response represents the data passed back from a
 // successful transmission. Where possible, a
 // status code, body, headers will be
@@ -33,37 +23,4 @@ type Response struct {
 	Headers    map[string][]string // e.g. map[X-Ratelimit-Limit:[600]]
 	ID         string              // e.g "100"
 	Message    interface{}         // e.g "Email sent successfully"
-}
-
-const (
-	// SparkPost driver type.
-	SparkPost = "sparkpost"
-	// MailGun driver type.
-	MailGun = "mailgun"
-	// SendGrid driver type.
-	SendGrid = "sendgrid"
-	// Postal driver type.
-	Postal = "postal"
-	// SMTP driver type.
-	SMTP = "smtp"
-)
-
-// NewClient creates a new Mailer based on the input driver.
-// Sparkpost, MailGun or SendGrid can be passed.
-// Returns an error if a driver did not match,
-// Or there was an error creating the client.
-func NewClient(driver string, cfg Config) (Mailer, error) {
-	switch driver {
-	case SparkPost:
-		return newSparkPost(cfg)
-	case MailGun:
-		return newMailGun(cfg), nil
-	case SendGrid:
-		return newSendGrid(cfg), nil
-	case Postal:
-		return newPostal(cfg)
-	case SMTP:
-		return newSMTP(cfg), nil
-	}
-	return nil, errors.New(driver + " not supported")
 }

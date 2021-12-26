@@ -11,10 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	"context"
+	"errors"
+	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/mailgun/mailgun-go/v4"
 	"net/http"
 	"time"
@@ -25,7 +27,7 @@ import (
 // main send function are parsed for sending
 // data.
 type mailGun struct {
-	cfg    Config
+	cfg    mail.Config
 	client *mailgun.MailgunImpl
 	send   mailGunSendFunc
 }
@@ -34,25 +36,32 @@ type mailGun struct {
 // transmissions.
 type mailGunSendFunc func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error)
 
-// Creates a new MailGun client. Configuration is
-// validated before initialisation.
-func newMailGun(cfg Config) *mailGun {
+// NewMailGun creates a new MailGun client. Configuration
+// is validated before initialisation.
+func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
+	err := cfg.Validate()
+	if err != nil {
+		return nil, err
+	}
+	if cfg.Domain == "" {
+		return nil, errors.New("driver requires a domain")
+	}
 	client := mailgun.NewMailgun(cfg.Domain, cfg.APIKey)
 	return &mailGun{
 		cfg:    cfg,
 		client: client,
 		send:   client.Send,
-	}
+	}, nil
 }
 
 // Send posts the go mail Transmission to the MailGun
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error
 // upon failure.
-func (m *mailGun) Send(t *Transmission) (Response, error) {
+func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	message := m.client.NewMessage(m.cfg.FromAddress, t.Subject, t.PlainText, t.Recipients...)
@@ -82,10 +91,10 @@ func (m *mailGun) Send(t *Transmission) (Response, error) {
 
 	msg, id, err := m.send(ctx, message)
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
-	return Response{
+	return mail.Response{
 		StatusCode: http.StatusOK,
 		Body:       "",
 		Headers:    nil,

@@ -20,6 +20,14 @@ func (t *MailTestSuite) TestTransmission_Validate() {
 		input *Transmission
 		want  error
 	}{
+		"Success": {
+			&Transmission{
+				Recipients: []string{"hello@test.com"},
+				Subject:    "subject",
+				HTML:       "<h1>Hello</h1>",
+			},
+			nil,
+		},
 		"Nil": {
 			nil,
 			errors.New("can't validate a nil transmission"),

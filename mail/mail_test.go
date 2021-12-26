@@ -14,13 +14,10 @@
 package mail
 
 import (
-	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -28,6 +25,7 @@ import (
 // testing.
 type MailTestSuite struct {
 	suite.Suite
+	base string
 }
 
 // Assert testing has begun.
@@ -35,42 +33,35 @@ func TestMail(t *testing.T) {
 	suite.Run(t, new(MailTestSuite))
 }
 
+// Assigns test base.
+func (t *MailTestSuite) SetupSuite() {
+	wd, err := os.Getwd()
+	t.NoError(err)
+	t.base = wd
+}
+
 const (
 	// DataPath defines where the test data resides.
 	DataPath = "testdata"
 	// PNGName defines the PNG name for testing.
 	PNGName = "gopher.png"
+	// JPGName defines the JPG name for testing.
+	JPGName = "gopher.jpg"
+	// SVGName defines the SVG name testing.
+	SVGName = "gopher.svg"
 )
 
-// Returns a dummy transition for testing with an
-// attachment.
-func (t *MailTestSuite) GetTransmission() *mail.Transmission {
-	wd, err := os.Getwd()
-	t.NoError(err)
-
-	err = godotenv.Load(filepath.Join(filepath.Dir(wd), "/.env"))
-	if err != nil {
-		t.FailNow("Error loading .env file")
-	}
-
-	path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
+// Returns a PNG attachment for testing.
+func (t *MailTestSuite) Attachment(name string) Attachment {
+	path := filepath.Join(filepath.Dir(t.base), DataPath, name)
 	file, err := ioutil.ReadFile(path)
+
 	if err != nil {
-		t.FailNow("Error getting attachment with the path: "+path, err)
+		t.Fail("error getting attachment with the path: "+path, err)
 	}
 
-	return &mail.Transmission{
-		Recipients: strings.Split(os.Getenv("EMAIL_TO"), ","),
-		//CC:         strings.Split(os.Getenv("EMAIL_CC"), ","),
-		//BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
-		Subject:   "Test - Go Mail",
-		HTML:      "<h1>Hello from Go Mail!</h1>",
-		PlainText: "Hello from Go Mail!",
-		Attachments: mail.Attachments{
-			mail.Attachment{
-				Filename: "gopher.png",
-				Bytes:    file,
-			},
-		},
+	return Attachment{
+		Filename: name,
+		Bytes:    file,
 	}
 }

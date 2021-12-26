@@ -11,98 +11,103 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
+	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	mailsg "github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 // sendGrid represents the data for sending mail via the
-// SendGrid API. Configuration, the client and the
+// SendGrid API. mail.Configuration, the client and the
 // main send function are parsed for sending
 // data.
 type sendGrid struct {
-	cfg    Config
+	cfg    mail.Config
 	client *sendgrid.Client
 	send   sendGridSendFunc
 }
 
 // sendGridSendFunc defines the function for ending
-// SendGrid transmissions.
-type sendGridSendFunc func(email *mail.SGMailV3) (*rest.Response, error)
+// SendGrid mail.Transmissions.
+type sendGridSendFunc func(email *mailsg.SGMailV3) (*rest.Response, error)
 
-// Creates a new sendGrid client. Configuration is
-// validated before initialisation.
-func newSendGrid(cfg Config) *sendGrid {
+// NewSendGrid creates a new sendGrid client. Configuration
+// is validated before initialisation.
+func NewSendGrid(cfg mail.Config) (mail.Mailer, error) {
+	err := cfg.Validate()
+	if err != nil {
+		return nil, err
+	}
 	client := sendgrid.NewSendClient(cfg.APIKey)
 	return &sendGrid{
 		cfg:    cfg,
 		client: client,
 		send:   client.Send,
-	}
+	}, nil
 }
 
-// Send posts the go mail Transmission to the SendGrid
-// API. Transmissions are validated before sending
+// Send posts the go mail mail.Transmission to the SendGrid
+// API. mail.Transmissions are validated before sending
 // and attachments are added. Returns an error
 // upon failure.
-func (m *sendGrid) Send(t *Transmission) (Response, error) {
+func (m *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
-	sender := mail.NewV3Mail()
+	sender := mailsg.NewV3Mail()
 
 	// Add from
-	from := mail.NewEmail(m.cfg.FromName, m.cfg.FromAddress)
+	from := mailsg.NewEmail(m.cfg.FromName, m.cfg.FromAddress)
 	sender.SetFrom(from)
 
 	// Add subject
 	sender.Subject = t.Subject
 
 	// Add to
-	p := mail.NewPersonalization()
-	var to []*mail.Email
+	p := mailsg.NewPersonalization()
+	var to []*mailsg.Email
 	for _, recipient := range t.Recipients {
-		to = append(to, mail.NewEmail("", recipient))
+		to = append(to, mailsg.NewEmail("", recipient))
 	}
 	p.AddTos(to...)
 
 	// Add CC
 	if t.HasCC() {
-		var cc []*mail.Email
+		var cc []*mailsg.Email
 		for _, v := range t.CC {
-			cc = append(cc, mail.NewEmail("", v))
+			cc = append(cc, mailsg.NewEmail("", v))
 		}
 		p.AddCCs(cc...)
 	}
 
 	// Add BCC
 	if t.HasBCC() {
-		var bcc []*mail.Email
+		var bcc []*mailsg.Email
 		for _, v := range t.BCC {
-			bcc = append(bcc, mail.NewEmail("", v))
+			bcc = append(bcc, mailsg.NewEmail("", v))
 		}
 		p.AddBCCs(bcc...)
 	}
 
 	// Add Plain Text
 	if t.PlainText != "" {
-		content := mail.NewContent("text/plain", t.PlainText)
+		content := mailsg.NewContent("text/plain", t.PlainText)
 		sender.AddContent(content)
 	}
 
 	// Add HTML
-	html := mail.NewContent("text/html", t.HTML)
+	html := mailsg.NewContent("text/html", t.HTML)
 	sender.AddContent(html)
 
 	// Add attachments if they exist.
 	if t.Attachments.Exists() {
 		for _, v := range t.Attachments {
-			a := mail.NewAttachment()
+			a := mailsg.NewAttachment()
 			a.SetContent(v.B64())
 			a.SetType(v.Mime())
 			a.SetFilename(v.Filename)
@@ -115,10 +120,10 @@ func (m *sendGrid) Send(t *Transmission) (Response, error) {
 
 	response, err := m.send(sender)
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
-	return Response{
+	return mail.Response{
 		StatusCode: response.StatusCode,
 		Body:       response.Body,
 		Headers:    response.Headers,

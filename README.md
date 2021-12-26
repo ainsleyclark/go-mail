@@ -60,6 +60,7 @@ submit a pull request.
 | SparkPost   | [github.com/SparkPost/gosparkpost](https://github.com/SparkPost/gosparkpost) | [Here](examples/sparkpost.go) |
 | MailGun     | [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4])        | [Here](examples/mailgun.go)   |
 | SendGrid    | [github.com/sendgrid/sendgrid-go](github.com/sendgrid/sendgrid-go)           | [Here](examples/sendgrid.go)  |
+| Postmark    |  None         																														   | [Here](examples/postmark.go)  |
 | Postal      |  None         																														   | [Here](examples/postal.go)  |
 | SMTP        |  None - only use in development.                                             | [Here](examples/smtp.go)      |
 
@@ -69,14 +70,7 @@ Documentation can be found at the [Go Docs](https://pkg.go.dev/github.com/ainsle
 
 ### Creating a new client:
 
-The driver type is the first argument to be passed to the `NewClient` function, being one of the following:
-
-- `mail.SparkPost`
-- `mail.MailGun`
-- `mail.SendGrid`
-- `mail.SMTP`
-
-A new configuration type is needed to create a new mailer as the second argument, each platform requires its own data,
+You can create a new driver by calling the `drivers` package and passing in a configuration type which is  needed to create a new mailer, each platform requires its own data,
 for example, MailGun requires a domain, but SparkPost doesn't.
 This is based of the requirements for the API. For more details see the examples above.
 
@@ -88,7 +82,7 @@ cfg := mail.Config{
     FromName:    "Gopher",
 }
 
-driver, err := mail.NewClient(mail.SparkPost, cfg)
+driver, err := drivers.NewSparkpost(cfg)
 if err != nil {
 	log.Fatalln(err)
 }
@@ -142,7 +136,6 @@ tx := &mail.Transmission{
 
 ## Todo
 
-- Add CC & BCC
 - Remove external dependencies.
 
 ## Contributing

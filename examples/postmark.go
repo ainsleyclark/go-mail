@@ -14,29 +14,36 @@
 package mail
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail/drivers"
 	"github.com/ainsleyclark/go-mail/mail"
-	"os"
+	"log"
 )
 
-func (t *MailTestSuite) Test_Postal() {
-	tx := t.GetTransmission()
+// Postmark example for Go Mail
+func Postmark() {
+	cfg := mail.Config{
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+	}
 
-	mailer, err := drivers.NewPostal(mail.Config{
-		URL:         os.Getenv("POSTAL_URL"),
-		APIKey:      os.Getenv("POSTAL_API_KEY"),
-		FromAddress: os.Getenv("POSTAL_FROM_ADDRESS"),
-		FromName:    os.Getenv("POSTAL_FROM_NAME"),
-	})
+	mailer, err := drivers.NewPostmark(cfg)
 	if err != nil {
-		t.FailNow("Error creating client: " + err.Error())
+		log.Fatalln(err)
+	}
+
+	tx := &mail.Transmission{
+		Recipients: []string{"hello@gophers.com"},
+		Subject:    "My email",
+		HTML:       "<h1>Hello from go mail!</h1>",
+		PlainText:  "plain text",
 	}
 
 	result, err := mailer.Send(tx)
 	if err != nil {
-		t.FailNow("Error sending Postal email: " + err.Error())
+		log.Fatalln(err)
 	}
 
-	t.Equal(200, result.StatusCode)
-	t.NotEmpty(result.Message)
+	fmt.Printf("%+v\n", result)
 }

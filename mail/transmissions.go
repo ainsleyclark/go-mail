@@ -39,7 +39,7 @@ func (t *Transmission) Validate() error {
 		return errors.New("can't validate a nil transmission")
 	}
 
-	if t.Recipients == nil {
+	if len(t.Recipients) == 0 {
 		return errors.New("transmission requires recipients")
 	}
 

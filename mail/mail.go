@@ -13,37 +13,21 @@
 
 package mail
 
-import (
-	"fmt"
-	"github.com/ainsleyclark/go-mail/drivers"
-	"github.com/ainsleyclark/go-mail/mail"
-	"log"
-)
-
-// SendGrid example for Go Mail
-func SendGrid() {
-	cfg := mail.Config{
-		APIKey:      "my-key",
-		FromAddress: "hello@gophers.com",
-		FromName:    "Gopher",
-	}
-
-	mailer, err := drivers.NewSendGrid(cfg)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	tx := &mail.Transmission{
-		Recipients: []string{"hello@gophers.com"},
-		Subject:    "My email",
-		HTML:       "<h1>Hello from go mail!</h1>",
-		PlainText:  "plain text",
-	}
-
-	result, err := mailer.Send(tx)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	fmt.Printf("%+v\n", result)
+// Mailer defines the sender for go-mail returning a
+// Response or error when an email is sent.
+type Mailer interface {
+	Send(t *Transmission) (Response, error)
 }
+
+const (
+	// SparkPost driver type.
+	SparkPost = "sparkpost"
+	// MailGun driver type.
+	MailGun = "mailgun"
+	// SendGrid driver type.
+	SendGrid = "sendgrid"
+	// Postal driver type.
+	Postal = "postal"
+	// SMTP driver type.
+	SMTP = "smtp"
+)

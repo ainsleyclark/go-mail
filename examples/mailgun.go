@@ -15,7 +15,8 @@ package mail
 
 import (
 	"fmt"
-	"github.com/ainsleyclark/go-mail"
+	"github.com/ainsleyclark/go-mail/drivers"
+	"github.com/ainsleyclark/go-mail/mail"
 	"log"
 )
 
@@ -29,7 +30,7 @@ func MailGun() {
 		Domain:      "my-domain",
 	}
 
-	driver, err := mail.NewClient(mail.MailGun, cfg)
+	mailer, err := drivers.NewMailGun(cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -41,7 +42,7 @@ func MailGun() {
 		PlainText:  "plain text",
 	}
 
-	result, err := driver.Send(tx)
+	result, err := mailer.Send(tx)
 	if err != nil {
 		log.Fatalln(err)
 	}

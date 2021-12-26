@@ -19,14 +19,13 @@ import (
 	"os"
 )
 
-func (t *MailTestSuite) Test_Postal() {
+func (t *MailTestSuite) Test_Postmark() {
 	tx := t.GetTransmission()
 
-	mailer, err := drivers.NewPostal(mail.Config{
-		URL:         os.Getenv("POSTAL_URL"),
-		APIKey:      os.Getenv("POSTAL_API_KEY"),
-		FromAddress: os.Getenv("POSTAL_FROM_ADDRESS"),
-		FromName:    os.Getenv("POSTAL_FROM_NAME"),
+	mailer, err := drivers.NewPostmark(mail.Config{
+		APIKey:      os.Getenv("POSTMARK_API_KEY"),
+		FromAddress: os.Getenv("POSTMARK_FROM_ADDRESS"),
+		FromName:    os.Getenv("POSTMARK_FROM_NAME"),
 	})
 	if err != nil {
 		t.FailNow("Error creating client: " + err.Error())

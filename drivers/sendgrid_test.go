@@ -11,31 +11,64 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	"errors"
+	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/sendgrid/rest"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	mailsg "github.com/sendgrid/sendgrid-go/helpers/mail"
 	"net/http"
 )
 
-func (t *MailTestSuite) TestSendGrid_Send() {
+func (t *DriversTestSuite) TestNewSendgrid() {
 	tt := map[string]struct {
-		input *Transmission
+		input mail.Config
+		want  interface{}
+	}{
+		"Success": {
+			mail.Config{
+				URL:         "https://postal.example.com",
+				APIKey:      "key",
+				FromAddress: "addr",
+				FromName:    "name",
+			},
+			nil,
+		},
+		"Validation Failed": {
+			mail.Config{},
+			"driver requires from address",
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got, err := NewSendGrid(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.NotNil(got)
+		})
+	}
+}
+
+func (t *DriversTestSuite) TestSendGrid_Send() {
+	tt := map[string]struct {
+		input *mail.Transmission
 		send  sendGridSendFunc
 		want  interface{}
 	}{
 		"Success": {
 			Trans,
-			func(email *mail.SGMailV3) (*rest.Response, error) {
+			func(email *mailsg.SGMailV3) (*rest.Response, error) {
 				return &rest.Response{
 					StatusCode: http.StatusOK,
 					Body:       "body",
 					Headers:    map[string][]string{"msg": {"test"}},
 				}, nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       "body",
 				Headers:    map[string][]string{"msg": {"test"}},
@@ -45,14 +78,14 @@ func (t *MailTestSuite) TestSendGrid_Send() {
 		},
 		"With Attachment": {
 			TransWithAttachment,
-			func(email *mail.SGMailV3) (*rest.Response, error) {
+			func(email *mailsg.SGMailV3) (*rest.Response, error) {
 				return &rest.Response{
 					StatusCode: http.StatusOK,
 					Body:       "body",
 					Headers:    map[string][]string{"msg": {"test"}},
 				}, nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       "body",
 				Headers:    map[string][]string{"msg": {"test"}},
@@ -62,14 +95,14 @@ func (t *MailTestSuite) TestSendGrid_Send() {
 		},
 		"Validation Failed": {
 			nil,
-			func(email *mail.SGMailV3) (*rest.Response, error) {
+			func(email *mailsg.SGMailV3) (*rest.Response, error) {
 				return nil, nil
 			},
 			"can't validate a nil transmission",
 		},
 		"Send Error": {
 			Trans,
-			func(email *mail.SGMailV3) (*rest.Response, error) {
+			func(email *mailsg.SGMailV3) (*rest.Response, error) {
 				return nil, errors.New("send error")
 			},
 			"send error",
@@ -79,7 +112,7 @@ func (t *MailTestSuite) TestSendGrid_Send() {
 	for name, test := range tt {
 		t.Run(name, func() {
 			spark := sendGrid{
-				cfg: Config{
+				cfg: mail.Config{
 					FromAddress: "from",
 				},
 				send: test.send,

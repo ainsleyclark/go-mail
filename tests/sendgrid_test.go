@@ -14,7 +14,8 @@
 package mail
 
 import (
-	"github.com/ainsleyclark/go-mail"
+	"github.com/ainsleyclark/go-mail/drivers"
+	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
 	"os"
 )
@@ -22,20 +23,18 @@ import (
 func (t *MailTestSuite) Test_SendGrid() {
 	tx := t.GetTransmission()
 
-	driver, err := mail.NewClient(mail.SendGrid, mail.Config{
+	mailer, err := drivers.NewSendGrid(mail.Config{
 		APIKey:      os.Getenv("SENDGRID_API_KEY"),
 		FromAddress: os.Getenv("SENDGRID_FROM_ADDRESS"),
 		FromName:    os.Getenv("SENDGRID_FROM_NAME"),
 	})
 	if err != nil {
-		t.Fail("Error creating client", err)
-		return
+		t.FailNow("Error creating client: " + err.Error())
 	}
 
-	result, err := driver.Send(tx)
+	result, err := mailer.Send(tx)
 	if err != nil {
-		t.Fail("Error sending sendgrid email", err)
-		return
+		t.FailNow("Error sending SendGrid email: " + err.Error())
 	}
 
 	t.Equal(http.StatusAccepted, result.StatusCode)

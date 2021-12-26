@@ -14,7 +14,8 @@
 package mail
 
 import (
-	"github.com/ainsleyclark/go-mail"
+	"github.com/ainsleyclark/go-mail/drivers"
+	"github.com/ainsleyclark/go-mail/mail"
 	"os"
 	"strconv"
 )
@@ -24,10 +25,10 @@ func (t *MailTestSuite) Test_SMTP() {
 
 	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
-		t.Fail("Error parsing SMTP port")
+		t.FailNow("Error parsing SMTP port")
 	}
 
-	driver, err := mail.NewClient(mail.SMTP, mail.Config{
+	driver, err := drivers.NewSMTP(mail.Config{
 		URL:         os.Getenv("SMTP_URL"),
 		FromAddress: os.Getenv("SMTP_FROM_ADDRESS"),
 		FromName:    os.Getenv("SMTP_FROM_NAME"),
@@ -35,14 +36,12 @@ func (t *MailTestSuite) Test_SMTP() {
 		Port:        port,
 	})
 	if err != nil {
-		t.Fail("Error creating client", err)
-		return
+		t.FailNow("Error creating client: " + err.Error())
 	}
 
 	result, err := driver.Send(tx)
 	if err != nil {
-		t.Fail("Error sending smtp email", err)
-		return
+		t.FailNow("Error sending SMTP email: " + err.Error())
 	}
 
 	t.Equal(200, result.StatusCode)

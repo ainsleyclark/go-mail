@@ -11,17 +11,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	"context"
 	"errors"
+	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/mailgun/mailgun-go/v4"
 )
 
-func (t *MailTestSuite) TestMailGun_Send() {
+func (t *DriversTestSuite) TestNewMailGun() {
 	tt := map[string]struct {
-		input *Transmission
+		input mail.Config
+		want  interface{}
+	}{
+		"Success": {
+			mail.Config{
+				URL:         "https://mailgun.example.com",
+				FromAddress: "addr",
+				FromName:    "name",
+				APIKey:      "key",
+				Domain:      "domain",
+			},
+			nil,
+		},
+		"Validation Failed": {
+			mail.Config{},
+			"driver requires from address",
+		},
+		"No Domain": {
+			mail.Config{
+				FromName:    "name",
+				FromAddress: "hello@gophers.com",
+				APIKey:      "key",
+			},
+			"driver requires a domain",
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got, err := NewMailGun(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.NotNil(got)
+		})
+	}
+}
+
+func (t *DriversTestSuite) TestMailGun_Send() {
+	tt := map[string]struct {
+		input *mail.Transmission
 		send  mailGunSendFunc
 		want  interface{}
 	}{
@@ -30,7 +72,7 @@ func (t *MailTestSuite) TestMailGun_Send() {
 			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
 				return "success", "1", nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: 200,
 				Body:       "",
 				Headers:    nil,
@@ -43,7 +85,7 @@ func (t *MailTestSuite) TestMailGun_Send() {
 			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
 				return "success", "1", nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: 200,
 				Body:       "",
 				Headers:    nil,
@@ -70,7 +112,7 @@ func (t *MailTestSuite) TestMailGun_Send() {
 	for name, test := range tt {
 		t.Run(name, func() {
 			spark := mailGun{
-				cfg: Config{
+				cfg: mail.Config{
 					FromAddress: "from",
 				},
 				send: test.send,

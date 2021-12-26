@@ -11,10 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	sp "github.com/SparkPost/gosparkpost"
+	"github.com/ainsleyclark/go-mail/mail"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ import (
 // main send function are parsed for sending
 // data.
 type sparkPost struct {
-	cfg    Config
+	cfg    mail.Config
 	client sp.Client
 	send   sparkSendFunc
 }
@@ -38,9 +39,9 @@ const (
 	SparkAPIVersion = 1
 )
 
-// Creates a new SparkPost client. Configuration is
-// validated before initialisation.
-func newSparkPost(cfg Config) (*sparkPost, error) {
+// NewSparkPost creates a new SparkPost client. Configuration
+// is validated before initialisation.
+func NewSparkPost(cfg mail.Config) (mail.Mailer, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err
@@ -70,10 +71,10 @@ func newSparkPost(cfg Config) (*sparkPost, error) {
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error
 // upon failure.
-func (s *sparkPost) Send(t *Transmission) (Response, error) {
+func (s *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	headerTo := strings.Join(t.Recipients, ",")
@@ -124,14 +125,14 @@ func (s *sparkPost) Send(t *Transmission) (Response, error) {
 
 	id, response, err := s.send(tx)
 	if err != nil {
-		return Response{}, err
+		return mail.Response{}, err
 	}
 
 	if len(response.Errors) > 0 {
-		return Response{}, response.Errors
+		return mail.Response{}, response.Errors
 	}
 
-	return Response{
+	return mail.Response{
 		StatusCode: response.HTTP.StatusCode,
 		Body:       string(response.Body),
 		Headers:    response.HTTP.Header,
@@ -142,7 +143,7 @@ func (s *sparkPost) Send(t *Transmission) (Response, error) {
 
 // addAttachments transforms a go mail attachments to
 // SparkPost attachments.
-func (s *sparkPost) addAttachments(a Attachments) []sp.Attachment {
+func (s *sparkPost) addAttachments(a mail.Attachments) []sp.Attachment {
 	var att []sp.Attachment
 	for _, v := range a {
 		att = append(att, sp.Attachment{

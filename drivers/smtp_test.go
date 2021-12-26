@@ -11,16 +11,70 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package drivers
 
 import (
 	"errors"
+	"github.com/ainsleyclark/go-mail/mail"
 	"net/smtp"
 )
 
-func (t *MailTestSuite) TestSMTP_Send() {
+func (t *DriversTestSuite) TestNewSMTP() {
 	tt := map[string]struct {
-		input *Transmission
+		input mail.Config
+		want  interface{}
+	}{
+		"Success": {
+			mail.Config{
+				URL:         "https://smtp.example.com",
+				FromAddress: "addr",
+				FromName:    "name",
+				Password:    "password",
+			},
+			nil,
+		},
+		"No URL": {
+			mail.Config{},
+			"driver requires a URL",
+		},
+		"No From Address": {
+			mail.Config{
+				URL: "https://smtp.example.com",
+			},
+			"driver requires from address",
+		},
+		"No From Name": {
+			mail.Config{
+				URL:         "https://smtp.example.com",
+				FromAddress: "hello@gophers.com",
+			},
+			"driver requires from name",
+		},
+		"No Password": {
+			mail.Config{
+				URL:         "https://smtp.example.com",
+				FromAddress: "hello@gophers.com",
+				FromName:    "name",
+			},
+			"driver requires a password",
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got, err := NewSMTP(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.NotNil(got)
+		})
+	}
+}
+
+func (t *DriversTestSuite) TestSMTP_Send() {
+	tt := map[string]struct {
+		input *mail.Transmission
 		send  smtpSendFunc
 		want  interface{}
 	}{
@@ -29,7 +83,7 @@ func (t *MailTestSuite) TestSMTP_Send() {
 			func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 				return nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: 200,
 				Message:    "Email sent successfully",
 			},
@@ -39,7 +93,7 @@ func (t *MailTestSuite) TestSMTP_Send() {
 			func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 				return nil
 			},
-			Response{
+			mail.Response{
 				StatusCode: 200,
 				Message:    "Email sent successfully",
 			},
@@ -63,7 +117,7 @@ func (t *MailTestSuite) TestSMTP_Send() {
 	for name, test := range tt {
 		t.Run(name, func() {
 			spark := smtpClient{
-				cfg: Config{
+				cfg: mail.Config{
 					FromAddress: "from",
 				},
 				send: test.send,
