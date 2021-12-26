@@ -17,8 +17,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -28,35 +30,38 @@ type Requester interface {
 
 type Client struct {
 	http       *http.Client
+	baseURL string
 	marshaller func(v interface{}) ([]byte, error)
 	bodyReader func(r io.Reader) ([]byte, error)
 }
 
-func New() *Client {
+func New(baseURL string) *Client {
 	return &Client{
 		http: &http.Client{
 			Timeout: time.Second * 10,
 		},
+		baseURL: strings.TrimSuffix(baseURL, "/"),
 		marshaller: json.Marshal,
 		bodyReader: io.ReadAll,
 	}
 }
 
-func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byte, int, error) {
+func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byte, *http.Response, error) {
 	data, err := c.marshaller(message)
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
 
+	url = fmt.Sprintf("%s/%s", strings.TrimPrefix(url, "/"), c.baseURL)
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
 	req.Header = headers
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return nil, 0, err
+		return nil, resp, err
 	}
 	defer resp.Body.Close()
 
@@ -66,11 +71,11 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 		// the bodyReader function.
 		buf, err := c.bodyReader(resp.Body)
 		if err != nil {
-			return nil, resp.StatusCode, err
+			return nil, resp, err
 		}
-		return buf, resp.StatusCode, nil
+		return buf, resp, nil
 	}
 
-	return nil, resp.StatusCode, errors.New("go-mail client: invalid request")
-
+	// Invalid request, not between 200 & 300
+	return nil, resp, errors.New("go-mail client: invalid request")
 }
