@@ -24,10 +24,19 @@ import (
 	"time"
 )
 
+// Requester defines the method used to send data to a mail
+// driver API endpoint.
 type Requester interface {
+	// Do accepts a message, URL endpoint and optional headers to POST data
+	// to a drivers API.
+	// Returns an error if data could not be marshalled/unmarshalled
+	// or if the request could not be processed.
 	Do(message interface{}, url string, headers http.Header) ([]byte, *http.Response, error)
 }
 
+// Client defines a http.Client to interact with the mail
+// drivers API's. It acts as a reusable helper to send
+// data to the endpoints.
 type Client struct {
 	http       *http.Client
 	baseURL    string
@@ -36,9 +45,13 @@ type Client struct {
 }
 
 const (
+	// Timeout is the amount of time to wait before
+	// a mail request is cancelled.
 	Timeout = time.Second * 10
 )
 
+// New creates a new Client accepting a baseURL for
+// request endpoints.
 func New(baseURL string) *Client {
 	return &Client{
 		http: &http.Client{
