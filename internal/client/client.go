@@ -25,12 +25,12 @@ import (
 )
 
 type Requester interface {
-	Do(message interface{}, url string, headers http.Header) ([]byte, int, error)
+	Do(message interface{}, url string, headers http.Header) ([]byte, *http.Response, error)
 }
 
 type Client struct {
 	http       *http.Client
-	baseURL string
+	baseURL    string
 	marshaller func(v interface{}) ([]byte, error)
 	bodyReader func(r io.Reader) ([]byte, error)
 }
@@ -40,7 +40,7 @@ func New(baseURL string) *Client {
 		http: &http.Client{
 			Timeout: time.Second * 10,
 		},
-		baseURL: strings.TrimSuffix(baseURL, "/"),
+		baseURL:    strings.TrimSuffix(baseURL, "/"),
 		marshaller: json.Marshal,
 		bodyReader: io.ReadAll,
 	}
@@ -52,6 +52,8 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 		return nil, nil, err
 	}
 
+	// Setup request with URL, ensures URL's are
+	// trimmed.
 	url = fmt.Sprintf("%s/%s", strings.TrimPrefix(url, "/"), c.baseURL)
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
 	if err != nil {

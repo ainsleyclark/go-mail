@@ -35,16 +35,16 @@ func TestNew(t *testing.T) {
 
 func TestClient_Do(t *testing.T) {
 	tt := map[string]struct {
-		input interface{}
+		input      interface{}
 		url        string
 		handler    http.HandlerFunc
 		marshaller func(v interface{}) ([]byte, error)
 		bodyReader func(r io.Reader) ([]byte, error)
-		want  interface{}
+		want       interface{}
 	}{
 		"Success": {
 			input: "input",
-			url: "",
+			url:   "",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 				_, err := w.Write([]byte("buf"))
@@ -52,37 +52,37 @@ func TestClient_Do(t *testing.T) {
 			},
 			marshaller: json.Marshal,
 			bodyReader: io.ReadAll,
-			want: "buf",
+			want:       "buf",
 		},
 		"Marshal Error": {
-			input: "input",
-			url: "",
+			input:   "input",
+			url:     "",
 			handler: nil,
 			marshaller: func(v interface{}) ([]byte, error) {
 				return nil, fmt.Errorf("marshal error")
 			},
 			bodyReader: io.ReadAll,
-			want: "marshal error",
+			want:       "marshal error",
 		},
 		"Bad Request": {
-			input: "input",
-			url: "@#@#$$%$",
-			handler: nil,
+			input:      "input",
+			url:        "@#@#$$%$",
+			handler:    nil,
 			marshaller: json.Marshal,
 			bodyReader: io.ReadAll,
-			want: "invalid URL escape",
+			want:       "invalid URL escape",
 		},
 		"Do Error": {
-			input: "input",
-			url: "wrong",
-			handler: nil,
+			input:      "input",
+			url:        "wrong",
+			handler:    nil,
 			marshaller: json.Marshal,
 			bodyReader: io.ReadAll,
-			want: "unsupported protocol scheme",
+			want:       "unsupported protocol scheme",
 		},
 		"Request Error": {
 			input: "input",
-			url: "",
+			url:   "",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, err := w.Write([]byte("buf"))
@@ -90,11 +90,11 @@ func TestClient_Do(t *testing.T) {
 			},
 			marshaller: json.Marshal,
 			bodyReader: io.ReadAll,
-			want: "invalid request",
+			want:       "invalid request",
 		},
 		"Body Read Error": {
 			input: "input",
-			url: "",
+			url:   "",
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 				_, err := w.Write([]byte("buf"))
@@ -119,7 +119,7 @@ func TestClient_Do(t *testing.T) {
 			}
 
 			c := Client{
-				http:      server.Client(),
+				http:       server.Client(),
 				marshaller: test.marshaller,
 				bodyReader: test.bodyReader,
 			}

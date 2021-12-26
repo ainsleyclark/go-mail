@@ -28,6 +28,11 @@ cover: test
 	go tool cover -html=coverage.out
 .PHONY: cover
 
+# Make mocks keeping directory tree
+mock:
+	rm -rf mocks && mockery --all
+.PHONY: mock
+
 # Make format, lint and test
 all:
 	$(MAKE) format

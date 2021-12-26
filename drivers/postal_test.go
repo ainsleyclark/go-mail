@@ -14,12 +14,12 @@
 package drivers
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
-	"io"
+	"github.com/ainsleyclark/go-mail/mocks"
+	"github.com/stretchr/testify/mock"
 	"net/http"
-	"net/http/httptest"
 )
 
 func (t *DriversTestSuite) TestNewPostal() {
@@ -140,75 +140,31 @@ func (t *DriversTestSuite) TestPostalResponse_ToResponse() {
 }
 
 func (t *DriversTestSuite) TestPostal_Send() {
-	t.T().Skip()
+	headers := http.Header{"Content-Type":[]string{"application/json"}, "X-Server-Api-Key":[]string{""}}
 
 	tt := map[string]struct {
 		input      *mail.Transmission
-		handler    http.HandlerFunc
-		url        string
-		marshaller func(v interface{}) ([]byte, error)
-		bodyReader func(r io.Reader) ([]byte, error)
+		handler    func (m *mocks.Requester)
 		want       interface{}
 	}{
 		"Success": {
 			Trans,
-			func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				res := postalResponse{
-					Status: "success",
-				}
-				buf, err := json.Marshal(&res)
-				t.NoError(err)
-				_, err = w.Write(buf)
-				t.NoError(err)
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, postalSendURL, headers).
+					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), nil, nil)
 			},
-			"",
-			json.Marshal,
-			io.ReadAll,
 			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       `{"status":"success","time":0,"flags":null,"data":null}`,
 				Message:    "Successfully sent Postal email",
 			},
 		},
-		"With ID": {
-			Trans,
-			func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				res := postalResponse{
-					Status: "success",
-					Data:   map[string]interface{}{"message_id": "1"},
-				}
-				buf, err := json.Marshal(&res)
-				t.NoError(err)
-				_, err = w.Write(buf)
-				t.NoError(err)
-			},
-			"",
-			json.Marshal,
-			io.ReadAll,
-			mail.Response{
-				StatusCode: http.StatusOK,
-				Body:       `{"status":"success","time":0,"flags":null,"data":{"message_id":"1"}}`,
-				Message:    "Successfully sent Postal email",
-				ID:         "1",
-			},
-		},
 		"With Attachment": {
 			TransWithAttachment,
-			func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				res := postalResponse{
-					Status: "success",
-				}
-				buf, err := json.Marshal(&res)
-				t.NoError(err)
-				_, err = w.Write(buf)
-				t.NoError(err)
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, postalSendURL, headers).
+					Return([]byte(`{"status":"success","time":0,"flags":null,"data":null}`), nil, nil)
 			},
-			"",
-			json.Marshal,
-			io.ReadAll,
 			mail.Response{
 				StatusCode: http.StatusOK,
 				Body:       `{"status":"success","time":0,"flags":null,"data":null}`,
@@ -218,115 +174,46 @@ func (t *DriversTestSuite) TestPostal_Send() {
 		"Validation Failed": {
 			nil,
 			nil,
-			"",
-			json.Marshal,
-			io.ReadAll,
 			"can't validate a nil transmission",
-		},
-		"Marshal Error": {
-			Trans,
-			nil,
-			"",
-			func(v interface{}) ([]byte, error) {
-				return nil, fmt.Errorf("marshal error")
-			},
-			io.ReadAll,
-			"marshal error",
-		},
-		"Bad Request": {
-			Trans,
-			nil,
-			"@#@#$$%$",
-			json.Marshal,
-			io.ReadAll,
-			"invalid URL",
 		},
 		"Do Error": {
 			Trans,
-			nil,
-			"wrong",
-			json.Marshal,
-			io.ReadAll,
-			"unsupported protocol scheme",
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, postalSendURL, headers).
+					Return([]byte("output"), nil, errors.New("do error"))
+			},
+			"do error",
 		},
-		"Read Error": {
+		"Unmarshal Error": {
 			Trans,
-			func(w http.ResponseWriter, r *http.Request) {
-				_, err := w.Write([]byte("wrong"))
-				t.NoError(err)
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, postalSendURL, headers).
+					Return([]byte(`wrong`), nil, nil)
 			},
-			"",
-			json.Marshal,
-			func(r io.Reader) ([]byte, error) {
-				return nil, fmt.Errorf("read error")
-			},
-			"read error",
-		},
-		"Decode Error": {
-			Trans,
-			func(w http.ResponseWriter, r *http.Request) {
-				_, err := w.Write([]byte("wrong"))
-				t.NoError(err)
-			},
-			"",
-			json.Marshal,
-			io.ReadAll,
 			"invalid character",
 		},
-		"Server Error": {
+		"Response Error": {
 			Trans,
-			func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusInternalServerError)
-				res := postalResponse{}
-				buf, err := json.Marshal(&res)
-				t.NoError(err)
-				_, err = w.Write(buf)
-				t.NoError(err)
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, postalSendURL, headers).
+					Return([]byte(`{"status": "error"}`), nil, nil)
 			},
-			"",
-			json.Marshal,
-			io.ReadAll,
 			postalErrorMessage,
-		},
-		"Postal Error": {
-			Trans,
-			func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				res := postalResponse{
-					Status: "error",
-					Data:   map[string]interface{}{"code": "ValidationFailed", "message": "Postal Message"},
-				}
-				buf, err := json.Marshal(&res)
-				t.NoError(err)
-				_, err = w.Write(buf)
-				t.NoError(err)
-			},
-			"",
-			json.Marshal,
-			io.ReadAll,
-			fmt.Sprintf("%s - code: ValidationFailed, message: Postal Message", postalErrorMessage),
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			server := httptest.NewServer(test.handler)
-			defer server.Close()
-
-			url := server.URL
-			if test.url != "" {
-				url = test.url
+			m := &mocks.Requester{}
+			if test.handler != nil {
+				test.handler(m)
 			}
 
 			ptl := postal{
 				cfg: mail.Config{
-					URL:         url,
 					FromAddress: "from",
 				},
-				// TODO, replace with interface
-				//client:     server.Client(),
-				marshaller: test.marshaller,
-				bodyReader: test.bodyReader,
+				client:  m,
 			}
 
 			resp, err := ptl.Send(test.input)

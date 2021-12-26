@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/ainsleyclark/go-mail/internal/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	"io"
 	"net/http"
 )
 
@@ -32,9 +31,7 @@ import (
 // See: https://apiv1.postalserver.io/controllers/send/message.html
 type postal struct {
 	cfg        mail.Config
-	client     *client.Client
-	marshaller func(v interface{}) ([]byte, error)
-	bodyReader func(r io.Reader) ([]byte, error)
+	client     client.Requester
 }
 
 // NewPostal creates a new Postal client. Configuration
@@ -46,11 +43,12 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postal{
 		cfg:    cfg,
-		client: client.New(),
+		client: client.New(cfg.URL),
 	}, nil
 }
 
 const (
+	postalSendURL = "/api/v1/send/message"
 	// postalErrorMessage defines the message when an error occurred
 	// when sending mail via the Postal API.
 	postalErrorMessage = "error sending message to Postal api"
@@ -155,7 +153,7 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 	headers.Set("X-Server-API-Key", p.cfg.APIKey)
 	headers.Add("Content-Type", "application/json")
 
-	buf, _, err := p.client.Do(m, fmt.Sprintf("%s/api/v1/send/message", p.cfg.URL), headers)
+	buf, _, err := p.client.Do(m, "/api/v1/send/message", headers)
 	if err != nil {
 		return mail.Response{}, err
 	}
