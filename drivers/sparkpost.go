@@ -55,7 +55,7 @@ func NewSparkPost(cfg mail.Config) (mail.Mailer, error) {
 }
 
 type (
-	// Transmission is the JSON structure accepted by and returned
+	// spTransmission is the JSON structure accepted by and returned
 	// from the SparkPost Transmissions API.
 	spTransmission struct {
 		ID                   string                 `json:"id,omitempty"`
@@ -73,7 +73,7 @@ type (
 		NumFailedGeneration  *int                   `json:"num_failed_generation,omitempty"`
 		NumInvalidRecipients *int                   `json:"num_invalid_recipients,omitempty"`
 	}
-	// TxOptions specifies settings to apply to this Transmission.
+	// spTransmissionOptions specifies settings to apply to this Transmission.
 	// If not specified, and present in TmplOptions, those values will be used.
 	spTransmissionOptions struct {
 		OpenTracking         *bool      `json:"open_tracking,omitempty"`
@@ -86,7 +86,7 @@ type (
 		InlineCSS            *bool      `json:"inline_css,omitempty"`
 		PerformSubstitutions *bool      `json:"perform_substitutions,omitempty"`
 	}
-	// spContent is what you'll send to your Recipients.
+	// spContent is what will be sent to recipients.
 	// Knowledge of SparkPost's substitution/templating capabilities will come in handy here.
 	// https://www.sparkpost.com/api#/introduction/substitutions-reference
 	spContent struct {
@@ -100,15 +100,14 @@ type (
 		Attachments  []spAttachment    `json:"attachments,omitempty"`
 		InlineImages []interface{}     `json:"inline_images,omitempty"`
 	}
-	// From describes the nested object way of specifying the From header.
+	// spFrom describes the nested object way of specifying the `From` header.
 	// Content.From can be specified this way, or as a plain string.
 	spFrom struct {
 		Email string `json:"email"`
 		Name  string `json:"name"`
 	}
-	// Response contains information about the last HTTP response.
-	// Helpful when an error message doesn't necessarily give the complete picture.
-	// Also contains any messages emitted as a result of the Verbose config option.
+	// spResponse contains information about the last HTTP response from
+	// the SparkPost API.
 	spResponse struct {
 		Results map[string]interface{} `json:"results,omitempty"`
 		Errors  []spError              `json:"errors,omitempty"`
@@ -129,14 +128,16 @@ type (
 		Metadata         interface{} `json:"metadata,omitempty"`
 		SubstitutionData interface{} `json:"substitution_data,omitempty"`
 	}
-	// Address describes the nested object way of specifying the Recipient's email address.
-	// Recipient.Address can also be a plain string.
+	// spAddress describes the nested object way of specifying the
+	// Recipient's email address. Recipient.Address can also be
+	// a plain string.
 	spAddress struct {
 		Email    string `json:"email"`
 		Name     string `json:"name,omitempty"`
 		HeaderTo string `json:"header_to,omitempty"`
 	}
-	// spAttachment contains metadata and the contents of the file to attach.
+	// spAttachment contains metadata and the contents of the
+	// file to attach.
 	spAttachment struct {
 		MIMEType string `json:"type"`
 		Filename string `json:"name"`
@@ -145,7 +146,7 @@ type (
 )
 
 // HasError determines if the Sparkpost call was successful
-// by evaluating the errors' length.
+// by evaluating the error slice length within the response.
 func (p *spResponse) HasError() bool {
 	return len(p.Errors) != 0
 }
