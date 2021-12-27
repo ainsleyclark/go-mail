@@ -14,9 +14,13 @@
 package drivers
 
 import (
-	sp "github.com/SparkPost/gosparkpost"
+	"encoding/json"
+	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/client"
 	"github.com/ainsleyclark/go-mail/mail"
+	"net/http"
 	"strings"
+	"time"
 )
 
 // sparkPost represents the data for sending mail via the
@@ -25,18 +29,16 @@ import (
 // data.
 type sparkPost struct {
 	cfg    mail.Config
-	client sp.Client
-	send   sparkSendFunc
+	client client.Requester
 }
 
-// sparkSendFunc defines the function for ending SparkPost
-// transmissions.
-type sparkSendFunc func(t *sp.Transmission) (id string, res *sp.Response, err error)
-
 const (
-	// SparkAPIVersion defines the default API version for
-	// SparkPost.
-	SparkAPIVersion = 1
+	// sparkpostEndpoint defines the endpoint to POST to.
+	// See: https://www.sparkpost.com/api#/reference/transmissions
+	sparkpostEndpoint ="/api/v1/transmissions"
+	// sparkpostErrorMessage defines the message when an error occurred
+	// when sending mail via the Sparkpost API.
+	sparkpostErrorMessage = "error sending transmission to Sparkpost API"
 )
 
 // NewSparkPost creates a new SparkPost client. Configuration
@@ -46,25 +48,130 @@ func NewSparkPost(cfg mail.Config) (mail.Mailer, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	config := &sp.Config{
-		BaseUrl:    cfg.URL,
-		ApiKey:     cfg.APIKey,
-		ApiVersion: SparkAPIVersion,
-		Verbose:    true,
-	}
-
-	var client sp.Client
-	err = client.Init(config)
-	if err != nil {
-		return nil, err
-	}
-
 	return &sparkPost{
 		cfg:    cfg,
-		client: client,
-		send:   client.Send,
+		client: client.New(cfg.URL),
 	}, nil
+}
+
+type (
+	// Transmission is the JSON structure accepted by and returned
+	// from the SparkPost Transmissions API.
+	spTransmission struct {
+		ID                   string                 `json:"id,omitempty"`
+		State                string                 `json:"state,omitempty"`
+		Options              *spTransmissionOptions `json:"options,omitempty"`
+		Recipients           []spRecipient          `json:"recipients"`
+		CampaignID           string                 `json:"campaign_id,omitempty"`
+		Description          string                 `json:"description,omitempty"`
+		Metadata             interface{}            `json:"metadata,omitempty"`
+		SubstitutionData     interface{}            `json:"substitution_data,omitempty"`
+		ReturnPath           string                 `json:"return_path,omitempty"`
+		Content              spContent              `json:"content"`
+		TotalRecipients      *int                   `json:"total_recipients,omitempty"`
+		NumGenerated         *int                   `json:"num_generated,omitempty"`
+		NumFailedGeneration  *int                   `json:"num_failed_generation,omitempty"`
+		NumInvalidRecipients *int                   `json:"num_invalid_recipients,omitempty"`
+	}
+	// TxOptions specifies settings to apply to this Transmission.
+	// If not specified, and present in TmplOptions, those values will be used.
+	spTransmissionOptions struct {
+		OpenTracking         *bool      `json:"open_tracking,omitempty"`
+		ClickTracking        *bool      `json:"click_tracking,omitempty"`
+		Transactional        *bool      `json:"transactional,omitempty"`
+		StartTime            *time.Time `json:"start_time,omitempty"`
+		Sandbox              *bool      `json:"sandbox,omitempty"`
+		SkipSuppression      *bool      `json:"skip_suppression,omitempty"`
+		IPPool               string     `json:"ip_pool,omitempty"`
+		InlineCSS            *bool      `json:"inline_css,omitempty"`
+		PerformSubstitutions *bool      `json:"perform_substitutions,omitempty"`
+	}
+	// spContent is what you'll send to your Recipients.
+	// Knowledge of SparkPost's substitution/templating capabilities will come in handy here.
+	// https://www.sparkpost.com/api#/introduction/substitutions-reference
+	spContent struct {
+		HTML         string            `json:"html,omitempty"`
+		Text         string            `json:"text,omitempty"`
+		Subject      string            `json:"subject,omitempty"`
+		From         spFrom            `json:"from,omitempty"`
+		ReplyTo      string            `json:"reply_to,omitempty"`
+		Headers      map[string]string `json:"headers,omitempty"`
+		EmailRFC822  string            `json:"email_rfc822,omitempty"`
+		Attachments  []spAttachment    `json:"attachments,omitempty"`
+		InlineImages []interface{}     `json:"inline_images,omitempty"`
+	}
+	// From describes the nested object way of specifying the From header.
+	// Content.From can be specified this way, or as a plain string.
+	spFrom struct {
+		Email string `json:"email"`
+		Name  string `json:"name"`
+	}
+	// Response contains information about the last HTTP response.
+	// Helpful when an error message doesn't necessarily give the complete picture.
+	// Also contains any messages emitted as a result of the Verbose config option.
+	spResponse struct {
+		Results map[string]interface{} `json:"results,omitempty"`
+		Errors  []spError              `json:"errors,omitempty"`
+	}
+	// spError mirrors the error format returned by SparkPost APIs.
+	spError struct {
+		Message     string `json:"message"`
+		Code        string `json:"code"`
+		Description string `json:"description"`
+		Part        string `json:"part,omitempty"`
+		Line        int    `json:"line,omitempty"`
+	}
+	// spRecipient represents one email (you guessed it) recipient.
+	spRecipient struct {
+		Address          spAddress   `json:"address"`
+		ReturnPath       string      `json:"return_path,omitempty"`
+		Tags             []string    `json:"tags,omitempty"`
+		Metadata         interface{} `json:"metadata,omitempty"`
+		SubstitutionData interface{} `json:"substitution_data,omitempty"`
+	}
+	// Address describes the nested object way of specifying the Recipient's email address.
+	// Recipient.Address can also be a plain string.
+	spAddress struct {
+		Email    string `json:"email"`
+		Name     string `json:"name,omitempty"`
+		HeaderTo string `json:"header_to,omitempty"`
+	}
+	// spAttachment contains metadata and the contents of the file to attach.
+	spAttachment struct {
+		MIMEType string `json:"type"`
+		Filename string `json:"name"`
+		B64Data  string `json:"data"`
+	}
+)
+
+// HasError determines if the Sparkpost call was successful
+// by evaluating the errors' length.
+func (p *spResponse) HasError() bool {
+	return len(p.Errors) != 0
+}
+
+// Error returns a formatted response error for a Sparkpost
+// response.
+func (p *spResponse) Error() error {
+	if len(p.Errors) == 0 {
+		return nil
+	}
+	return fmt.Errorf("%s - code: %s, message: %s", sparkpostErrorMessage, p.Errors[0].Code, p.Errors[0].Message)
+}
+
+// ToResponse transforms a spResponse into a Go Mail response.
+// Checks if the id is attached and sets accordingly.
+func (p *spResponse) ToResponse(resp *http.Response, buf []byte) mail.Response {
+	response := mail.Response{
+		StatusCode: resp.StatusCode,
+		Body:       string(buf),
+		Headers:    resp.Header,
+		Message:    "Successfully sent Sparkpost email",
+	}
+	if val, ok := p.Results["id"]; ok {
+		response.ID = fmt.Sprintf("%v", val)
+	}
+	return response
 }
 
 // Send posts the go mail Transmission to the SparkPost
@@ -79,78 +186,73 @@ func (s *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 
 	headerTo := strings.Join(t.Recipients, ",")
 
-	content := sp.Content{
-		HTML: t.HTML,
-		Text: t.PlainText,
-		From: sp.From{
-			Email: s.cfg.FromAddress,
-			Name:  s.cfg.FromName,
+	m := spTransmission{
+		Content: spContent{
+			HTML:    t.HTML,
+			Text:    t.PlainText,
+			Subject: t.Subject,
+			From: spFrom{
+				Email: s.cfg.FromAddress,
+				Name:  s.cfg.FromName,
+			},
+			ReplyTo: "",
+			Headers: make(map[string]string),
 		},
-		Subject: t.Subject,
-		Headers: make(map[string]string),
-	}
-
-	tx := &sp.Transmission{
-		Recipients: []sp.Recipient{},
 	}
 
 	for _, r := range t.Recipients {
-		tx.Recipients = append(tx.Recipients.([]sp.Recipient), sp.Recipient{
-			Address: sp.Address{Email: r, HeaderTo: headerTo},
+		m.Recipients = append(m.Recipients, spRecipient{
+			Address: spAddress{Email: r, HeaderTo: headerTo},
 		})
 	}
 
 	if t.HasCC() {
 		for _, c := range t.CC {
-			tx.Recipients = append(tx.Recipients.([]sp.Recipient), sp.Recipient{
-				Address: sp.Address{Email: c, HeaderTo: headerTo},
+			m.Recipients = append(m.Recipients, spRecipient{
+				Address: spAddress{Email: c, HeaderTo: headerTo},
 			})
-			content.Headers["cc"] = strings.Join(t.CC, ",")
+			m.Content.Headers["cc"] = strings.Join(t.CC, ",")
 		}
 	}
 
 	if t.HasBCC() {
 		for _, b := range t.BCC {
-			tx.Recipients = append(tx.Recipients.([]sp.Recipient), sp.Recipient{
-				Address: sp.Address{Email: b, HeaderTo: headerTo},
+			m.Recipients = append(m.Recipients, spRecipient{
+				Address: spAddress{Email: b, HeaderTo: headerTo},
 			})
 		}
 	}
 
 	if t.Attachments.Exists() {
-		content.Attachments = s.addAttachments(t.Attachments)
+		for _, v := range t.Attachments {
+			m.Content.Attachments = append(m.Content.Attachments, spAttachment{
+				MIMEType: v.Mime(),
+				Filename: v.Filename,
+				B64Data:  v.B64(),
+			})
+		}
 	}
 
-	tx.Content = content
+	// Ensure the API Key is set for authorisation
+	// and add the JSON content type.
+	headers := http.Header{}
+	headers.Set("Authorization", s.cfg.APIKey)
 
-	id, response, err := s.send(tx)
+	buf, resp, err := s.client.Do(m, sparkpostEndpoint, headers)
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	if len(response.Errors) > 0 {
-		return mail.Response{}, response.Errors
+	// Unmarshal the buffer into a postalResponse.
+	response := spResponse{}
+	err = json.Unmarshal(buf, &response)
+	if err != nil {
+		return mail.Response{}, err
 	}
 
-	return mail.Response{
-		StatusCode: response.HTTP.StatusCode,
-		Body:       string(response.Body),
-		Headers:    response.HTTP.Header,
-		ID:         id,
-		Message:    response.Verbose,
-	}, nil
-}
-
-// addAttachments transforms a go mail attachments to
-// SparkPost attachments.
-func (s *sparkPost) addAttachments(a mail.Attachments) []sp.Attachment {
-	var att []sp.Attachment
-	for _, v := range a {
-		att = append(att, sp.Attachment{
-			MIMEType: v.Mime(),
-			Filename: v.Filename,
-			B64Data:  v.B64(),
-		})
+	if response.HasError() {
+		return mail.Response{}, response.Error()
 	}
-	return att
+
+	return response.ToResponse(resp, buf), nil
 }

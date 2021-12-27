@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	PostmarkHeaders = http.Header{"Content-Type": []string{"application/json"}, "X-Postmark-Server-Token": []string{""}}
+	PostmarkHeaders = http.Header{"X-Postmark-Server-Token": []string{""}}
 )
 
 func (t *DriversTestSuite) TestNewPostmark() {
@@ -166,9 +166,9 @@ func (t *DriversTestSuite) TestPostmark_Send() {
 			Trans,
 			func(m *mocks.Requester) {
 				m.On("Do", mock.Anything, postmarkEndpoint, PostmarkHeaders).
-					Return([]byte(`{"ErrorCode": 10, "Message": "Error message"}`), nil, nil)
+					Return([]byte(`{"ErrorCode": 10, "Message": "Error"}`), nil, nil)
 			},
-			fmt.Sprintf("%s - code: 10, message: Error message", postmarkErrorMessage),
+			fmt.Sprintf("%s - code: 10, message: Error", postmarkErrorMessage),
 		},
 	}
 

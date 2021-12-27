@@ -32,6 +32,14 @@ type postmark struct {
 	client client.Requester
 }
 
+const (
+	// postalEndpoint defines the endpoint to POST to.
+	postmarkEndpoint = "/email"
+	// postmarkErrorMessage defines the message when an error occurred
+	// when sending mail via the Postmark API.
+	postmarkErrorMessage = "error sending transmission to Postmark API"
+)
+
 // NewPostmark creates a new Postmark client. Configuration
 // is validated before initialisation.
 func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
@@ -44,14 +52,6 @@ func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 		client: client.New("https://api.postmarkapp.com"),
 	}, nil
 }
-
-const (
-	// postalEndpoint defines the endpoint to POST to.
-	postmarkEndpoint = "/email"
-	// postmarkErrorMessage defines the message when an error occurred
-	// when sending mail via the Postmark API.
-	postmarkErrorMessage = "error sending transmission to Postmark API"
-)
 
 type (
 	// postmarkTransmission defines the data to be sent to the Postmark API.
@@ -142,7 +142,6 @@ func (p *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 	// and add the JSON content type.
 	headers := http.Header{}
 	headers.Set("X-Postmark-Server-Token", p.cfg.APIKey)
-	headers.Add("Content-Type", "application/json")
 
 	buf, resp, err := p.client.Do(m, postmarkEndpoint, headers)
 	if err != nil {

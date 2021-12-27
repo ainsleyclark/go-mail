@@ -32,6 +32,14 @@ type postal struct {
 	client client.Requester
 }
 
+const (
+	// postalEndpoint defines the endpoint to POST to.
+	postalEndpoint = "/api/v1/send/message"
+	// postalErrorMessage defines the message when an error occurred
+	// when sending mail via the Postal API.
+	postalErrorMessage = "error sending transmission to Postal API"
+)
+
 // NewPostal creates a new Postal client. Configuration
 // is validated before initialisation.
 func NewPostal(cfg mail.Config) (mail.Mailer, error) {
@@ -44,14 +52,6 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 		client: client.New(cfg.URL),
 	}, nil
 }
-
-const (
-	// postalEndpoint defines the endpoint to POST to.
-	postalEndpoint = "/api/v1/send/message"
-	// postalErrorMessage defines the message when an error occurred
-	// when sending mail via the Postal API.
-	postalErrorMessage = "error sending transmission to Postal API"
-)
 
 type (
 	// postalTransmission defines the data to be sent to the Postal API.
@@ -89,7 +89,8 @@ func (p *postalResponse) HasError() bool {
 	return p.Status != "success"
 }
 
-// Error returns a formatted response error.
+// Error returns a formatted response error for a Postal
+// response
 func (p *postalResponse) Error() error {
 	msg := postalErrorMessage
 	if code, ok := p.Data["code"]; ok {
@@ -151,7 +152,6 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 	// and add the JSON content type.
 	headers := http.Header{}
 	headers.Set("X-Server-API-Key", p.cfg.APIKey)
-	headers.Add("Content-Type", "application/json")
 
 	buf, resp, err := p.client.Do(m, postalEndpoint, headers)
 	if err != nil {

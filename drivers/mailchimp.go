@@ -184,7 +184,7 @@ func (p *mailchimp) Send(t *mail.Transmission) (mail.Response, error) {
 			Headers:    resp.Header,
 			ID:         "",
 			// TODO - Message
-			Message:    nil,
+			Message: nil,
 		}, err
 	}
 
