@@ -80,18 +80,6 @@ func TestClient_Do(t *testing.T) {
 			bodyReader: io.ReadAll,
 			want:       "unsupported protocol scheme",
 		},
-		"Request Error": {
-			input: "input",
-			url:   "",
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusInternalServerError)
-				_, err := w.Write([]byte("buf"))
-				assert.NoError(t, err)
-			},
-			marshaller: json.Marshal,
-			bodyReader: io.ReadAll,
-			want:       "invalid request",
-		},
 		"Body Read Error": {
 			input: "input",
 			url:   "",

@@ -16,7 +16,6 @@ package client
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -96,10 +95,6 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 	buf, err := c.bodyReader(resp.Body)
 	if err != nil {
 		return nil, resp, err
-	}
-
-	if !Is2XX(resp.StatusCode) {
-		return buf, resp, errors.New("go-mail client: invalid request")
 	}
 
 	return buf, resp, nil

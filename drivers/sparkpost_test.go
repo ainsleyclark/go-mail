@@ -69,9 +69,9 @@ func (t *DriversTestSuite) TestNewSparkPost() {
 
 func (t *DriversTestSuite) TestSparkpost_Send() {
 	tt := map[string]struct {
-		input   *mail.Transmission
-		mock func(m *mocks.Requester)
-		want    interface{}
+		input *mail.Transmission
+		mock  func(m *mocks.Requester)
+		want  interface{}
 	}{
 		"Success": {
 			Trans,
@@ -83,7 +83,7 @@ func (t *DriversTestSuite) TestSparkpost_Send() {
 				StatusCode: http.StatusOK,
 				Body:       `{"results":{"total_rejected_recipients":0,"total_accepted_recipients":1,"id":"1"}}`,
 				Message:    "Successfully sent Sparkpost email",
-				ID: "1",
+				ID:         "1",
 			},
 		},
 		"With Attachment": {
@@ -96,7 +96,7 @@ func (t *DriversTestSuite) TestSparkpost_Send() {
 				StatusCode: http.StatusOK,
 				Body:       `{"results":{"total_rejected_recipients":0,"total_accepted_recipients":1,"id":"1"}}`,
 				Message:    "Successfully sent Sparkpost email",
-				ID: "1",
+				ID:         "1",
 			},
 		},
 		"Validation Failed": {

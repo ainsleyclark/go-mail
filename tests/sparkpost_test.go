@@ -14,7 +14,6 @@
 package mail
 
 import (
-	"fmt"
 	"github.com/ainsleyclark/go-mail/drivers"
 	"github.com/ainsleyclark/go-mail/mail"
 	"os"
@@ -38,7 +37,6 @@ func (t *MailTestSuite) Test_SparkPost() {
 		t.FailNow("Error sending SparkPost email: " + err.Error())
 	}
 
-	fmt.Println(result.Body)
 	t.Equal(200, result.StatusCode)
 	t.NotNil(result.Body)
 	t.NotEmpty(result.Message)

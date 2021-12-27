@@ -147,9 +147,9 @@ func (t *DriversTestSuite) TestPostalResponse_ToResponse() {
 
 func (t *DriversTestSuite) TestPostal_Send() {
 	tt := map[string]struct {
-		input   *mail.Transmission
-		mock func(m *mocks.Requester)
-		want    interface{}
+		input *mail.Transmission
+		mock  func(m *mocks.Requester)
+		want  interface{}
 	}{
 		"Success": {
 			Trans,

@@ -35,7 +35,7 @@ type sparkPost struct {
 const (
 	// sparkpostEndpoint defines the endpoint to POST to.
 	// See: https://www.sparkpost.com/api#/reference/transmissions
-	sparkpostEndpoint ="/api/v1/transmissions"
+	sparkpostEndpoint = "/api/v1/transmissions"
 	// sparkpostErrorMessage defines the message when an error occurred
 	// when sending mail via the Sparkpost API.
 	sparkpostErrorMessage = "error sending transmission to Sparkpost API"
