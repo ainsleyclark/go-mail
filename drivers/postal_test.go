@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	PostalHeaders = http.Header{"Content-Type": []string{"application/json"}, "X-Server-Api-Key": []string{""}}
+	PostalHeaders = http.Header{"X-Server-Api-Key": []string{""}}
 )
 
 func (t *DriversTestSuite) TestNewPostal() {
@@ -147,9 +147,9 @@ func (t *DriversTestSuite) TestPostalResponse_ToResponse() {
 
 func (t *DriversTestSuite) TestPostal_Send() {
 	tt := map[string]struct {
-		input   *mail.Transmission
-		handler func(m *mocks.Requester)
-		want    interface{}
+		input *mail.Transmission
+		mock  func(m *mocks.Requester)
+		want  interface{}
 	}{
 		"Success": {
 			Trans,
@@ -209,8 +209,8 @@ func (t *DriversTestSuite) TestPostal_Send() {
 	for name, test := range tt {
 		t.Run(name, func() {
 			m := &mocks.Requester{}
-			if test.handler != nil {
-				test.handler(m)
+			if test.mock != nil {
+				test.mock(m)
 			}
 
 			ptl := postal{

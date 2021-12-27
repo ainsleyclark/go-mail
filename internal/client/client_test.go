@@ -80,18 +80,6 @@ func TestClient_Do(t *testing.T) {
 			bodyReader: io.ReadAll,
 			want:       "unsupported protocol scheme",
 		},
-		"Request Error": {
-			input: "input",
-			url:   "",
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusInternalServerError)
-				_, err := w.Write([]byte("buf"))
-				assert.NoError(t, err)
-			},
-			marshaller: json.Marshal,
-			bodyReader: io.ReadAll,
-			want:       "invalid request",
-		},
 		"Body Read Error": {
 			input: "input",
 			url:   "",
@@ -133,6 +121,33 @@ func TestClient_Do(t *testing.T) {
 
 			assert.Equal(t, test.want, string(buf))
 			assert.Equal(t, resp.StatusCode, http.StatusOK)
+		})
+	}
+}
+
+func TestIs2XX(t *testing.T) {
+	tt := map[string]struct {
+		input int
+		want  bool
+	}{
+		"< 200": {
+			http.StatusContinue,
+			false,
+		},
+		"200": {
+			http.StatusOK,
+			true,
+		},
+		"300 >": {
+			http.StatusMultipleChoices,
+			false,
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func(t *testing.T) {
+			got := Is2XX(test.input)
+			assert.Equal(t, test.want, got)
 		})
 	}
 }

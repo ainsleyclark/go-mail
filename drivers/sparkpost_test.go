@@ -15,9 +15,15 @@ package drivers
 
 import (
 	"errors"
-	sp "github.com/SparkPost/gosparkpost"
+	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
+	"github.com/ainsleyclark/go-mail/mocks"
+	"github.com/stretchr/testify/mock"
 	"net/http"
+)
+
+var (
+	SparkpostHeaders = http.Header{"Authorization": []string{""}}
 )
 
 func (t *DriversTestSuite) TestNewSparkPost() {
@@ -61,86 +67,176 @@ func (t *DriversTestSuite) TestNewSparkPost() {
 	}
 }
 
-func (t *DriversTestSuite) TestSparkPost_Send() {
+func (t *DriversTestSuite) TestSparkpostResponse_HasError() {
 	tt := map[string]struct {
-		input *mail.Transmission
-		send  sparkSendFunc
-		want  interface{}
+		input spResponse
+		want  bool
 	}{
-		"Success": {
-			Trans,
-			func(t *sp.Transmission) (id string, res *sp.Response, err error) {
-				return "1", &sp.Response{
-					HTTP:    &http.Response{StatusCode: 200, Header: nil},
-					Verbose: map[string]string{"msg": "value"},
-					Body:    []byte("body"),
-				}, nil
-			},
-			mail.Response{
-				StatusCode: 200,
-				Body:       "body",
-				Headers:    nil,
-				ID:         "1",
-				Message:    map[string]string{"msg": "value"},
-			},
+		"Error": {
+			spResponse{},
+			false,
 		},
-		"With Attachment": {
-			TransWithAttachment,
-			func(t *sp.Transmission) (id string, res *sp.Response, err error) {
-				return "1", &sp.Response{
-					HTTP:    &http.Response{StatusCode: 200, Header: nil},
-					Verbose: map[string]string{"msg": "value"},
-					Body:    []byte("body"),
-				}, nil
-			},
-			mail.Response{
-				StatusCode: 200,
-				Body:       "body",
-				Headers:    nil,
-				ID:         "1",
-				Message:    map[string]string{"msg": "value"},
-			},
-		},
-		"Validation Failed": {
-			nil,
-			func(t *sp.Transmission) (id string, res *sp.Response, err error) {
-				return "", nil, nil
-			},
-			"can't validate a nil transmission",
-		},
-		"Send Error": {
-			Trans,
-			func(t *sp.Transmission) (id string, res *sp.Response, err error) {
-				return "", nil, errors.New("send error")
-			},
-			"send error",
-		},
-		"Response Error": {
-			Trans,
-			func(t *sp.Transmission) (id string, res *sp.Response, err error) {
-				return "0", &sp.Response{
-					Errors: sp.SPErrors{
-						sp.SPError{Message: "resp error"},
-					},
-				}, nil
-			},
-			"resp error",
+		"No Error": {
+			spResponse{Errors: []spError{{
+				Message: "Error",
+				Code:    "10",
+			}}},
+			true,
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			spark := sparkPost{
-				cfg: mail.Config{
-					FromAddress: "from",
-				},
-				send: test.send,
+			got := test.input.HasError()
+			t.Equal(test.want, got)
+		})
+	}
+}
+
+func (t *DriversTestSuite) TestSparkpostResponse_Error() {
+	tt := map[string]struct {
+		input spResponse
+		want  error
+	}{
+		"None": {
+			spResponse{},
+			nil,
+		},
+		"Error": {
+			spResponse{Errors: []spError{{
+				Message: "Error",
+				Code:    "10",
+			}}},
+			fmt.Errorf("%s - code: 10, message: Error", sparkpostErrorMessage),
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.input.Error()
+			t.Equal(test.want, got)
+		})
+	}
+}
+
+func (t *DriversTestSuite) TestSparkpostResponse_ToResponse() {
+	tt := map[string]struct {
+		input []byte
+		resp  spResponse
+		want  mail.Response
+	}{
+		"Default": {
+			[]byte("body"),
+			spResponse{},
+			mail.Response{
+				StatusCode: http.StatusOK,
+				Body:       "body",
+				Headers:    SparkpostHeaders,
+				Message:    "Successfully sent Sparkpost email",
+			},
+		},
+		"With ID": {
+			[]byte("body"),
+			spResponse{Results: map[string]interface{}{"id": "1"}},
+			mail.Response{
+				StatusCode: http.StatusOK,
+				Body:       "body",
+				Headers:    SparkpostHeaders,
+				Message:    "Successfully sent Sparkpost email",
+				ID:         "1",
+			},
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.resp.ToResponse(&http.Response{Header: SparkpostHeaders, StatusCode: http.StatusOK}, test.input)
+			t.Equal(test.want, got)
+		})
+	}
+}
+
+func (t *DriversTestSuite) TestSparkpost_Send() {
+	tt := map[string]struct {
+		input *mail.Transmission
+		mock  func(m *mocks.Requester)
+		want  interface{}
+	}{
+		"Success": {
+			Trans,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, sparkpostEndpoint, SparkpostHeaders).
+					Return([]byte(`{"results":{"total_rejected_recipients":0,"total_accepted_recipients":1,"id":"1"}}`), &http.Response{StatusCode: http.StatusOK}, nil)
+			},
+			mail.Response{
+				StatusCode: http.StatusOK,
+				Body:       `{"results":{"total_rejected_recipients":0,"total_accepted_recipients":1,"id":"1"}}`,
+				Message:    "Successfully sent Sparkpost email",
+				ID:         "1",
+			},
+		},
+		"With Attachment": {
+			TransWithAttachment,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, sparkpostEndpoint, SparkpostHeaders).
+					Return([]byte(`{"results":{"total_rejected_recipients":0,"total_accepted_recipients":1,"id":"1"}}`), &http.Response{StatusCode: http.StatusOK}, nil)
+			},
+			mail.Response{
+				StatusCode: http.StatusOK,
+				Body:       `{"results":{"total_rejected_recipients":0,"total_accepted_recipients":1,"id":"1"}}`,
+				Message:    "Successfully sent Sparkpost email",
+				ID:         "1",
+			},
+		},
+		"Validation Failed": {
+			nil,
+			nil,
+			"can't validate a nil transmission",
+		},
+		"Do Error": {
+			Trans,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, sparkpostEndpoint, SparkpostHeaders).
+					Return([]byte("output"), nil, errors.New("do error"))
+			},
+			"do error",
+		},
+		"Unmarshal Error": {
+			Trans,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, sparkpostEndpoint, SparkpostHeaders).
+					Return([]byte(`wrong`), nil, nil)
+			},
+			"invalid character",
+		},
+		"Response Error": {
+			Trans,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, sparkpostEndpoint, SparkpostHeaders).
+					Return([]byte(`{"errors": [{"message": "Error", "code": "10"}]}`), nil, nil)
+			},
+			fmt.Sprintf("%s - code: 10, message: Error", sparkpostErrorMessage),
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			m := &mocks.Requester{}
+			if test.mock != nil {
+				test.mock(m)
 			}
-			resp, err := spark.Send(test.input)
+
+			sp := sparkPost{
+				cfg:    mail.Config{FromAddress: "from"},
+				client: m,
+			}
+
+			resp, err := sp.Send(test.input)
 			if err != nil {
 				t.Contains(err.Error(), test.want)
 				return
 			}
+
 			t.Equal(test.want, resp)
 		})
 	}

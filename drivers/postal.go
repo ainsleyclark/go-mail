@@ -32,6 +32,14 @@ type postal struct {
 	client client.Requester
 }
 
+const (
+	// postalEndpoint defines the endpoint to POST to.
+	postalEndpoint = "/api/v1/send/message"
+	// postalErrorMessage defines the message when an error occurred
+	// when sending mail via the Postal API.
+	postalErrorMessage = "error sending transmission to Postal API"
+)
+
 // NewPostal creates a new Postal client. Configuration
 // is validated before initialisation.
 func NewPostal(cfg mail.Config) (mail.Mailer, error) {
@@ -45,43 +53,35 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 	}, nil
 }
 
-const (
-	// postalEndpoint defines the endpoint to POST to.
-	postalEndpoint = "/api/v1/send/message"
-	// postalErrorMessage defines the message when an error occurred
-	// when sending mail via the Postal API.
-	postalErrorMessage = "error sending transmission to Postal API"
+type (
+	// postalTransmission defines the data to be sent to the Postal API.
+	postalTransmission struct {
+		To          []string           `json:"to"`
+		CC          []string           `json:"cc"`
+		BCC         []string           `json:"bcc"`
+		From        string             `json:"from"`
+		Sender      string             `json:"sender"`
+		Subject     string             `json:"subject"`
+		HTML        string             `json:"html_body"`
+		PlainText   string             `json:"plain_body"`
+		Attachments []postalAttachment `json:"attachments"`
+	}
+	// postalAttachment defines a singular Postal mail attachment.
+	postalAttachment struct {
+		Name        string `json:"name"`
+		ContentType string `json:"content_type"`
+		Data        string `json:"data"`
+	}
+	// postalResponse defines the data sent back from the Postal API.
+	// Status can either be "success" or "error" and data is
+	// dynamic dependent on if an error occurred during processing.
+	postalResponse struct {
+		Status string                 `json:"status"`
+		Time   float32                `json:"time"`
+		Flags  map[string]interface{} `json:"flags"`
+		Data   map[string]interface{} `json:"data"`
+	}
 )
-
-// postalMessage defines the data to be sent to the Postal API.
-type postalMessage struct {
-	To          []string           `json:"to"`
-	CC          []string           `json:"cc"`
-	BCC         []string           `json:"bcc"`
-	From        string             `json:"from"`
-	Sender      string             `json:"sender"`
-	Subject     string             `json:"subject"`
-	HTML        string             `json:"html_body"`
-	PlainText   string             `json:"plain_body"`
-	Attachments []postalAttachment `json:"attachments"`
-}
-
-// postalAttachment defines a singular Postal mail attachment.
-type postalAttachment struct {
-	Name        string `json:"name"`
-	ContentType string `json:"content_type"`
-	Data        string `json:"data"`
-}
-
-// postalResponse defines the data sent back from the Postal API.
-// Status can either be "success" or "error" and data is
-// dynamic dependent on if an error occurred during processing.
-type postalResponse struct {
-	Status string                 `json:"status"`
-	Time   float32                `json:"time"`
-	Flags  map[string]interface{} `json:"flags"`
-	Data   map[string]interface{} `json:"data"`
-}
 
 // HasError determines if the Postal call was successful
 // by comparing the status.
@@ -89,7 +89,8 @@ func (p *postalResponse) HasError() bool {
 	return p.Status != "success"
 }
 
-// Error returns a formatted response error.
+// Error returns a formatted response error for a Postal
+// response
 func (p *postalResponse) Error() error {
 	msg := postalErrorMessage
 	if code, ok := p.Data["code"]; ok {
@@ -126,7 +127,7 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 		return mail.Response{}, err
 	}
 
-	m := postalMessage{
+	m := postalTransmission{
 		To:        t.Recipients,
 		CC:        t.CC,
 		BCC:       t.BCC,
@@ -151,7 +152,6 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 	// and add the JSON content type.
 	headers := http.Header{}
 	headers.Set("X-Server-API-Key", p.cfg.APIKey)
-	headers.Add("Content-Type", "application/json")
 
 	buf, resp, err := p.client.Do(m, postalEndpoint, headers)
 	if err != nil {

@@ -16,7 +16,6 @@ package client
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -76,7 +75,14 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 	if err != nil {
 		return nil, nil, err
 	}
+
+	if len(headers) == 0 {
+		headers = http.Header{}
+	}
+
 	req.Header = headers
+	req.Header.Set("User-Agent", "Go Mail v0.1")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -91,11 +97,14 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 		return nil, resp, err
 	}
 
-	// Successful response
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return buf, resp, nil
-	}
+	return buf, resp, nil
+}
 
-	// Invalid request, not between 200 & 300
-	return buf, resp, errors.New("go-mail client: invalid request")
+// Is2XX returns true if the provided HTTP response code is
+// in the range 200-299.
+func Is2XX(code int) bool {
+	if code < 300 && code >= 200 {
+		return true
+	}
+	return false
 }
