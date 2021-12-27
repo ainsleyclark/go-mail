@@ -25,7 +25,7 @@ cfg := mail.Config{
     FromName:    "Gopher",
 }
 
-driver, err := mail.NewClient(mail.SparkPost, cfg)
+mailer, err := drivers.NewSparkPost(cfg)
 if err != nil {
 	log.Fatalln(err)
 }
@@ -36,7 +36,7 @@ tx := &mail.Transmission{
     HTML:        "<h1>Hello from go mail!</h1>",
 }
 
-result, err := driver.Send(tx)
+result, err := mailer.Send(tx)
 if err != nil {
 	log.Fatalln(err)
 }
@@ -82,7 +82,7 @@ cfg := mail.Config{
     FromName:    "Gopher",
 }
 
-driver, err := drivers.NewSparkpost(cfg)
+mailer, err := drivers.NewSparkpost(cfg)
 if err != nil {
 	log.Fatalln(err)
 }
@@ -101,7 +101,7 @@ tx := &mail.Transmission{
     PlainText:  "plain text",
 }
 
-result, err := driver.Send(tx)
+result, err := mailer.Send(tx)
 if err != nil {
 	log.Fatalln(err)
 }
