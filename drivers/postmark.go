@@ -53,48 +53,48 @@ const (
 	postmarkErrorMessage = "error sending transmission to Postmark API"
 )
 
-// postmarkMessage defines the data to be sent to the Postmark API.
-type postmarkMessage struct {
-	From      string `json:"From"`
-	To        string `json:"To"`
-	CC        string `json:"Cc"`
-	BCC       string `json:"Bcc"`
-	Subject   string `json:"Subject"`
-	Tag       string `json:"Tag"`
-	HTML      string `json:"HtmlBody"`
-	PlainText string `json:"TextBody"`
-	ReplyTo   string `json:"ReplyTo"`
-	Headers   []struct {
-		Name  string `json:"Name"`
-		Value string `json:"Value"`
-	} `json:"Headers"`
-	TrackOpens  bool                 `json:"TrackOpens"`
-	TrackLinks  string               `json:"TrackLinks"`
-	Attachments []postmarkAttachment `json:"Attachments"`
-	Metadata    struct {
-		Color    string `json:"color"`
-		ClientID string `json:"client-id"`
-	} `json:"Metadata"`
-	MessageStream string `json:"MessageStream"`
-}
-
-// postmarkAttachment defines a singular Postmark mail attachment.
-type postmarkAttachment struct {
-	Name        string `json:"Name"`
-	Content     string `json:"Content"`
-	ContentType string `json:"ContentType"`
-	ContentID   string `json:"ContentID,omitempty"`
-}
-
-// postmarkResponse defines the data sent back from the Postmark API.
-// An error code of 0 represents a successful transmission.
-type postmarkResponse struct {
-	To          string    `json:"To"`
-	SubmittedAt time.Time `json:"SubmittedAt"`
-	MessageID   string    `json:"MessageID"`
-	ErrorCode   int       `json:"ErrorCode"`
-	Message     string    `json:"Message"`
-}
+type (
+	// postmarkTransmission defines the data to be sent to the Postmark API.
+	postmarkTransmission struct {
+		From      string `json:"From"`
+		To        string `json:"To"`
+		CC        string `json:"Cc"`
+		BCC       string `json:"Bcc"`
+		Subject   string `json:"Subject"`
+		Tag       string `json:"Tag"`
+		HTML      string `json:"HtmlBody"`
+		PlainText string `json:"TextBody"`
+		ReplyTo   string `json:"ReplyTo"`
+		Headers   []struct {
+			Name  string `json:"Name"`
+			Value string `json:"Value"`
+		} `json:"Headers"`
+		TrackOpens  bool                 `json:"TrackOpens"`
+		TrackLinks  string               `json:"TrackLinks"`
+		Attachments []postmarkAttachment `json:"Attachments"`
+		Metadata    struct {
+			Color    string `json:"color"`
+			ClientID string `json:"client-id"`
+		} `json:"Metadata"`
+		MessageStream string `json:"MessageStream"`
+	}
+	// postmarkAttachment defines a singular Postmark mail attachment.
+	postmarkAttachment struct {
+		Name        string `json:"Name"`
+		Content     string `json:"Content"`
+		ContentType string `json:"ContentType"`
+		ContentID   string `json:"ContentID,omitempty"`
+	}
+	// postmarkResponse defines the data sent back from the Postmark API.
+	// An error code of 0 represents a successful transmission.
+	postmarkResponse struct {
+		To          string    `json:"To"`
+		SubmittedAt time.Time `json:"SubmittedAt"`
+		MessageID   string    `json:"MessageID"`
+		ErrorCode   int       `json:"ErrorCode"`
+		Message     string    `json:"Message"`
+	}
+)
 
 // HasError determines if the Postal call was successful
 // by comparing the status.
@@ -117,7 +117,7 @@ func (p *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 		return mail.Response{}, err
 	}
 
-	m := postmarkMessage{
+	m := postmarkTransmission{
 		To:            strings.Join(t.Recipients, ","),
 		CC:            strings.Join(t.CC, ","),
 		BCC:           strings.Join(t.BCC, ","),

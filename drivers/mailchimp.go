@@ -50,68 +50,69 @@ const (
 	mailchimpErrorMessage = "error sending transmission to MailChimp API"
 )
 
-// mailchimpMessage defines the data to be sent to the Postal API.
-type mailchimpMessage struct {
-	HTML      string        `json:"html"`
-	Text      string        `json:"text"`
-	Subject   string        `json:"subject"`
-	FromEmail string        `json:"from_email"`
-	FromName  string        `json:"from_name"`
-	To        []mailchimpTo `json:"to"`
-	Headers   struct {
-	} `json:"headers"`
-	Important               bool          `json:"important"`
-	TrackOpens              bool          `json:"track_opens"`
-	TrackClicks             bool          `json:"track_clicks"`
-	AutoText                bool          `json:"auto_text"`
-	AutoHTML                bool          `json:"auto_html"`
-	InlineCSS               bool          `json:"inline_css"`
-	URLStripQs              bool          `json:"url_strip_qs"`
-	PreserveRecipients      bool          `json:"preserve_recipients"`
-	ViewContentLink         bool          `json:"view_content_link"`
-	BccAddress              string        `json:"bcc_address"`
-	TrackingDomain          string        `json:"tracking_domain"`
-	SigningDomain           string        `json:"signing_domain"`
-	ReturnPathDomain        string        `json:"return_path_domain"`
-	Merge                   bool          `json:"merge"`
-	MergeLanguage           string        `json:"merge_language"`
-	GlobalMergeVars         []interface{} `json:"global_merge_vars"`
-	MergeVars               []interface{} `json:"merge_vars"`
-	Tags                    []interface{} `json:"tags"`
-	Subaccount              string        `json:"subaccount"`
-	GoogleAnalyticsDomains  []interface{} `json:"google_analytics_domains"`
-	GoogleAnalyticsCampaign string        `json:"google_analytics_campaign"`
-	Metadata                struct {
-		Website string `json:"website"`
-	} `json:"metadata"`
-	RecipientMetadata []interface{}         `json:"recipient_metadata"`
-	Attachments       []mailchimpAttachment `json:"attachments"`
-	Images            []interface{}         `json:"images"`
-}
+// {"status":"error","code":-1,"name":"Invalid_Key","message":"Invalid API key"}
 
-type mailchimpTo struct {
-	// the email address of the recipient
-	Email string `json:"email"`
-	// the optional display name to use for the recipient
-	Name string `json:"name"`
-	// the header type to use for the recipient, defaults to "to" if not provided Possible values: "to", "cc", or "bcc".
-	Type string `json:"type"`
-}
-
-type mailchimpTransmission struct {
-	APIKey  string           `json:"key"`
-	Message mailchimpMessage `json:"message"`
-	Async   bool             `json:"async"`
-	IPPool  string           `json:"ip_pool"`
-	SendAt  string           `json:"send_at"`
-}
-
-// mailchimpAttachment defines a singular Postal mail attachment.
-type mailchimpAttachment struct {
-	Type string `json:"type"`
-	Name string `json:"name"`
-	Data string `json:"content"`
-}
+type (
+	mailchimpTransmission struct {
+		APIKey  string           `json:"key"`
+		Message mailchimpMessage `json:"message"`
+		Async   bool             `json:"async"`
+		IPPool  string           `json:"ip_pool"`
+		SendAt  string           `json:"send_at"`
+	}
+	// mailchimpMessage defines the data to be sent to the Postal API.
+	mailchimpMessage struct {
+		HTML      string        `json:"html"`
+		Text      string        `json:"text"`
+		Subject   string        `json:"subject"`
+		FromEmail string        `json:"from_email"`
+		FromName  string        `json:"from_name"`
+		To        []mailchimpTo `json:"to"`
+		Headers   struct {
+		} `json:"headers"`
+		Important               bool          `json:"important"`
+		TrackOpens              bool          `json:"track_opens"`
+		TrackClicks             bool          `json:"track_clicks"`
+		AutoText                bool          `json:"auto_text"`
+		AutoHTML                bool          `json:"auto_html"`
+		InlineCSS               bool          `json:"inline_css"`
+		URLStripQs              bool          `json:"url_strip_qs"`
+		PreserveRecipients      bool          `json:"preserve_recipients"`
+		ViewContentLink         bool          `json:"view_content_link"`
+		BccAddress              string        `json:"bcc_address"`
+		TrackingDomain          string        `json:"tracking_domain"`
+		SigningDomain           string        `json:"signing_domain"`
+		ReturnPathDomain        string        `json:"return_path_domain"`
+		Merge                   bool          `json:"merge"`
+		MergeLanguage           string        `json:"merge_language"`
+		GlobalMergeVars         []interface{} `json:"global_merge_vars"`
+		MergeVars               []interface{} `json:"merge_vars"`
+		Tags                    []interface{} `json:"tags"`
+		Subaccount              string        `json:"subaccount"`
+		GoogleAnalyticsDomains  []interface{} `json:"google_analytics_domains"`
+		GoogleAnalyticsCampaign string        `json:"google_analytics_campaign"`
+		Metadata                struct {
+			Website string `json:"website"`
+		} `json:"metadata"`
+		RecipientMetadata []interface{}         `json:"recipient_metadata"`
+		Attachments       []mailchimpAttachment `json:"attachments"`
+		Images            []interface{}         `json:"images"`
+	}
+	mailchimpTo struct {
+		// the email address of the recipient
+		Email string `json:"email"`
+		// the optional display name to use for the recipient
+		Name string `json:"name"`
+		// the header type to use for the recipient, defaults to "to" if not provided Possible values: "to", "cc", or "bcc".
+		Type string `json:"type"`
+	}
+	// mailchimpAttachment defines a singular Postal mail attachment.
+	mailchimpAttachment struct {
+		Type string `json:"type"`
+		Name string `json:"name"`
+		Data string `json:"content"`
+	}
+)
 
 // Send posts the go mail Transmission to the MailChimp
 // API. Transmissions are validated before sending
@@ -159,7 +160,6 @@ func (p *mailchimp) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-
 	if t.Attachments.Exists() {
 		for _, v := range t.Attachments {
 			m.Message.Attachments = append(m.Message.Attachments, mailchimpAttachment{
@@ -176,11 +176,17 @@ func (p *mailchimp) Send(t *mail.Transmission) (mail.Response, error) {
 	headers.Add("Content-Type", "application/json")
 
 	buf, resp, err := p.client.Do(m, mailchimpEndpoint, headers)
+	fmt.Println(string(buf), resp)
 	if err != nil {
-		return mail.Response{}, err
+		return mail.Response{
+			StatusCode: resp.StatusCode,
+			Body:       string(buf),
+			Headers:    resp.Header,
+			ID:         "",
+			// TODO - Message
+			Message:    nil,
+		}, err
 	}
-
-	fmt.Println(buf, resp)
 
 	return mail.Response{}, nil
 

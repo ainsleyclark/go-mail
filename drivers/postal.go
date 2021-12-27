@@ -53,35 +53,35 @@ const (
 	postalErrorMessage = "error sending transmission to Postal API"
 )
 
-// postalMessage defines the data to be sent to the Postal API.
-type postalMessage struct {
-	To          []string           `json:"to"`
-	CC          []string           `json:"cc"`
-	BCC         []string           `json:"bcc"`
-	From        string             `json:"from"`
-	Sender      string             `json:"sender"`
-	Subject     string             `json:"subject"`
-	HTML        string             `json:"html_body"`
-	PlainText   string             `json:"plain_body"`
-	Attachments []postalAttachment `json:"attachments"`
-}
-
-// postalAttachment defines a singular Postal mail attachment.
-type postalAttachment struct {
-	Name        string `json:"name"`
-	ContentType string `json:"content_type"`
-	Data        string `json:"data"`
-}
-
-// postalResponse defines the data sent back from the Postal API.
-// Status can either be "success" or "error" and data is
-// dynamic dependent on if an error occurred during processing.
-type postalResponse struct {
-	Status string                 `json:"status"`
-	Time   float32                `json:"time"`
-	Flags  map[string]interface{} `json:"flags"`
-	Data   map[string]interface{} `json:"data"`
-}
+type (
+	// postalTransmission defines the data to be sent to the Postal API.
+	postalTransmission struct {
+		To          []string           `json:"to"`
+		CC          []string           `json:"cc"`
+		BCC         []string           `json:"bcc"`
+		From        string             `json:"from"`
+		Sender      string             `json:"sender"`
+		Subject     string             `json:"subject"`
+		HTML        string             `json:"html_body"`
+		PlainText   string             `json:"plain_body"`
+		Attachments []postalAttachment `json:"attachments"`
+	}
+	// postalAttachment defines a singular Postal mail attachment.
+	postalAttachment struct {
+		Name        string `json:"name"`
+		ContentType string `json:"content_type"`
+		Data        string `json:"data"`
+	}
+	// postalResponse defines the data sent back from the Postal API.
+	// Status can either be "success" or "error" and data is
+	// dynamic dependent on if an error occurred during processing.
+	postalResponse struct {
+		Status string                 `json:"status"`
+		Time   float32                `json:"time"`
+		Flags  map[string]interface{} `json:"flags"`
+		Data   map[string]interface{} `json:"data"`
+	}
+)
 
 // HasError determines if the Postal call was successful
 // by comparing the status.
@@ -126,7 +126,7 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 		return mail.Response{}, err
 	}
 
-	m := postalMessage{
+	m := postalTransmission{
 		To:        t.Recipients,
 		CC:        t.CC,
 		BCC:       t.BCC,
