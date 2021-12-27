@@ -29,9 +29,9 @@ cover: test
 .PHONY: cover
 
 # Make mocks keeping directory tree
-mock:
+mocks:
 	rm -rf mocks && mockery --all
-.PHONY: mock
+.PHONY: mocks
 
 # Make format, lint and test
 all:
