@@ -124,3 +124,30 @@ func TestClient_Do(t *testing.T) {
 		})
 	}
 }
+
+func TestIs2XX(t *testing.T) {
+	tt := map[string]struct {
+		input int
+		want  bool
+	}{
+		"< 200": {
+			http.StatusContinue,
+			false,
+		},
+		"200": {
+			http.StatusOK,
+			true,
+		},
+		"300 >": {
+			http.StatusMultipleChoices,
+			false,
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func(t *testing.T) {
+			got := Is2XX(test.input)
+			assert.Equal(t, test.want, got)
+		})
+	}
+}

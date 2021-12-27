@@ -15,12 +15,12 @@ lint:
 
 # Test uses race and coverage
 test:
-	go clean -testcache && go test -race $$(go list ./... | grep -v tests | grep -v examples) -coverprofile=coverage.out -covermode=atomic
+	go clean -testcache && go test -race $$(go list ./... | grep -v tests | grep -v examples | grep -v res | grep -v mocks) -coverprofile=coverage.out -covermode=atomic
 .PHONY: test
 
 # Test with -v
 test-v:
-	go clean -testcache && go test -race -v $$(go list ./... | grep -v tests | grep -v examples) -coverprofile=coverage.out -covermode=atomic
+	go clean -testcache && go test -race -v $$(go list ./... | grep -v tests | grep -v examples | grep -v res | grep -v mocks) -coverprofile=coverage.out -covermode=atomic
 .PHONY: test-v
 
 # Run all the tests and opens the coverage report

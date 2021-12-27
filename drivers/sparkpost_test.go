@@ -67,6 +67,95 @@ func (t *DriversTestSuite) TestNewSparkPost() {
 	}
 }
 
+func (t *DriversTestSuite) TestSparkpostResponse_HasError() {
+	tt := map[string]struct {
+		input spResponse
+		want  bool
+	}{
+		"Error": {
+			spResponse{},
+			false,
+		},
+		"No Error": {
+			spResponse{Errors: []spError{{
+				Message: "Error",
+				Code:    "10",
+			}}},
+			true,
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.input.HasError()
+			t.Equal(test.want, got)
+		})
+	}
+}
+
+func (t *DriversTestSuite) TestSparkpostResponse_Error() {
+	tt := map[string]struct {
+		input spResponse
+		want  error
+	}{
+		"None": {
+			spResponse{},
+			nil,
+		},
+		"Error": {
+			spResponse{Errors: []spError{{
+				Message: "Error",
+				Code:    "10",
+			}}},
+			fmt.Errorf("%s - code: 10, message: Error", sparkpostErrorMessage),
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.input.Error()
+			t.Equal(test.want, got)
+		})
+	}
+}
+
+func (t *DriversTestSuite) TestSparkpostResponse_ToResponse() {
+	tt := map[string]struct {
+		input []byte
+		resp  spResponse
+		want  mail.Response
+	}{
+		"Default": {
+			[]byte("body"),
+			spResponse{},
+			mail.Response{
+				StatusCode: http.StatusOK,
+				Body:       "body",
+				Headers:    SparkpostHeaders,
+				Message:    "Successfully sent Sparkpost email",
+			},
+		},
+		"With ID": {
+			[]byte("body"),
+			spResponse{Results: map[string]interface{}{"id": "1"}},
+			mail.Response{
+				StatusCode: http.StatusOK,
+				Body:       "body",
+				Headers:    SparkpostHeaders,
+				Message:    "Successfully sent Sparkpost email",
+				ID:         "1",
+			},
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.resp.ToResponse(&http.Response{Header: SparkpostHeaders, StatusCode: http.StatusOK}, test.input)
+			t.Equal(test.want, got)
+		})
+	}
+}
+
 func (t *DriversTestSuite) TestSparkpost_Send() {
 	tt := map[string]struct {
 		input *mail.Transmission
