@@ -14,11 +14,17 @@
 package drivers
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/client"
 	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/mailgun/mailgun-go/v4"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -28,13 +34,8 @@ import (
 // data.
 type mailGun struct {
 	cfg    mail.Config
-	client *mailgun.MailgunImpl
-	send   mailGunSendFunc
+	client client.Requester
 }
-
-// mailGunSendFunc defines the function for ending MailGun
-// transmissions.
-type mailGunSendFunc func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error)
 
 // NewMailGun creates a new MailGun client. Configuration
 // is validated before initialisation.
@@ -46,25 +47,111 @@ func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
 	if cfg.Domain == "" {
 		return nil, errors.New("driver requires a domain")
 	}
-	client := mailgun.NewMailgun(cfg.Domain, cfg.APIKey)
 	return &mailGun{
 		cfg:    cfg,
-		client: client,
-		send:   client.Send,
+		client: client.New(cfg.URL),
 	}, nil
 }
 
-// Send posts the go mail Transmission to the MailGun
-// API. Transmissions are validated before sending
-// and attachments are added. Returns an error
-// upon failure.
+type (
+	mailgunTransmission struct {
+		// Email address for From header
+		From string `json:"from"`
+		// Email address of the recipient(s). Example: "Bob <bob@host.com>".
+		// You can use commas to separate multiple recipients.
+		To string `json:"to"`
+		// Same as To but for Cc
+		CC string `json:"cc"`
+		// Same as To but for Bcc
+		BCC string `json:"bcc"`
+		// Message subject
+		Subject string `json:"subject"`
+		//	Body of the message. (text version)
+		Text string `json:"text"`
+		// Body of the message. (HTML version)
+		HTML string `json:"html"`
+		// AMP part of the message. Please follow google guidelines to compose and send AMP emails.
+		AMPHtml string `json:"amp-html"`
+		// attachment	File attachment. You can post multiple attachment values. Important: You must use multipart/form-data encoding when sending attachments.
+		// Name of a template stored via template API. See Templates for more information
+		Template string `json:"template"`
+		// Use this parameter to send a message to specific version of a template
+		TemplateVersion string `json:"t:version"`
+	}
+	// StoredAttachment structures contain information on an attachment associated with a stored message.
+	StoredAttachment struct {
+		Size        int    `json:"size"`
+		Url         string `json:"url"`
+		Name        string `json:"name"`
+		ContentType string `json:"content-type"`
+	}
+type BufferAttachment struct {
+Filename string
+Buffer   []byte
+}
+)
+
 func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	message := m.client.NewMessage(m.cfg.FromAddress, t.Subject, t.PlainText, t.Recipients...)
+	tx := mailgunTransmission{
+		From:    fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress),
+		To:      strings.Join(t.Recipients, ","),
+		CC:      strings.Join(t.CC, ","),
+		BCC:     strings.Join(t.BCC, ","),
+		Subject: t.Subject,
+		Text:    t.PlainText,
+		HTML:    t.HTML,
+	}
+
+	data := &bytes.Buffer{}
+	writer := multipart.NewWriter(data)
+	defer writer.Close()
+
+	if t.Attachments.Exists() {
+		for _, v := range t.Attachments {
+			file, err := writer.CreateFormFile("attachment", v.Filename)
+			if err != nil {
+				return mail.Response{}, err
+			}
+			io.Copy(file, bytes.NewReader(v.Bytes))
+		}
+	}
+
+	if tmp, err := writer.CreateFormField("from"); err == nil {
+		tmp.Write([]byte(fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress)))
+	} else {
+		return nil, err
+	}
+
+	file, err := writer.CreateFormFile("from")
+	if err != nil {
+		return mail.Response{}, err
+	}
+	err := writer.CreateFormField("from", fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress))
+	if err != nil {
+		return mail.Response{}, err
+	}
+
+	return mail.Response{}, nil
+}
+
+// Send posts the go mail Transmission to the MailGun
+// API. Transmissions are validated before sending
+// and attachments are added. Returns an error
+// upon failure.
+func (m *mailGun) OLD(t *mail.Transmission) (mail.Response, error) {
+	err := t.Validate()
+	if err != nil {
+		return mail.Response{}, err
+	}
+
+	mailg := mailgun.NewMailgun("fff", "Fff")
+
+	message := mailg.NewMessage(m.cfg.FromAddress, t.Subject, t.PlainText, t.Recipients...)
 	message.SetHtml(t.HTML)
 
 	if t.HasCC() {
@@ -89,7 +176,7 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*Timeout)
 	defer cancel()
 
-	msg, id, err := m.send(ctx, message)
+	msg, id, err := mailg.Send(ctx, message)
 	if err != nil {
 		return mail.Response{}, err
 	}
