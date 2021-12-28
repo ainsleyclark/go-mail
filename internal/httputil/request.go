@@ -13,141 +13,39 @@
 
 package httputil
 
-import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"github.com/ainsleyclark/go-mail/mail"
-	"io"
-	"net/http"
-	"strings"
-	"time"
-)
-
-type Requester interface {
-	// Do accepts a message, url endpoint and optional headers to POST data
-	// to a drivers API.
-	// Returns an error if data could not be marshalled/unmarshalled
-	// or if the request could not be processed.
-	Do(ctx context.Context, r *Request, payload Payload) ([]byte, *http.Response, error)
-}
-
-type Client struct {
-	Client     *http.Client
-	marshaller func(v interface{}) ([]byte, error)
-	bodyReader func(r io.Reader) ([]byte, error)
-}
-
+// A Request represents an HTTP request received by a server
+// or to be sent by a client. It is an extension of the
+// std http.Request for Go Mail.
 type Request struct {
-	method            string
-	url               string
-	headers           map[string]string
-	basicAuthUser     string
-	basicAuthPassword string
+	Method            string
+	Url               string
+	Headers           map[string]string
+	BasicAuthUser     string
+	BasicAuthPassword string
 }
 
-const (
-	// Timeout is the amount of time to wait before
-	// a mail request is cancelled.
-	Timeout = time.Second * 10
-)
-
-func NewClient() *Client {
-	return &Client{
-		Client: &http.Client{
-			Timeout: Timeout,
-		},
-		marshaller: json.Marshal,
-		bodyReader: io.ReadAll,
-	}
-}
-
+// NewHTTPRequest returns a new Request given a method and URL.
 func NewHTTPRequest(method, url string) *Request {
 	return &Request{
-		method: method,
-		url:    url,
+		Method: method,
+		Url:    url,
 	}
 }
 
+// AddHeader adds the key, value pair to the request headers.
 func (r *Request) AddHeader(name, value string) {
-	if r.headers == nil {
-		r.headers = make(map[string]string)
+	if r.Headers == nil {
+		r.Headers = make(map[string]string)
 	}
-	r.headers[name] = value
+	r.Headers[name] = value
 }
 
+// SetBasicAuth sets the request's Authorization header to use HTTP
+// Basic Authentication with the provided username and password.
+//
+// With HTTP Basic Authentication the provided username and password
+// are not encrypted.
 func (r *Request) SetBasicAuth(user, password string) {
-	r.basicAuthUser = user
-	r.basicAuthPassword = password
-}
-
-func (c *Client) Do(ctx context.Context, r *Request, payload Payload) ([]byte, *http.Response, error) {
-	req, err := c.makeRequest(ctx, r, payload)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	resp, err := c.Client.Do(req)
-	if err != nil {
-		return nil, resp, err
-	}
-	defer resp.Body.Close()
-
-	buf, err := c.bodyReader(resp.Body)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return buf, resp, nil
-}
-
-func (c *Client) makeRequest(ctx context.Context, r *Request, payload Payload) (*http.Request, error) {
-	var body io.Reader = nil
-	if payload != nil {
-		b, err := payload.Buffer()
-		if err != nil {
-			return nil, err
-		}
-		body = b
-	}
-
-	req, err := http.NewRequest(r.method, r.url, body)
-	if err != nil {
-		return nil, err
-	}
-
-	if mail.Debug {
-		fmt.Println(c.curlString(req, payload))
-	}
-
-	req = req.WithContext(ctx)
-
-	if payload != nil && payload.ContentType() != "" {
-		req.Header.Add("Content-Type", payload.ContentType())
-	}
-
-	if r.basicAuthUser != "" && r.basicAuthPassword != "" {
-		req.SetBasicAuth(r.basicAuthUser, r.basicAuthPassword)
-	}
-
-	for header, value := range r.headers {
-		req.Header.Add(header, value)
-	}
-
-	return req, nil
-}
-
-func (c *Client) curlString(req *http.Request, p Payload) string {
-	parts := []string{"curl", "-i", "-X", req.Method, req.URL.String()}
-	for key, value := range req.Header {
-		parts = append(parts, fmt.Sprintf("-H \"%s: %s\"", key, value[0]))
-	}
-
-	if p != nil {
-		for key, value := range p.Values() {
-			parts = append(parts, fmt.Sprintf(" -F %s='%s'", key, value))
-		}
-	}
-
-	return strings.Join(parts, " ")
+	r.BasicAuthUser = user
+	r.BasicAuthPassword = password
 }

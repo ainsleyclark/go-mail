@@ -94,7 +94,7 @@ func TestJSONData_Values(t *testing.T) {
 func TestFormData_AddValue(t *testing.T) {
 	pl := NewFormData()
 	pl.AddValue("key", "value")
-	want :=map[string]string{"key": "value"}
+	want := map[string]string{"key": "value"}
 	assert.Equal(t, want, pl.values)
 }
 
@@ -102,7 +102,7 @@ func TestFormData_AddBuffer(t *testing.T) {
 	pl := NewFormData()
 	pl.AddBuffer("key", "file", []byte("value"))
 	want := []keyNameBuff{
-		{key:   "key", name:  "file", value: []byte("value")},
+		{key: "key", name: "file", value: []byte("value")},
 	}
 	assert.Equal(t, want, pl.buffers)
 }

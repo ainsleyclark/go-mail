@@ -26,7 +26,7 @@ import (
 // Requester defines the method used to send data to a mail
 // driver API endpoint.
 type Requester interface {
-	// Do accepts a message, url endpoint and optional headers to POST data
+	// Do accepts a message, URL endpoint and optional headers to POST data
 	// to a drivers API.
 	// Returns an error if data could not be marshalled/unmarshalled
 	// or if the request could not be processed.
@@ -68,7 +68,7 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 		return nil, nil, err
 	}
 
-	// Setup request with url, ensures URLs are
+	// Setup request with URL, ensures URL's are
 	// trimmed.
 	url = fmt.Sprintf("%s/%s", c.baseURL, strings.TrimPrefix(url, "/"))
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
@@ -82,6 +82,7 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 
 	req.Header = headers
 	req.Header.Set("User-Agent", "Go Mail v0.1")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.http.Do(req)
 	if err != nil {
