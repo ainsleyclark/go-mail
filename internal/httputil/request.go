@@ -33,14 +33,14 @@ type Requester interface {
 }
 
 type Client struct {
-	Client            *http.Client
-	marshaller        func(v interface{}) ([]byte, error)
-	bodyReader        func(r io.Reader) ([]byte, error)
+	Client     *http.Client
+	marshaller func(v interface{}) ([]byte, error)
+	bodyReader func(r io.Reader) ([]byte, error)
 }
 
 type Request struct {
-	method  string
-	url           string
+	method            string
+	url               string
 	headers           map[string]string
 	basicAuthUser     string
 	basicAuthPassword string

@@ -11,30 +11,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package httputil
 
-var (
-	// Set true to write the HTTP requests in curl for to stdout
-	Debug = false
+import (
+	"github.com/stretchr/testify/assert"
+	"net/http"
+	"testing"
 )
 
-const ()
+func TestIs2XX(t *testing.T) {
+	tt := map[string]struct {
+		input int
+		want  bool
+	}{
+		"< 200": {
+			http.StatusContinue,
+			false,
+		},
+		"200": {
+			http.StatusOK,
+			true,
+		},
+		"300 >": {
+			http.StatusMultipleChoices,
+			false,
+		},
+	}
 
-// Mailer defines the sender for go-mail returning a
-// Response or error when an email is sent.
-type Mailer interface {
-	Send(t *Transmission) (Response, error)
+	for name, test := range tt {
+		t.Run(name, func(t *testing.T) {
+			got := Is2XX(test.input)
+			assert.Equal(t, test.want, got)
+		})
+	}
 }
-
-const (
-	// SparkPost driver type.
-	SparkPost = "sparkpost"
-	// MailGun driver type.
-	MailGun = "mailgun"
-	// SendGrid driver type.
-	SendGrid = "sendgrid"
-	// Postal driver type.
-	Postal = "postal"
-	// SMTP driver type.
-	SMTP = "smtp"
-)

@@ -66,17 +66,17 @@ type (
 		HTML      string `json:"HtmlBody"`
 		PlainText string `json:"TextBody"`
 		ReplyTo   string `json:"ReplyTo"`
-		//Headers   []struct {
-		//	Name  string `json:"Name"`
-		//	Value string `json:"Value"`
-		//} `json:"headers"`
+		Headers   []struct {
+			Name  string `json:"Name"`
+			Value string `json:"Value"`
+		} `json:"headers"`
 		TrackOpens  bool                 `json:"TrackOpens"`
 		TrackLinks  string               `json:"TrackLinks"`
 		Attachments []postmarkAttachment `json:"Attachments"`
-		//Metadata    struct {
-		//	Color    string `json:"color"`
-		//	ClientID string `json:"client-id"`
-		//} `json:"Metadata"`
+		Metadata    struct {
+			Color    string `json:"color"`
+			ClientID string `json:"client-id"`
+		} `json:"Metadata"`
 		MessageStream string `json:"MessageStream"`
 	}
 	// postmarkAttachment defines a singular Postmark mail attachment.
@@ -139,7 +139,8 @@ func (d *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	pl, err := httputil.NewJSONData(m)
+	pl := httputil.NewJSONData()
+	err = pl.AddStruct(m)
 	if err != nil {
 		return mail.Response{}, err
 	}

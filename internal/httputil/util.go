@@ -21,4 +21,3 @@ func Is2XX(code int) bool {
 	}
 	return false
 }
-

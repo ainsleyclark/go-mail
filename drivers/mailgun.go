@@ -96,7 +96,7 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 		return mail.Response{}, err
 	}
 
-	fmt.Println("here" , string(buf))
+	fmt.Println("here", string(buf))
 	fmt.Printf("%+v\n", resp)
 
 	return mail.Response{}, nil

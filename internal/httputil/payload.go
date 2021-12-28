@@ -21,34 +21,55 @@ import (
 	"mime/multipart"
 )
 
-// Payload TODO
+// Payload defines the methods used for creating  HTTP payload
+// helper.
 type Payload interface {
+	// Buffer returns the byte buffer used for making the
+	// HTTP Request
 	Buffer() (*bytes.Buffer, error)
+	// ContentType returns the `Content-Type` header used for
+	// making the HTTP Request
 	ContentType() string
+	// Values returns a map of key - value pairs used for testing
+	// and debugging.
 	Values() map[string]string
 }
 
+const (
+	JSONContentType = "application/json"
+)
+
+// jsonData defines the payload for JSON types.
 type jsonData struct {
-	values map[string]interface{}
+	original interface{}
+	values   map[string]interface{}
 }
 
-func NewJSONData(obj interface{}) (*jsonData, error) {
+// NewJSONData creates a new JSON Data Payload type.
+func NewJSONData() *jsonData {
+	return &jsonData{}
+}
+
+// AddStruct adds a struct type to the JSON Data payload.
+// Returns an error if the struct could not be marshalled or unmarshalled.
+func (j *jsonData) AddStruct(obj interface{}) error {
 	buf, err := json.Marshal(obj)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	m := make(map[string]interface{})
 	err = json.Unmarshal(buf, &m)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &jsonData{
-		values: m,
-	}, nil
+	j.values = m
+	j.original = obj
+	return nil
 }
 
+// Buffer returns the byte buffer for making the request.
 func (j *jsonData) Buffer() (*bytes.Buffer, error) {
 	buf, err := json.Marshal(j.values)
 	if err != nil {
@@ -57,10 +78,13 @@ func (j *jsonData) Buffer() (*bytes.Buffer, error) {
 	return bytes.NewBuffer(buf), nil
 }
 
+// ContentType returns the `Content-Type` header.
 func (j *jsonData) ContentType() string {
-	return "application/json"
+	return JSONContentType
 }
 
+// Values returns a map of key - value pairs used for testing
+// and debugging.
 func (j *jsonData) Values() map[string]string {
 	m := make(map[string]string)
 	for key, value := range j.values {
@@ -69,22 +93,26 @@ func (j *jsonData) Values() map[string]string {
 	return m
 }
 
+// formData defines the payload for URL encoded types.
 type formData struct {
 	contentType string
 	values      map[string]string
 	buffers     []keyNameBuff
 }
 
+// keyNameBuff defines the buffer for multipart attachments.
 type keyNameBuff struct {
 	key   string
 	name  string
 	value []byte
 }
 
+// NewFormData creates a new Form Data Payload type.
 func NewFormData() *formData {
 	return &formData{}
 }
 
+// AddValue adds a key - value string pair to the Payload.
 func (f *formData) AddValue(key, value string) {
 	if len(f.values) == 0 {
 		f.values = make(map[string]string)
@@ -92,10 +120,16 @@ func (f *formData) AddValue(key, value string) {
 	f.values[key] = value
 }
 
-func (f *formData) AddBuffer(key, file string, buff []byte) {
-	f.buffers = append(f.buffers, keyNameBuff{key: key, name: file, value: buff})
+// AddBuffer adds a file buffer to the Payload with a filename.
+func (f *formData) AddBuffer(key, fileName string, buff []byte) {
+	f.buffers = append(f.buffers, keyNameBuff{
+		key:   key,
+		name:  fileName,
+		value: buff,
+	})
 }
 
+// Buffer returns the byte buffer for making the request.
 func (f *formData) Buffer() (*bytes.Buffer, error) {
 	data := &bytes.Buffer{}
 	writer := multipart.NewWriter(data)
@@ -123,6 +157,7 @@ func (f *formData) Buffer() (*bytes.Buffer, error) {
 	return data, nil
 }
 
+// ContentType returns the `Content-Type` header.
 func (f *formData) ContentType() string {
 	if f.contentType == "" {
 		f.Buffer()
@@ -130,6 +165,8 @@ func (f *formData) ContentType() string {
 	return f.contentType
 }
 
+// Values returns a map of key - value pairs used for testing
+// and debugging.
 func (f *formData) Values() map[string]string {
 	return f.values
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/suite"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,11 +53,11 @@ func (t *MailTestSuite) GetTransmission() *mail.Transmission {
 		t.FailNow("Error loading .env file")
 	}
 
-	//path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
-	//file, err := ioutil.ReadFile(path)
-	//if err != nil {
-	//	t.FailNow("Error getting attachment with the path: "+path, err)
-	//}
+	path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		t.FailNow("Error getting attachment with the path: "+path, err)
+	}
 
 	return &mail.Transmission{
 		Recipients: strings.Split(os.Getenv("EMAIL_TO"), ","),
@@ -65,11 +66,11 @@ func (t *MailTestSuite) GetTransmission() *mail.Transmission {
 		Subject:   "Test - Go Mail",
 		HTML:      "<h1>Hello from Go Mail!</h1>",
 		PlainText: "Hello from Go Mail!",
-		//Attachments: mail.Attachments{
-		//	mail.Attachment{
-		//		Filename: "gopher.png",
-		//		Bytes:    file,
-		//	},
-		//},
+		Attachments: mail.Attachments{
+			mail.Attachment{
+				Filename: "gopher.png",
+				Bytes:    file,
+			},
+		},
 	}
 }
