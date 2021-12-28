@@ -237,6 +237,7 @@ func (s *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 	// Ensure the API Key is set for authorisation
 	// and add the JSON content type.
 	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
 	headers.Set("Authorization", s.cfg.APIKey)
 
 	buf, resp, err := s.client.Do(m, sparkpostEndpoint, headers)

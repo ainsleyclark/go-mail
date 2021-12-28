@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	PostalHeaders = http.Header{"X-Server-Api-Key": []string{""}}
+	PostalHeaders = http.Header{"Content-Type": []string{"application/json"}, "X-Server-Api-Key": []string{""}}
 )
 
 func (t *DriversTestSuite) TestNewPostal() {

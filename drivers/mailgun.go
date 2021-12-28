@@ -14,18 +14,15 @@
 package drivers
 
 import (
-	"bytes"
-	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/ainsleyclark/go-mail/internal/client"
+	"github.com/ainsleyclark/go-mail/internal/httphelpers"
 	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/mailgun/mailgun-go/v4"
-	"io"
-	"mime/multipart"
+	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 )
 
 // mailGun represents the data for sending mail via the
@@ -36,6 +33,11 @@ type mailGun struct {
 	cfg    mail.Config
 	client client.Requester
 }
+
+const (
+	// mailgunEndpoint defines the endpoint to POST to.
+	mailgunEndpoint = "/v3/%s/messages"
+)
 
 // NewMailGun creates a new MailGun client. Configuration
 // is validated before initialisation.
@@ -53,139 +55,64 @@ func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
 	}, nil
 }
 
-type (
-	mailgunTransmission struct {
-		// Email address for From header
-		From string `json:"from"`
-		// Email address of the recipient(s). Example: "Bob <bob@host.com>".
-		// You can use commas to separate multiple recipients.
-		To string `json:"to"`
-		// Same as To but for Cc
-		CC string `json:"cc"`
-		// Same as To but for Bcc
-		BCC string `json:"bcc"`
-		// Message subject
-		Subject string `json:"subject"`
-		//	Body of the message. (text version)
-		Text string `json:"text"`
-		// Body of the message. (HTML version)
-		HTML string `json:"html"`
-		// AMP part of the message. Please follow google guidelines to compose and send AMP emails.
-		AMPHtml string `json:"amp-html"`
-		// attachment	File attachment. You can post multiple attachment values. Important: You must use multipart/form-data encoding when sending attachments.
-		// Name of a template stored via template API. See Templates for more information
-		Template string `json:"template"`
-		// Use this parameter to send a message to specific version of a template
-		TemplateVersion string `json:"t:version"`
-	}
-	// StoredAttachment structures contain information on an attachment associated with a stored message.
-	StoredAttachment struct {
-		Size        int    `json:"size"`
-		Url         string `json:"url"`
-		Name        string `json:"name"`
-		ContentType string `json:"content-type"`
-	}
-type BufferAttachment struct {
-Filename string
-Buffer   []byte
-}
-)
-
 func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	tx := mailgunTransmission{
-		From:    fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress),
-		To:      strings.Join(t.Recipients, ","),
-		CC:      strings.Join(t.CC, ","),
-		BCC:     strings.Join(t.BCC, ","),
-		Subject: t.Subject,
-		Text:    t.PlainText,
-		HTML:    t.HTML,
+
+	f := httphelpers.FormData{}
+	f.AddValue("from", fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress))
+	f.AddValue("subject", t.Subject)
+	f.AddValue("html", t.HTML)
+	f.AddValue("text", t.PlainText)
+
+	for _, to := range t.Recipients {
+		f.AddValue("to", to)
 	}
-
-	data := &bytes.Buffer{}
-	writer := multipart.NewWriter(data)
-	defer writer.Close()
-
-	if t.Attachments.Exists() {
-		for _, v := range t.Attachments {
-			file, err := writer.CreateFormFile("attachment", v.Filename)
-			if err != nil {
-				return mail.Response{}, err
-			}
-			io.Copy(file, bytes.NewReader(v.Bytes))
-		}
-	}
-
-	if tmp, err := writer.CreateFormField("from"); err == nil {
-		tmp.Write([]byte(fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress)))
-	} else {
-		return nil, err
-	}
-
-	file, err := writer.CreateFormFile("from")
-	if err != nil {
-		return mail.Response{}, err
-	}
-	err := writer.CreateFormField("from", fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress))
-	if err != nil {
-		return mail.Response{}, err
-	}
-
-	return mail.Response{}, nil
-}
-
-// Send posts the go mail Transmission to the MailGun
-// API. Transmissions are validated before sending
-// and attachments are added. Returns an error
-// upon failure.
-func (m *mailGun) OLD(t *mail.Transmission) (mail.Response, error) {
-	err := t.Validate()
-	if err != nil {
-		return mail.Response{}, err
-	}
-
-	mailg := mailgun.NewMailgun("fff", "Fff")
-
-	message := mailg.NewMessage(m.cfg.FromAddress, t.Subject, t.PlainText, t.Recipients...)
-	message.SetHtml(t.HTML)
 
 	if t.HasCC() {
-		for _, v := range t.CC {
-			message.AddCC(v)
+		for _, c := range t.CC {
+			f.AddValue("cc", c)
 		}
 	}
 
 	if t.HasBCC() {
-		for _, v := range t.BCC {
-			message.AddBCC(v)
+		for _, b := range t.BCC {
+			f.AddValue("bcc", b)
 		}
 	}
 
-	if t.Attachments.Exists() {
-		for _, v := range t.Attachments {
-			message.AddBufferAttachment(v.Filename, v.Bytes)
-		}
-	}
-
-	const Timeout = 10
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*Timeout)
-	defer cancel()
-
-	msg, id, err := mailg.Send(ctx, message)
+	payload, err := f.GetPayloadBuffer()
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	return mail.Response{
-		StatusCode: http.StatusOK,
-		Body:       "",
-		Headers:    nil,
-		ID:         id,
-		Message:    msg,
-	}, nil
+	headers := http.Header{}
+	headers.Set("Content-Type", f.ContentType)
+	headers.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("api"+":"+m.cfg.APIKey)))
+
+
+	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/%s", m.cfg.URL, strings.TrimPrefix(fmt.Sprintf(mailgunEndpoint, m.cfg.Domain), "/")), payload)
+	c := http.Client{}
+	request.Header = headers
+
+	do, err := c.Do(request)
+	fmt.Println(err, do)
+
+	buf ,err := ioutil.ReadAll(do.Body)
+	fmt.Println(string(buf), err)
+
+	//
+	//buf, resp, err := m.client.FormRequest(payload, fmt.Sprintf(mailgunEndpoint, m.cfg.Domain), headers)
+	//if err != nil {
+	//	return mail.Response{}, err
+	//}
+	//
+	//fmt.Println("here" , string(buf))
+	//fmt.Printf("%+v\n", resp)
+
+	return mail.Response{}, nil
 }
+

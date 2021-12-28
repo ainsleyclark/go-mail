@@ -31,6 +31,7 @@ type Requester interface {
 	// Returns an error if data could not be marshalled/unmarshalled
 	// or if the request could not be processed.
 	Do(message interface{}, url string, headers http.Header) ([]byte, *http.Response, error)
+	FormRequest(payload io.Reader, url string, headers http.Header) ([]byte, *http.Response, error)
 }
 
 // Client defines a http.Client to interact with the mail
@@ -68,7 +69,7 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 		return nil, nil, err
 	}
 
-	// Setup request with URL, ensures URL's are
+	// Setup request with URL, ensures URLs are
 	// trimmed.
 	url = fmt.Sprintf("%s/%s", c.baseURL, strings.TrimPrefix(url, "/"))
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
@@ -82,7 +83,39 @@ func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byt
 
 	req.Header = headers
 	req.Header.Set("User-Agent", "Go Mail v0.1")
-	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, resp, err
+	}
+	defer resp.Body.Close()
+
+	// Read the response body into a buffer for processing using
+	// the bodyReader function.
+	buf, err := c.bodyReader(resp.Body)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return buf, resp, nil
+}
+
+
+func (c *Client) FormRequest(payload io.Reader, url string, headers http.Header) ([]byte, *http.Response, error) {
+	url = fmt.Sprintf("%s/%s", c.baseURL, strings.TrimPrefix(url, "/"))
+
+	fmt.Println(payload)
+	req, err := http.NewRequest(http.MethodPost, url, payload)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(headers) == 0 {
+		headers = http.Header{}
+	}
+
+	req.Header = headers
+	req.Header.Set("User-Agent", "Go Mail v0.1")
 
 	resp, err := c.http.Do(req)
 	if err != nil {

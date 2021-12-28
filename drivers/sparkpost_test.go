@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	SparkpostHeaders = http.Header{"Authorization": []string{""}}
+	SparkpostHeaders = http.Header{"Content-Type": []string{"application/json"}, "Authorization": []string{""}}
 )
 
 func (t *DriversTestSuite) TestNewSparkPost() {

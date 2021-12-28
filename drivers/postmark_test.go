@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	PostmarkHeaders = http.Header{"X-Postmark-Server-Token": []string{""}}
+	PostmarkHeaders = http.Header{"Content-Type": []string{"application/json"}, "X-Postmark-Server-Token": []string{""}}
 )
 
 func (t *DriversTestSuite) TestNewPostmark() {

@@ -151,6 +151,7 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 	// Ensure the API Key is set for authorisation
 	// and add the JSON content type.
 	headers := http.Header{}
+	headers.Set("Content-Type", "application/json")
 	headers.Set("X-Server-API-Key", p.cfg.APIKey)
 
 	buf, resp, err := p.client.Do(m, postalEndpoint, headers)
