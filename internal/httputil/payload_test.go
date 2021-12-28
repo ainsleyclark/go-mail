@@ -14,7 +14,10 @@
 package httputil
 
 import (
+	"errors"
 	"github.com/stretchr/testify/assert"
+	"io"
+	"mime/multipart"
 	"testing"
 )
 
@@ -107,43 +110,68 @@ func TestFormData_AddBuffer(t *testing.T) {
 	assert.Equal(t, want, pl.buffers)
 }
 
-//func TestFormData_Buffer(t *testing.T) {
-//	pl := formData{
-//		contentType: "",
-//		values:      map[string]string{
-//			"key": "value",
-//		},
-//		buffers:     []keyNameBuff{
-//			{key:   "key", name:  "file", value: []byte("value")},
-//		},
-//	}
-//
-//	tt := map[string]struct {
-//		input formData
-//		want  interface{}
-//	}{
-//		"Success": {
-//			formData{
-//				buffers:{key:   "key", name:  "file", value: []byte("value")},},
-//			`{"test":1}`,
-//		},
-//		"Marshal Error": {
-//			jsonData{values: map[string]interface{}{"test": make(chan struct{})}},
-//			"unsupported type",
-//		},
-//	}
-//
-//	for name, test := range tt {
-//		t.Run(name, func(t *testing.T) {
-//			got, err := test.input.Buffer()
-//			if err != nil {
-//				assert.Contains(t, err.Error(), test.want)
-//				return
-//			}
-//			assert.Equal(t, test.want, got.String())
-//		})
-//	}
-//}
+type mockWriterError struct{}
+
+func (m *mockWriterError) Write(p []byte) (n int, err error) {
+	return 0, errors.New("write error")
+}
+
+func TestFormData_Buffer(t *testing.T) {
+	tt := map[string]struct {
+		input  formData
+		writer func(w io.Writer) *multipart.Writer
+		want   interface{}
+	}{
+		"Success": {
+			formData{
+				values: map[string]string{
+					"key": "value",
+				},
+				buffers: []keyNameBuff{
+					{key: "key", name: "file", value: []byte("value")},
+				},
+			},
+			multipart.NewWriter,
+			"Content-Disposition",
+		},
+		"Value Error": {
+			formData{
+				values: map[string]string{"key": "value"},
+			},
+			func(w io.Writer) *multipart.Writer {
+				return multipart.NewWriter(&mockWriterError{})
+			},
+			"write error",
+		},
+		"Buffer Error": {
+			formData{
+				buffers: []keyNameBuff{
+					{key: "key", name: "file", value: []byte("value")},
+				},
+			},
+			func(w io.Writer) *multipart.Writer {
+				return multipart.NewWriter(&mockWriterError{})
+			},
+			"write error",
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func(t *testing.T) {
+			orig := newWriter
+			defer func() { newWriter = orig }()
+			newWriter = test.writer
+
+			got, err := test.input.Buffer()
+			if err != nil {
+				assert.Contains(t, err.Error(), test.want)
+				return
+			}
+
+			assert.Contains(t, got.String(), test.want)
+		})
+	}
+}
 
 func TestFormData_ContentType(t *testing.T) {
 	pl := formData{values: map[string]string{"test": "1"}}

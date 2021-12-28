@@ -129,10 +129,12 @@ func (f *formData) AddBuffer(key, fileName string, buff []byte) {
 	})
 }
 
+var newWriter = multipart.NewWriter
+
 // Buffer returns the byte buffer for making the request.
 func (f *formData) Buffer() (*bytes.Buffer, error) {
 	data := &bytes.Buffer{}
-	writer := multipart.NewWriter(data)
+	writer := newWriter(data)
 	defer writer.Close()
 
 	for key, val := range f.values {
