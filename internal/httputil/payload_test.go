@@ -90,3 +90,71 @@ func TestJSONData_Values(t *testing.T) {
 	want := map[string]string{"test": "1"}
 	assert.Equal(t, want, got)
 }
+
+func TestFormData_AddValue(t *testing.T) {
+	pl := NewFormData()
+	pl.AddValue("key", "value")
+	want :=map[string]string{"key": "value"}
+	assert.Equal(t, want, pl.values)
+}
+
+func TestFormData_AddBuffer(t *testing.T) {
+	pl := NewFormData()
+	pl.AddBuffer("key", "file", []byte("value"))
+	want := []keyNameBuff{
+		{key:   "key", name:  "file", value: []byte("value")},
+	}
+	assert.Equal(t, want, pl.buffers)
+}
+
+//func TestFormData_Buffer(t *testing.T) {
+//	pl := formData{
+//		contentType: "",
+//		values:      map[string]string{
+//			"key": "value",
+//		},
+//		buffers:     []keyNameBuff{
+//			{key:   "key", name:  "file", value: []byte("value")},
+//		},
+//	}
+//
+//	tt := map[string]struct {
+//		input formData
+//		want  interface{}
+//	}{
+//		"Success": {
+//			formData{
+//				buffers:{key:   "key", name:  "file", value: []byte("value")},},
+//			`{"test":1}`,
+//		},
+//		"Marshal Error": {
+//			jsonData{values: map[string]interface{}{"test": make(chan struct{})}},
+//			"unsupported type",
+//		},
+//	}
+//
+//	for name, test := range tt {
+//		t.Run(name, func(t *testing.T) {
+//			got, err := test.input.Buffer()
+//			if err != nil {
+//				assert.Contains(t, err.Error(), test.want)
+//				return
+//			}
+//			assert.Equal(t, test.want, got.String())
+//		})
+//	}
+//}
+
+func TestFormData_ContentType(t *testing.T) {
+	pl := formData{values: map[string]string{"test": "1"}}
+	got := pl.ContentType()
+	want := "multipart/form-data"
+	assert.Contains(t, got, want)
+}
+
+func TestFormData_Values(t *testing.T) {
+	pl := formData{values: map[string]string{"test": "1"}}
+	got := pl.Values()
+	want := map[string]string{"test": "1"}
+	assert.Equal(t, want, got)
+}
