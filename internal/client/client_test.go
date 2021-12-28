@@ -70,7 +70,7 @@ func TestClient_Do(t *testing.T) {
 			handler:    nil,
 			marshaller: json.Marshal,
 			bodyReader: io.ReadAll,
-			want:       "invalid URL escape",
+			want:       "invalid url escape",
 		},
 		"Do Error": {
 			input:      "input",

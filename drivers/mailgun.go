@@ -14,13 +14,11 @@
 package drivers
 
 import (
-	"encoding/base64"
+	"context"
 	"errors"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/internal/client"
-	"github.com/ainsleyclark/go-mail/internal/httphelpers"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
-	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -31,7 +29,7 @@ import (
 // data.
 type mailGun struct {
 	cfg    mail.Config
-	client client.Requester
+	client httputil.Requester
 }
 
 const (
@@ -51,7 +49,7 @@ func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &mailGun{
 		cfg:    cfg,
-		client: client.New(cfg.URL),
+		client: httputil.NewClient(),
 	}, nil
 }
 
@@ -61,8 +59,7 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 		return mail.Response{}, err
 	}
 
-
-	f := httphelpers.FormData{}
+	f := httputil.NewFormData()
 	f.AddValue("from", fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress))
 	f.AddValue("subject", t.Subject)
 	f.AddValue("html", t.HTML)
@@ -90,35 +87,17 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	payload, err := f.GetPayloadBuffer()
+	url := fmt.Sprintf("%s/%s", m.cfg.URL, strings.TrimPrefix(fmt.Sprintf(mailgunEndpoint, m.cfg.Domain), "/"))
+	req := httputil.NewHTTPRequest(http.MethodPost, url)
+	req.SetBasicAuth("api", m.cfg.APIKey)
+
+	buf, resp, err := m.client.Do(context.Background(), req, f)
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	headers := http.Header{}
-	headers.Set("Content-Type", f.ContentType)
-	headers.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("api"+":"+m.cfg.APIKey)))
-
-
-	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/%s", m.cfg.URL, strings.TrimPrefix(fmt.Sprintf(mailgunEndpoint, m.cfg.Domain), "/")), payload)
-	c := http.Client{}
-	request.Header = headers
-
-	do, err := c.Do(request)
-	fmt.Println(err, do)
-
-	buf ,err := ioutil.ReadAll(do.Body)
-	fmt.Println(string(buf), err)
-
-	//
-	//buf, resp, err := m.client.FormRequest(payload, fmt.Sprintf(mailgunEndpoint, m.cfg.Domain), headers)
-	//if err != nil {
-	//	return mail.Response{}, err
-	//}
-	//
-	//fmt.Println("here" , string(buf))
-	//fmt.Printf("%+v\n", resp)
+	fmt.Println("here" , string(buf))
+	fmt.Printf("%+v\n", resp)
 
 	return mail.Response{}, nil
 }
-

@@ -33,9 +33,9 @@ func (t *DriversTestSuite) TestNewSMTP() {
 			},
 			nil,
 		},
-		"No URL": {
+		"No url": {
 			mail.Config{},
-			"driver requires a URL",
+			"driver requires a url",
 		},
 		"No From Address": {
 			mail.Config{

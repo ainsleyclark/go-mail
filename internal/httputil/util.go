@@ -11,33 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package httputil
 
-
-var (
-	// Set true to write the HTTP requests in curl for to stdout
-	Debug = false
-)
-
-const (
-
-)
-
-// Mailer defines the sender for go-mail returning a
-// Response or error when an email is sent.
-type Mailer interface {
-	Send(t *Transmission) (Response, error)
+// Is2XX returns true if the provided HTTP response code is
+// in the range 200-299.
+func Is2XX(code int) bool {
+	if code < 300 && code >= 200 {
+		return true
+	}
+	return false
 }
 
-const (
-	// SparkPost driver type.
-	SparkPost = "sparkpost"
-	// MailGun driver type.
-	MailGun = "mailgun"
-	// SendGrid driver type.
-	SendGrid = "sendgrid"
-	// Postal driver type.
-	Postal = "postal"
-	// SMTP driver type.
-	SMTP = "smtp"
-)

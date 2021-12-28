@@ -42,7 +42,7 @@ type smtpSendFunc func(addr string, a smtp.Auth, from string, to []string, msg [
 // is validated before initialisation.
 func NewSMTP(cfg mail.Config) (mail.Mailer, error) {
 	if cfg.URL == "" {
-		return nil, errors.New("driver requires a URL")
+		return nil, errors.New("driver requires a url")
 	}
 	if cfg.FromAddress == "" {
 		return nil, errors.New("driver requires from address")
