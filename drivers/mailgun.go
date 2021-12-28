@@ -84,6 +84,12 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
+	if t.Attachments.Exists() {
+		for _, v := range t.Attachments {
+			f.AddBuffer("attachment", v.Filename, v.Bytes)
+		}
+	}
+
 	payload, err := f.GetPayloadBuffer()
 	if err != nil {
 		return mail.Response{}, err
