@@ -200,30 +200,30 @@ fmt.Printf("%+v\n", result)
 #### Postmark
 
 ```go
-	cfg := mail.Config{
-		APIKey:      "my-key",
-		FromAddress: "hello@gophers.com",
-		FromName:    "Gopher",
-	}
+cfg := mail.Config{
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+}
 
-	mailer, err := drivers.NewPostmark(cfg)
-	if err != nil {
-		log.Fatalln(err)
-	}
+mailer, err := drivers.NewPostmark(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
 
-	tx := &mail.Transmission{
-		Recipients: []string{"hello@gophers.com"},
-		Subject:    "My email",
-		HTML:       "<h1>Hello from Go Mail!</h1>",
-		PlainText:  "plain text",
-	}
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "plain text",
+}
 
-	result, err := mailer.Send(tx)
-	if err != nil {
-		log.Fatalln(err)
-	}
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
 
-	fmt.Printf("%+v\n", result)
+fmt.Printf("%+v\n", result)
 ```
 
 #### SendGrid
