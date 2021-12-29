@@ -61,5 +61,9 @@ jobs:
           SPARKPOST_API_KEY: ${{ secrets.SPARKPOST_API_KEY }}
           SPARKPOST_FROM_ADDRESS: ${{ secrets.SPARKPOST_FROM_ADDRESS }}
           SPARKPOST_FROM_NAME: ${{ secrets.SPARKPOST_FROM_NAME }}
-        run: ./bin/tests.sh
+        run: |
+          # Make file runnable, might not be necessary
+          chmod +x "${GITHUB_WORKSPACE}/bin/tests.sh"
+          # Run tests
+          "${GITHUB_WORKSPACE}/bin/tests.sh"
 
