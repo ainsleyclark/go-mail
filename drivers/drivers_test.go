@@ -14,9 +14,15 @@
 package drivers
 
 import (
+	"context"
+	"errors"
+	"github.com/ainsleyclark/go-mail/internal/client"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
+	"github.com/ainsleyclark/go-mail/mocks/client"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"testing"
 )
@@ -78,5 +84,102 @@ func (t *DriversTestSuite) Attachment(name string) mail.Attachment {
 	return mail.Attachment{
 		Filename: name,
 		Bytes:    file,
+	}
+}
+
+func (t *DriversTestSuite) UtilTestUnmarshal(r httputil.Responder, buf []byte) {
+	errBuf := []byte("wrong")
+	err := r.Unmarshal(errBuf)
+	t.Error(err)
+	err = r.Unmarshal(buf)
+	t.NoError(err)
+}
+
+func (t *DriversTestSuite) UtilTestCheckError(r httputil.Responder, errMsg string) {
+	tt := map[string]struct {
+		response *http.Response
+		buf      []byte
+		want     error
+	}{
+		"Error": {
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			[]byte("test"),
+			errors.New(errMsg),
+		},
+		"200": {
+			&http.Response{StatusCode: http.StatusOK},
+			nil,
+			nil,
+		},
+		"Empty Body": {
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			nil,
+			mail.ErrEmptyBody,
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			err := r.CheckError(test.response, test.buf)
+			if err != nil {
+				t.Contains(err.Error(), test.want.Error())
+				return
+			}
+			t.Equal(test.want, err)
+		})
+	}
+}
+
+func (t *DriversTestSuite) UtilTestMeta(r httputil.Responder, message string, id *string) {
+	got := r.Meta()
+	t.Equal(message, got.Message)
+	if id != nil {
+		t.Equal(*id, got.ID)
+	}
+}
+
+func (t *DriversTestSuite) UtilTestSend(r httputil.Responder) {
+	tt := map[string]struct {
+		input *mail.Transmission
+		mock  func(m *mocks.Requester)
+		want  interface{}
+	}{ //"Success": {
+		//	Trans,
+		//	func(m *mocks.Requester) {
+		//
+		//	},
+		//	mail.Response{
+		//		StatusCode: 200,
+		//		Body:       "",
+		//		Headers:    nil,
+		//		ID:         "1",
+		//		Message:    "success",
+		//	},
+		//},
+		//"With Attachment": {
+		//	TransWithAttachment,
+		//	func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
+		//		return "success", "1", nil
+		//	},
+		//	mail.Response{
+		//		StatusCode: 200,
+		//		Body:       "",
+		//		Headers:    nil,
+		//		ID:         "1",
+		//		Message:    "success",
+		//	},
+		//},
+		"Validation Failed": {
+			nil,
+			nil,
+			"can't validate a nil transmission",
+		},
+		"Send Error": {
+			Trans,
+			func(m *mocks.Requester) {
+
+			},
+			"send error",
+		},
 	}
 }

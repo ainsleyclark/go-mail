@@ -71,16 +71,6 @@ type (
 	}
 )
 
-func (r *mailgunResponse) CheckError(response *http.Response, buf []byte) error {
-	if client.Is2XX(response.StatusCode) {
-		return nil
-	}
-	if len(buf) == 0 {
-		return mail.ErrEmptyBody
-	}
-	return errors.New(r.Message)
-}
-
 func (r *mailgunResponse) Unmarshal(buf []byte) error {
 	resp := &mailgunResponse{}
 	err := json.Unmarshal(buf, resp)
@@ -89,6 +79,16 @@ func (r *mailgunResponse) Unmarshal(buf []byte) error {
 	}
 	*r = *resp
 	return nil
+}
+
+func (r *mailgunResponse) CheckError(response *http.Response, buf []byte) error {
+	if client.Is2XX(response.StatusCode) {
+		return nil
+	}
+	if len(buf) == 0 {
+		return mail.ErrEmptyBody
+	}
+	return errors.New(r.Message)
 }
 
 func (r *mailgunResponse) Meta() httputil.Meta {

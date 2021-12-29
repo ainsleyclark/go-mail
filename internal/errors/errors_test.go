@@ -13,15 +13,15 @@ func TestError_Error(t *testing.T) {
 	}{
 		"Normal": {
 			&Error{Code: INTERNAL, Message: "test", Operation: "op", Err: fmt.Errorf("err")},
-			"op: err",
+			fmt.Sprintf("%s: op: err", Prefix),
 		},
 		"Nil Operation": {
 			&Error{Code: INTERNAL, Message: "test", Operation: "", Err: fmt.Errorf("err")},
-			"err",
+			fmt.Sprintf("%s: err", Prefix),
 		},
 		"Nil Err": {
 			&Error{Code: INTERNAL, Message: "test", Operation: "", Err: nil},
-			"<internal> test",
+			fmt.Sprintf("%s: <internal> test", Prefix),
 		},
 	}
 

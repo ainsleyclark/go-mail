@@ -23,14 +23,14 @@ import (
 const (
 	// CONFLICT - An action cannot be performed.
 	CONFLICT = "conflict"
-	// INTERNAL - Error within Verbis
+	// INTERNAL - Error within Go Mail
 	INTERNAL = "internal" // Internal error
 	// INVALID - Validation failed
 	INVALID = "invalid" // Validation failed
 	// NOTFOUND - Entity does not exist
 	NOTFOUND = "not_found"
 	// Prefix is the string prefixed to an error message.
-	Prefix = "go-mail: "
+	Prefix = "go-mail"
 	// GlobalError is a general message when no error message
 	// has been found.
 	GlobalError = "An error has occurred."
@@ -49,13 +49,16 @@ type Error struct {
 func (e *Error) Error() string {
 	var buf bytes.Buffer
 
+	// Print the prefix
+	fmt.Fprintf(&buf, "%s: ", Prefix)
+
 	// Print the current operation in our stack, if any.
 	if e.Operation != "" {
 		fmt.Fprintf(&buf, "%s: ", e.Operation)
 	}
 
 	// If wrapping an error, print its Error() message.
-	// Otherwise print the error code & message.
+	// Otherwise, print the error code & message.
 	if e.Err != nil {
 		buf.WriteString(e.Err.Error())
 	} else {
@@ -69,7 +72,7 @@ func (e *Error) Error() string {
 }
 
 // Code returns the code of the root error, if available.
-// Otherwise returns INTERNAL.
+// Otherwise, returns INTERNAL.
 func Code(err error) string {
 	if err == nil {
 		return ""
@@ -82,7 +85,7 @@ func Code(err error) string {
 }
 
 // Message returns the human-readable message of the error,
-// if available. Otherwise returns a generic error
+// if available. Otherwise, returns a generic error
 // message.
 func Message(err error) string {
 	if err == nil {
@@ -95,7 +98,7 @@ func Message(err error) string {
 	return GlobalError
 }
 
-// ToError Returns a Verbis error from input. If The type
+// ToError Returns a Go Mail error from input. If The type
 // is not of type Error, nil will be returned.
 func ToError(err interface{}) *Error {
 	switch v := err.(type) {
