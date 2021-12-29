@@ -41,9 +41,9 @@ const (
 	mailgunEndpoint = "/v3/%s/messages"
 )
 
-// NewMailGun creates a new MailGun client. Configuration
+// NewMailgun creates a new Mailgun client. Configuration
 // is validated before initialisation.
-func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
+func NewMailgun(cfg mail.Config) (mail.Mailer, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err

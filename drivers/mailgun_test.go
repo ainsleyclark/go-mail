@@ -51,7 +51,7 @@ func (t *DriversTestSuite) TestNewMailGun() {
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			got, err := NewMailGun(test.input)
+			got, err := NewMailgun(test.input)
 			if err != nil {
 				t.Contains(err.Error(), test.want)
 				return

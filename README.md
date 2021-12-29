@@ -13,7 +13,7 @@
 
 ## Introduction
 
-Go Mail aims to unify multiple popular mail API's (SparkPost, MailGun, SendGrid, Postal & SMTP) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
+Go Mail aims to unify multiple popular mail API's (SparkPost, Mailgun, SendGrid, Postal & SMTP) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
 choose what platform they use.
 
 
@@ -52,13 +52,13 @@ go get -u github.com/ainsleyclark/go-mail
 
 ## Supported API's
 
-Currently, Sparkpost, MailGun and SendGrid is supported, if you want to see more, just submit a feature request or create a new Driver and
+Currently, Sparkpost, Mailgun and SendGrid is supported, if you want to see more, just submit a feature request or create a new Driver and
 submit a pull request.
 
 | API         | Dependency                                                                   | Examples                      |
 |-------------|------------------------------------------------------------------------------|-------------------------------|
 | SparkPost   | [github.com/SparkPost/gosparkpost](https://github.com/SparkPost/gosparkpost) | [Here](examples/sparkpost.go) |
-| MailGun     | [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4])        | [Here](examples/mailgun.go)   |
+| Mailgun     | [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4])        | [Here](examples/mailgun.go)   |
 | SendGrid    | [github.com/sendgrid/sendgrid-go](github.com/sendgrid/sendgrid-go)           | [Here](examples/sendgrid.go)  |
 | Postmark    |  None         																														   | [Here](examples/postmark.go)  |
 | Postal      |  None         																														   | [Here](examples/postal.go)  |
@@ -71,7 +71,7 @@ Documentation can be found at the [Go Docs](https://pkg.go.dev/github.com/ainsle
 ### Creating a new client:
 
 You can create a new driver by calling the `drivers` package and passing in a configuration type which is  needed to create a new mailer, each platform requires its own data,
-for example, MailGun requires a domain, but SparkPost doesn't.
+for example, Mailgun requires a domain, but SparkPost doesn't.
 This is based of the requirements for the API. For more details see the examples above.
 
 ```go

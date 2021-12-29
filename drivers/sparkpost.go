@@ -41,8 +41,8 @@ const (
 	// See: https://www.sparkpost.com/api#/reference/transmissions
 	sparkpostEndpoint = "%s/api/v1/transmissions"
 	// sparkpostErrorMessage defines the message when an error occurred
-	// when sending mail via the Sparkpost API.
-	sparkpostErrorMessage = "error sending transmission to Sparkpost API"
+	// when sending mail via the SparkPost API.
+	sparkpostErrorMessage = "error sending transmission to SparkPost API"
 )
 
 // NewSparkPost creates a new SparkPost client. Configuration
@@ -175,7 +175,7 @@ func (r *spResponse) CheckError(response *http.Response, buf []byte) error {
 
 func (r *spResponse) Meta() httputil.Meta {
 	m := httputil.Meta{
-		Message: "Successfully sent Sparkpost email",
+		Message: "Successfully sent SparkPost email",
 	}
 	if val, ok := r.Results["id"]; ok {
 		m.ID = fmt.Sprintf("%v", val)

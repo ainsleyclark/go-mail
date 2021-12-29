@@ -30,7 +30,7 @@ func MailGun() {
 		Domain:      "my-domain",
 	}
 
-	mailer, err := drivers.NewMailGun(cfg)
+	mailer, err := drivers.NewMailgun(cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}

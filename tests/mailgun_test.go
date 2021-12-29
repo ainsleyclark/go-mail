@@ -23,7 +23,7 @@ import (
 func (t *MailTestSuite) Test_MailGun() {
 	tx := t.GetTransmission()
 
-	mailer, err := drivers.NewMailGun(mail.Config{
+	mailer, err := drivers.NewMailgun(mail.Config{
 		URL:         os.Getenv("MAILGUN_URL"),
 		APIKey:      os.Getenv("MAILGUN_API_KEY"),
 		FromAddress: os.Getenv("MAILGUN_FROM_ADDRESS"),

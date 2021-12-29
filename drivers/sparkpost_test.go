@@ -61,11 +61,11 @@ func (t *DriversTestSuite) TestNewSparkPost() {
 	}
 }
 
-func (t *DriversTestSuite) TestSparkpostResponse_Unmarshal() {
+func (t *DriversTestSuite) TestSSparkPostResponse_Unmarshal() {
 	t.UtilTestUnmarshal(&spResponse{}, []byte(`{"results": {}}`))
 }
 
-func (t *DriversTestSuite) TestSparkpostResponse_CheckError() {
+func (t *DriversTestSuite) TestSparkPostResponse_CheckError() {
 	tt := map[string]struct {
 		input    spResponse
 		response *http.Response
@@ -104,15 +104,15 @@ func (t *DriversTestSuite) TestSparkpostResponse_CheckError() {
 	}
 }
 
-func (t *DriversTestSuite) TestSparkpostResponse_Meta() {
+func (t *DriversTestSuite) TestSparkPostResponse_Meta() {
 	d := &spResponse{
 		Results: map[string]interface{}{"id": "10"},
 		Errors:  nil,
 	}
-	t.UtilTestMeta(d, "Successfully sent Sparkpost email", "10")
+	t.UtilTestMeta(d, "Successfully sent SparkPost email", "10")
 }
 
-func (t *DriversTestSuite) TestSparkpost_Send() {
+func (t *DriversTestSuite) TestSparkPost_Send() {
 	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
 		return &sparkPost{cfg: Comfig, client: m}
 	}, true)

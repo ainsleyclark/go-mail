@@ -20,14 +20,14 @@ import (
 	"net/http"
 )
 
-func (t *DriversTestSuite) TestNewSendgrid() {
+func (t *DriversTestSuite) TestNewSendGrid() {
 	tt := map[string]struct {
 		input mail.Config
 		want  interface{}
 	}{
 		"Success": {
 			mail.Config{
-				URL:         "https://Sendgrid.example.com",
+				URL:         "https://sendgrid.example.com",
 				APIKey:      "key",
 				FromAddress: "addr",
 				FromName:    "name",
@@ -52,14 +52,14 @@ func (t *DriversTestSuite) TestNewSendgrid() {
 	}
 }
 
-func (t *DriversTestSuite) TestSendgridResponse_Unmarshal() {
+func (t *DriversTestSuite) TestSendGridResponse_Unmarshal() {
 	t.UtilTestUnmarshal(&sgResponse{}, []byte(`{"errors": []}`))
 	res := sgResponse{}
 	err := res.Unmarshal(nil)
 	t.NoError(err)
 }
 
-func (t *DriversTestSuite) TestSendgridResponse_CheckError() {
+func (t *DriversTestSuite) TestSendGridResponse_CheckError() {
 	tt := map[string]struct {
 		input    sgResponse
 		response *http.Response
@@ -98,12 +98,12 @@ func (t *DriversTestSuite) TestSendgridResponse_CheckError() {
 	}
 }
 
-func (t *DriversTestSuite) TestSendgridResponse_Meta() {
+func (t *DriversTestSuite) TestSendGridResponse_Meta() {
 	d := &sgResponse{}
-	t.UtilTestMeta(d, "Successfully sent Sendgrid email", "")
+	t.UtilTestMeta(d, "Successfully sent SendGrid email", "")
 }
 
-func (t *DriversTestSuite) TestSendgrid_Send() {
+func (t *DriversTestSuite) TestSendGrid_Send() {
 	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
 		return &sendGrid{cfg: Comfig, client: m}
 	}, true)
