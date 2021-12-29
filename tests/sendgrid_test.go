@@ -14,6 +14,7 @@
 package mail
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail/drivers"
 	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
@@ -36,6 +37,8 @@ func (t *MailTestSuite) Test_SendGrid() {
 	if err != nil {
 		t.FailNow("Error sending SendGrid email: " + err.Error())
 	}
+
+	fmt.Println(string(result.Body))
 
 	t.Equal(http.StatusAccepted, result.StatusCode)
 	t.NotNil(result.Body)

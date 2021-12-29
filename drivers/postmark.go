@@ -51,7 +51,7 @@ func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postmark{
 		cfg:    cfg,
-		client: client.NewClient(),
+		client: client.New(),
 	}, nil
 }
 
@@ -98,43 +98,40 @@ type (
 	}
 )
 
-func (p *postmarkResponse) Unmarshal(buf []byte) error {
+func (r *postmarkResponse) Unmarshal(buf []byte) error {
 	resp := &postmarkResponse{}
 	err := json.Unmarshal(buf, resp)
 	if err != nil {
 		return err
 	}
-	*p = *resp
+	*r = *resp
 	return nil
 }
 
-func (p *postmarkResponse) HasError(response *http.Response) bool {
-	return p.ErrorCode != 0
+func (r *postmarkResponse) CheckError(response *http.Response, buf []byte) error {
+	if r.ErrorCode == 0 {
+		return nil
+	}
+	if len(buf) == 0 {
+		return mail.ErrEmptyBody
+	}
+	return fmt.Errorf("%s - code: %d, message: %s", postmarkErrorMessage, r.ErrorCode, r.Message)
 }
 
-func (p *postmarkResponse) Meta() httputil.Meta {
+func (r *postmarkResponse) Meta() httputil.Meta {
 	return httputil.Meta{
-		Message: p.Message,
-		ID:      p.ID,
+		Message: r.Message,
+		ID:      r.ID,
 	}
 }
 
-// Error returns a formatted response error.
-func (p *postmarkResponse) Error() error {
-	return fmt.Errorf("%s - code: %d, message: %s", postmarkErrorMessage, p.ErrorCode, p.Message)
-}
-
-// Send posts the Go Mail Transmission to the Postal
-// API. Transmissions are validated before sending
-// and attachments are added. Returns an error
-// upon failure.
 func (d *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	m := postmarkTransmission{
+	tx := postmarkTransmission{
 		To:            strings.Join(t.Recipients, ","),
 		CC:            strings.Join(t.CC, ","),
 		BCC:           strings.Join(t.BCC, ","),
@@ -147,7 +144,7 @@ func (d *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 
 	if t.Attachments.Exists() {
 		for _, v := range t.Attachments {
-			m.Attachments = append(m.Attachments, postmarkAttachment{
+			tx.Attachments = append(tx.Attachments, postmarkAttachment{
 				Name:        v.Filename,
 				ContentType: v.Mime(),
 				Content:     v.B64(),
@@ -156,7 +153,7 @@ func (d *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 	}
 
 	pl := httputil.NewJSONData()
-	err = pl.AddStruct(m)
+	err = pl.AddStruct(tx)
 	if err != nil {
 		return mail.Response{}, err
 	}

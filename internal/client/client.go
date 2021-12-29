@@ -32,8 +32,8 @@ type Requester interface {
 	Do(ctx context.Context, r *httputil.Request, payload httputil.Payload, responder httputil.Responder) (mail.Response, error)
 }
 
-// NewClient creates a new Client with a stdlib http.Client.
-func NewClient() *Client {
+// New creates a new Client with a stdlib http.Client.
+func New() *Client {
 	return &Client{
 		Client: &http.Client{
 			Timeout: Timeout,
@@ -74,22 +74,27 @@ func (c *Client) Do(ctx context.Context, r *httputil.Request, payload httputil.P
 	}
 	defer resp.Body.Close()
 
+	response := mail.Response{
+		StatusCode: resp.StatusCode,
+	}
+
 	buf, err := c.bodyReader(resp.Body)
 	if err != nil {
-		return mail.Response{}, err
+		return response, err
 	}
+	response.Body = buf
 
 	err = responder.Unmarshal(buf)
 	if err != nil {
-		return mail.Response{}, err
+		return response, err
 	}
 
-	if responder.HasError(resp) {
-		return mail.Response{}, responder.Error()
+	err = responder.CheckError(resp, buf)
+	if err != nil {
+		return response, err
 	}
 
 	meta := responder.Meta()
-
 	return mail.Response{
 		StatusCode: resp.StatusCode,
 		Body:       buf,

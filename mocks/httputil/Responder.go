@@ -14,29 +14,15 @@ type Responder struct {
 	mock.Mock
 }
 
-// Error provides a mock function with given fields:
-func (_m *Responder) Error() error {
-	ret := _m.Called()
+// CheckError provides a mock function with given fields: response, buf
+func (_m *Responder) CheckError(response *http.Response, buf []byte) error {
+	ret := _m.Called(response, buf)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(*http.Response, []byte) error); ok {
+		r0 = rf(response, buf)
 	} else {
 		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// HasError provides a mock function with given fields: response
-func (_m *Responder) HasError(response *http.Response) bool {
-	ret := _m.Called(response)
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(*http.Response) bool); ok {
-		r0 = rf(response)
-	} else {
-		r0 = ret.Get(0).(bool)
 	}
 
 	return r0

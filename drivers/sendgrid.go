@@ -14,25 +14,31 @@
 package drivers
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"github.com/ainsleyclark/go-mail/internal/client"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/sendgrid/rest"
-	"github.com/sendgrid/sendgrid-go"
-	mailsg "github.com/sendgrid/sendgrid-go/helpers/mail"
+	"net/http"
 )
 
-// sendGrid represents the data for sending mail via the
-// SendGrid API. mail.Configuration, the client and the
-// main send function are parsed for sending
-// data.
+// sendGrid represents the entity for sending mail via the
+// SendGrid API.
+//
+// See:
+// https://docs.sendgrid.com/api-reference/how-to-use-the-sendgrid-v3-api
+// https://docs.sendgrid.com/api-reference/mail-send/mail-send
 type sendGrid struct {
 	cfg    mail.Config
-	client *sendgrid.Client
-	send   sendGridSendFunc
+	client client.Requester
 }
 
-// sendGridSendFunc defines the function for ending
-// SendGrid mail.Transmissions.
-type sendGridSendFunc func(email *mailsg.SGMailV3) (*rest.Response, error)
+const (
+	// sendGridEndpoint defines the endpoint to POST to.
+	// The host for Web API v3 requests is always https://sendgrid.com/v3/
+	sendGridEndpoint = "https://api.sendgrid.com/v3/mail/send"
+)
 
 // NewSendGrid creates a new sendGrid client. Configuration
 // is validated before initialisation.
@@ -41,93 +47,156 @@ func NewSendGrid(cfg mail.Config) (mail.Mailer, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := sendgrid.NewSendClient(cfg.APIKey)
 	return &sendGrid{
 		cfg:    cfg,
-		client: client,
-		send:   client.Send,
+		client: client.New(),
 	}, nil
 }
 
-// Send posts the Go Mail mail.Transmission to the SendGrid
-// API. mail.Transmissions are validated before sending
-// and attachments are added. Returns an error
-// upon failure.
-func (m *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
+type (
+	sgTransmission struct {
+		From             *sgEmail             `json:"from,omitempty"`
+		Subject          string               `json:"subject,omitempty"`
+		Personalizations []*sgPersonalization `json:"personalizations,omitempty"`
+		Content          []*sgContent         `json:"content,omitempty"`
+		Attachments      []*sgAttachment      `json:"attachments,omitempty"`
+		TemplateID       string               `json:"template_id,omitempty"`
+		Sections         map[string]string    `json:"sections,omitempty"`
+		Headers          map[string]string    `json:"headers,omitempty"`
+		Categories       []string             `json:"categories,omitempty"`
+		CustomArgs       map[string]string    `json:"custom_args,omitempty"`
+		SendAt           int                  `json:"send_at,omitempty"`
+		BatchID          string               `json:"batch_id,omitempty"`
+		IPPoolID         string               `json:"ip_pool_name,omitempty"`
+		ReplyTo          *sgEmail             `json:"reply_to,omitempty"`
+	}
+	sgPersonalization struct {
+		To                  []*sgEmail             `json:"to,omitempty"`
+		From                *sgEmail               `json:"from,omitempty"`
+		CC                  []*sgEmail             `json:"cc,omitempty"`
+		BCC                 []*sgEmail             `json:"bcc,omitempty"`
+		Subject             string                 `json:"subject,omitempty"`
+		Headers             map[string]string      `json:"headers,omitempty"`
+		Substitutions       map[string]string      `json:"substitutions,omitempty"`
+		CustomArgs          map[string]string      `json:"custom_args,omitempty"`
+		DynamicTemplateData map[string]interface{} `json:"dynamic_template_data,omitempty"`
+		Categories          []string               `json:"categories,omitempty"`
+		SendAt              int                    `json:"send_at,omitempty"`
+	}
+	// sgEmail holds email name and address info
+	sgEmail struct {
+		Name    string `json:"name,omitempty"`
+		Address string `json:"email,omitempty"`
+	}
+	// sgContent defines content of the mail body
+	sgContent struct {
+		Type  string `json:"type,omitempty"`
+		Value string `json:"value,omitempty"`
+	}
+	// sgAttachment holds attachement information
+	sgAttachment struct {
+		Content     string `json:"content,omitempty"`
+		Type        string `json:"type,omitempty"`
+		Name        string `json:"name,omitempty"`
+		Filename    string `json:"filename,omitempty"`
+		Disposition string `json:"disposition,omitempty"`
+		ContentID   string `json:"content_id,omitempty"`
+	}
+	sgResponse struct {
+		StatusCode int                 // e.g. 200
+		Body       string              // e.g. {"result: success"}
+		Headers    map[string][]string // e.g. map[X-Ratelimit-Limit:[600]]
+	}
+)
+
+func (s *sgResponse) Unmarshal(buf []byte) error {
+	resp := &sgResponse{}
+	err := json.Unmarshal(buf, resp)
+	if err != nil {
+		return err
+	}
+	*s = *resp
+	return nil
+}
+
+func (s *sgResponse) CheckError(response *http.Response, buf []byte) error {
+	if client.Is2XX(response.StatusCode) {
+		return nil
+	}
+	return errors.New("TEMP")
+}
+
+func (s *sgResponse) Meta() httputil.Meta {
+	return httputil.Meta{
+		Message: "",
+		ID:      "",
+	}
+}
+
+func (d *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	sender := mailsg.NewV3Mail()
-
-	// Add from
-	from := mailsg.NewEmail(m.cfg.FromName, m.cfg.FromAddress)
-	sender.SetFrom(from)
-
-	// Add subject
-	sender.Subject = t.Subject
-
-	// Add to
-	p := mailsg.NewPersonalization()
-	var to []*mailsg.Email
-	for _, recipient := range t.Recipients {
-		to = append(to, mailsg.NewEmail("", recipient))
+	tx := sgTransmission{
+		From:             &sgEmail{
+			Name:    d.cfg.FromName,
+			Address: d.cfg.FromAddress,
+		},
+		Subject:          t.Subject,
+		Personalizations: []*sgPersonalization{
+			{Subject: t.Subject},
+		},
+		Content:          []*sgContent{
+			{Type:  "text/plain", Value: t.PlainText},
+			{Type:  "text/html", Value: t.HTML},
+		},
+		Attachments:      nil,
 	}
-	p.AddTos(to...)
 
-	// Add CC
+	for _, r := range t.Recipients {
+		tx.Personalizations[0].To = append(tx.Personalizations[0].To, &sgEmail{
+			Address: r,
+		})
+	}
+
 	if t.HasCC() {
-		var cc []*mailsg.Email
-		for _, v := range t.CC {
-			cc = append(cc, mailsg.NewEmail("", v))
+		for _, c := range t.CC {
+			tx.Personalizations[0].CC = append(tx.Personalizations[0].CC, &sgEmail{
+				Address: c,
+			})
 		}
-		p.AddCCs(cc...)
 	}
 
-	// Add BCC
 	if t.HasBCC() {
-		var bcc []*mailsg.Email
-		for _, v := range t.BCC {
-			bcc = append(bcc, mailsg.NewEmail("", v))
+		for _, b := range t.BCC {
+			tx.Personalizations[0].BCC = append(tx.Personalizations[0].BCC, &sgEmail{
+				Address: b,
+			})
 		}
-		p.AddBCCs(bcc...)
 	}
 
-	// Add Plain Text
-	if t.PlainText != "" {
-		content := mailsg.NewContent("text/plain", t.PlainText)
-		sender.AddContent(content)
-	}
-
-	// Add HTML
-	html := mailsg.NewContent("text/html", t.HTML)
-	sender.AddContent(html)
-
-	// Add attachments if they exist.
 	if t.Attachments.Exists() {
 		for _, v := range t.Attachments {
-			a := mailsg.NewAttachment()
-			a.SetContent(v.B64())
-			a.SetType(v.Mime())
-			a.SetFilename(v.Filename)
-			a.SetDisposition("attachment")
-			sender.AddAttachment(a)
+			tx.Attachments = append(tx.Attachments, &sgAttachment{
+				Content:     v.B64(),
+				Type:        v.Mime(),
+				Name:        "",
+				Filename:    v.Filename,
+				Disposition: "attachment",
+			})
 		}
 	}
 
-	sender.AddPersonalizations(p)
-
-	response, err := m.send(sender)
+	pl := httputil.NewJSONData()
+	err = pl.AddStruct(tx)
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	return mail.Response{
-		StatusCode: response.StatusCode,
-		Body:       []byte(response.Body),
-		Headers:    response.Headers,
-		ID:         "",
-		Message:    "",
-	}, nil
+	req := httputil.NewHTTPRequest(http.MethodPost, sendGridEndpoint)
+	req.AddHeader("Authorization", "Bearer " + d.cfg.APIKey)
+
+	return d.client.Do(context.Background(), req, pl, &sgResponse{})
 }

@@ -25,10 +25,12 @@ import (
 	"strings"
 )
 
-// mailGun represents the data for sending mail via the
-// MailGun API. Configuration, the client and the
-// main send function are parsed for sending
-// data.
+// mailgun represents the entity for sending mail via the
+// Mailgun API.
+//
+// See:
+// https://documentation.mailgun.com/en/latest/api_reference.html
+// https://documentation.mailgun.com/en/latest/api-sending.html
 type mailGun struct {
 	cfg    mail.Config
 	client client.Requester
@@ -51,7 +53,7 @@ func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &mailGun{
 		cfg:    cfg,
-		client: client.NewClient(),
+		client: client.New(),
 	}, nil
 }
 
@@ -69,35 +71,33 @@ type (
 	}
 )
 
-func (m *mailgunResponse) HasError(response *http.Response) bool {
-	return !client.Is2XX(response.StatusCode)
+func (r *mailgunResponse) CheckError(response *http.Response, buf []byte) error {
+	if client.Is2XX(response.StatusCode) {
+		return nil
+	}
+	if len(buf) == 0 {
+		return mail.ErrEmptyBody
+	}
+	return errors.New(r.Message)
 }
 
-func (m *mailgunResponse) Error() error {
-	return errors.New(m.Message)
-}
-
-func (m *mailgunResponse) Unmarshal(buf []byte) error {
+func (r *mailgunResponse) Unmarshal(buf []byte) error {
 	resp := &mailgunResponse{}
 	err := json.Unmarshal(buf, resp)
 	if err != nil {
 		return err
 	}
-	*m = *resp
+	*r = *resp
 	return nil
 }
 
-func (m *mailgunResponse) Meta() httputil.Meta {
+func (r *mailgunResponse) Meta() httputil.Meta {
 	return httputil.Meta{
-		Message: m.Message,
-		ID:      m.ID,
+		Message: r.Message,
+		ID:      r.ID,
 	}
 }
 
-// Send posts the Go Mail Transmission to the MailGun
-// API. Transmissions are validated before sending
-// and attachments are added. Returns an error
-// upon failure.
 func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {

@@ -17,8 +17,7 @@ import "net/http"
 
 type Responder interface {
 	Unmarshal(buf []byte) error
-	HasError(response *http.Response) bool
-	Error() error
+	CheckError(response *http.Response, buf []byte) error
 	Meta() Meta
 }
 

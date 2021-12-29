@@ -13,12 +13,15 @@
 
 package mail
 
+import "errors"
+
 var (
 	// Set true to write the HTTP requests in curl for to stdout
 	Debug = false
+
+	ErrEmptyBody = errors.New("error, empty body")
 )
 
-const ()
 
 // Mailer defines the sender for go-mail returning a
 // Response or error when an email is sent.

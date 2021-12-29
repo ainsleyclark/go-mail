@@ -14,28 +14,32 @@
 package drivers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/internal/clientold"
+	"github.com/ainsleyclark/go-mail/internal/client"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
 	"strings"
 	"time"
 )
 
-// sparkPost represents the data for sending mail via the
-// SparkPost API. Configuration, the client and the
-// main send function are parsed for sending
-// data.
+// postal represents the entity for sending mail via the
+// Postal API.
+//
+// See:
+// https://developers.sparkpost.com/api/
+// https://developers.sparkpost.com/api/transmissions/#transmissions-create-a-transmission
 type sparkPost struct {
 	cfg    mail.Config
-	client clientold.Requester
+	client client.Requester
 }
 
 const (
 	// sparkpostEndpoint defines the endpoint to POST to.
 	// See: https://www.sparkpost.com/api#/reference/transmissions
-	sparkpostEndpoint = "/api/v1/transmissions"
+	sparkpostEndpoint = "%s/api/v1/transmissions"
 	// sparkpostErrorMessage defines the message when an error occurred
 	// when sending mail via the Sparkpost API.
 	sparkpostErrorMessage = "error sending transmission to Sparkpost API"
@@ -50,7 +54,7 @@ func NewSparkPost(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &sparkPost{
 		cfg:    cfg,
-		client: clientold.New(cfg.URL),
+		client: client.New(),
 	}, nil
 }
 
@@ -108,6 +112,10 @@ type (
 	}
 	// spResponse contains information about the last HTTP response from
 	// the SparkPost API.
+	//
+	// Example JSON Response:
+	// {"results":{"total_rejected_recipients":0,"total_accepted_recipients":1,"id":"7029753512321354395"}}
+	// {"errors":[{"message":"content.subject is a required field","code":"1400"}]}
 	spResponse struct {
 		Results map[string]interface{} `json:"results,omitempty"`
 		Errors  []spError              `json:"errors,omitempty"`
@@ -145,41 +153,37 @@ type (
 	}
 )
 
-// HasError determines if the Sparkpost call was successful
-// by evaluating the error slice length within the response.
-func (p *spResponse) HasError() bool {
-	return len(p.Errors) != 0
+func (p *spResponse) Unmarshal(buf []byte) error {
+	resp := &spResponse{}
+	err := json.Unmarshal(buf, resp)
+	if err != nil {
+		return err
+	}
+	*p = *resp
+	return nil
 }
 
-// Error returns a formatted response error for a Sparkpost
-// response.
-func (p *spResponse) Error() error {
+func (p *spResponse) CheckError(response *http.Response, buf []byte) error{
 	if len(p.Errors) == 0 {
 		return nil
+	}
+	if len(buf) == 0 {
+		return mail.ErrEmptyBody
 	}
 	return fmt.Errorf("%s - code: %s, message: %s", sparkpostErrorMessage, p.Errors[0].Code, p.Errors[0].Message)
 }
 
-// ToResponse transforms a spResponse into a Go Mail response.
-// Checks if the id is attached and sets accordingly.
-func (p *spResponse) ToResponse(resp *http.Response, buf []byte) mail.Response {
-	response := mail.Response{
-		StatusCode: resp.StatusCode,
-		Body:       buf,
-		Headers:    resp.Header,
-		Message:    "Successfully sent Sparkpost email",
+func (p *spResponse) Meta() httputil.Meta {
+	m := httputil.Meta{
+		Message: "Successfully sent Sparkpost email",
 	}
 	if val, ok := p.Results["id"]; ok {
-		response.ID = fmt.Sprintf("%v", val)
+		m.ID = fmt.Sprintf("%v", val)
 	}
-	return response
+	return m
 }
 
-// Send posts the Go Mail Transmission to the SparkPost
-// API. Transmissions are validated before sending
-// and attachments are added. Returns an error
-// upon failure.
-func (s *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
+func (d *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return mail.Response{}, err
@@ -187,14 +191,14 @@ func (s *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 
 	headerTo := strings.Join(t.Recipients, ",")
 
-	m := spTransmission{
+	tx := spTransmission{
 		Content: spContent{
 			HTML:    t.HTML,
 			Text:    t.PlainText,
 			Subject: t.Subject,
 			From: spFrom{
-				Email: s.cfg.FromAddress,
-				Name:  s.cfg.FromName,
+				Email: d.cfg.FromAddress,
+				Name:  d.cfg.FromName,
 			},
 			ReplyTo: "",
 			Headers: make(map[string]string),
@@ -202,23 +206,23 @@ func (s *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 	}
 
 	for _, r := range t.Recipients {
-		m.Recipients = append(m.Recipients, spRecipient{
+		tx.Recipients = append(tx.Recipients, spRecipient{
 			Address: spAddress{Email: r, HeaderTo: headerTo},
 		})
 	}
 
 	if t.HasCC() {
 		for _, c := range t.CC {
-			m.Recipients = append(m.Recipients, spRecipient{
+			tx.Recipients = append(tx.Recipients, spRecipient{
 				Address: spAddress{Email: c, HeaderTo: headerTo},
 			})
-			m.Content.Headers["cc"] = strings.Join(t.CC, ",")
+			tx.Content.Headers["cc"] = strings.Join(t.CC, ",")
 		}
 	}
 
 	if t.HasBCC() {
 		for _, b := range t.BCC {
-			m.Recipients = append(m.Recipients, spRecipient{
+			tx.Recipients = append(tx.Recipients, spRecipient{
 				Address: spAddress{Email: b, HeaderTo: headerTo},
 			})
 		}
@@ -226,7 +230,7 @@ func (s *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 
 	if t.Attachments.Exists() {
 		for _, v := range t.Attachments {
-			m.Content.Attachments = append(m.Content.Attachments, spAttachment{
+			tx.Content.Attachments = append(tx.Content.Attachments, spAttachment{
 				MIMEType: v.Mime(),
 				Filename: v.Filename,
 				B64Data:  v.B64(),
@@ -234,27 +238,14 @@ func (s *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	// Ensure the API Key is set for authorisation
-	// and add the JSON content type.
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-	headers.Set("Authorization", s.cfg.APIKey)
-
-	buf, resp, err := s.client.Do(m, sparkpostEndpoint, headers)
+	pl := httputil.NewJSONData()
+	err = pl.AddStruct(tx)
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	// Unmarshal the buffer into a postalResponse.
-	response := spResponse{}
-	err = json.Unmarshal(buf, &response)
-	if err != nil {
-		return mail.Response{}, err
-	}
+	req := httputil.NewHTTPRequest(http.MethodPost, fmt.Sprintf(sparkpostEndpoint, d.cfg.URL))
+	req.AddHeader("Authorization", d.cfg.APIKey)
 
-	if response.HasError() {
-		return mail.Response{}, response.Error()
-	}
-
-	return response.ToResponse(resp, buf), nil
+	return d.client.Do(context.Background(), req, pl, &spResponse{})
 }

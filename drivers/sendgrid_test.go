@@ -13,116 +13,117 @@
 
 package drivers
 
-import (
-	"errors"
-	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/sendgrid/rest"
-	mailsg "github.com/sendgrid/sendgrid-go/helpers/mail"
-	"net/http"
-)
-
-func (t *DriversTestSuite) TestNewSendgrid() {
-	tt := map[string]struct {
-		input mail.Config
-		want  interface{}
-	}{
-		"Success": {
-			mail.Config{
-				URL:         "https://postal.example.com",
-				APIKey:      "key",
-				FromAddress: "addr",
-				FromName:    "name",
-			},
-			nil,
-		},
-		"Validation Failed": {
-			mail.Config{},
-			"driver requires from address",
-		},
-	}
-
-	for name, test := range tt {
-		t.Run(name, func() {
-			got, err := NewSendGrid(test.input)
-			if err != nil {
-				t.Contains(err.Error(), test.want)
-				return
-			}
-			t.NotNil(got)
-		})
-	}
-}
-
-func (t *DriversTestSuite) TestSendGrid_Send() {
-	tt := map[string]struct {
-		input *mail.Transmission
-		send  sendGridSendFunc
-		want  interface{}
-	}{
-		"Success": {
-			Trans,
-			func(email *mailsg.SGMailV3) (*rest.Response, error) {
-				return &rest.Response{
-					StatusCode: http.StatusOK,
-					Body:       "body",
-					Headers:    map[string][]string{"msg": {"test"}},
-				}, nil
-			},
-			mail.Response{
-				StatusCode: http.StatusOK,
-				Body:       "body",
-				Headers:    map[string][]string{"msg": {"test"}},
-				ID:         "",
-				Message:    "",
-			},
-		},
-		"With Attachment": {
-			TransWithAttachment,
-			func(email *mailsg.SGMailV3) (*rest.Response, error) {
-				return &rest.Response{
-					StatusCode: http.StatusOK,
-					Body:       "body",
-					Headers:    map[string][]string{"msg": {"test"}},
-				}, nil
-			},
-			mail.Response{
-				StatusCode: http.StatusOK,
-				Body:       "body",
-				Headers:    map[string][]string{"msg": {"test"}},
-				ID:         "",
-				Message:    "",
-			},
-		},
-		"Validation Failed": {
-			nil,
-			func(email *mailsg.SGMailV3) (*rest.Response, error) {
-				return nil, nil
-			},
-			"can't validate a nil transmission",
-		},
-		"Send Error": {
-			Trans,
-			func(email *mailsg.SGMailV3) (*rest.Response, error) {
-				return nil, errors.New("send error")
-			},
-			"send error",
-		},
-	}
-
-	for name, test := range tt {
-		t.Run(name, func() {
-			spark := sendGrid{
-				cfg: mail.Config{
-					FromAddress: "from",
-				},
-				send: test.send,
-			}
-			resp, err := spark.Send(test.input)
-			if err != nil {
-				t.Contains(err.Error(), test.want)
-				return
-			}
-			t.Equal(test.want, resp)
-		})
-	}
-}
+//
+//import (
+//	"errors"
+//	"github.com/ainsleyclark/go-mail/mail"
+//	"github.com/sendgrid/rest"
+//	mailsg "github.com/sendgrid/sendgrid-go/helpers/mail"
+//	"net/http"
+//)
+//
+//func (t *DriversTestSuite) TestNewSendgrid() {
+//	tt := map[string]struct {
+//		input mail.Config
+//		want  interface{}
+//	}{
+//		"Success": {
+//			mail.Config{
+//				URL:         "https://postal.example.com",
+//				APIKey:      "key",
+//				FromAddress: "addr",
+//				FromName:    "name",
+//			},
+//			nil,
+//		},
+//		"Validation Failed": {
+//			mail.Config{},
+//			"driver requires from address",
+//		},
+//	}
+//
+//	for name, test := range tt {
+//		t.Run(name, func() {
+//			got, err := NewSendGrid(test.input)
+//			if err != nil {
+//				t.Contains(err.Error(), test.want)
+//				return
+//			}
+//			t.NotNil(got)
+//		})
+//	}
+//}
+//
+//func (t *DriversTestSuite) TestSendGrid_Send() {
+//	tt := map[string]struct {
+//		input *mail.Transmission
+//		send  sendGridSendFunc
+//		want  interface{}
+//	}{
+//		"Success": {
+//			Trans,
+//			func(email *mailsg.SGMailV3) (*rest.Response, error) {
+//				return &rest.Response{
+//					StatusCode: http.StatusOK,
+//					Body:       "body",
+//					Headers:    map[string][]string{"msg": {"test"}},
+//				}, nil
+//			},
+//			mail.Response{
+//				StatusCode: http.StatusOK,
+//				Body:       "body",
+//				Headers:    map[string][]string{"msg": {"test"}},
+//				ID:         "",
+//				Message:    "",
+//			},
+//		},
+//		"With Attachment": {
+//			TransWithAttachment,
+//			func(email *mailsg.SGMailV3) (*rest.Response, error) {
+//				return &rest.Response{
+//					StatusCode: http.StatusOK,
+//					Body:       "body",
+//					Headers:    map[string][]string{"msg": {"test"}},
+//				}, nil
+//			},
+//			mail.Response{
+//				StatusCode: http.StatusOK,
+//				Body:       "body",
+//				Headers:    map[string][]string{"msg": {"test"}},
+//				ID:         "",
+//				Message:    "",
+//			},
+//		},
+//		"Validation Failed": {
+//			nil,
+//			func(email *mailsg.SGMailV3) (*rest.Response, error) {
+//				return nil, nil
+//			},
+//			"can't validate a nil transmission",
+//		},
+//		"Send Error": {
+//			Trans,
+//			func(email *mailsg.SGMailV3) (*rest.Response, error) {
+//				return nil, errors.New("send error")
+//			},
+//			"send error",
+//		},
+//	}
+//
+//	for name, test := range tt {
+//		t.Run(name, func() {
+//			spark := sendGrid{
+//				cfg: mail.Config{
+//					FromAddress: "from",
+//				},
+//				send: test.send,
+//			}
+//			resp, err := spark.Send(test.input)
+//			if err != nil {
+//				t.Contains(err.Error(), test.want)
+//				return
+//			}
+//			t.Equal(test.want, resp)
+//		})
+//	}
+//}

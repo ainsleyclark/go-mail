@@ -3,10 +3,9 @@ module github.com/ainsleyclark/go-mail
 go 1.16
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.2.0
 	github.com/joho/godotenv v1.4.0
-	github.com/mailgun/mailgun-go/v4 v4.4.1
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sendgrid/rest v2.6.3+incompatible
 	github.com/sendgrid/sendgrid-go v3.8.0+incompatible
 	github.com/stretchr/testify v1.7.0

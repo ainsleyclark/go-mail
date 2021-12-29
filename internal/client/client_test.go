@@ -30,7 +30,7 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	got := NewClient()
+	got := New()
 	assert.NotNil(t, got.bodyReader)
 }
 
@@ -49,13 +49,12 @@ func TestClient_Do(t *testing.T) {
 		want       interface{}
 	}{
 		"Success": {
-			input:   &httputil.Request{},
 			handler: successHandler,
 			responder: func(m *mocks.Responder) {
 				m.On("Unmarshal", mock.Anything).
 					Return(nil)
-				m.On("HasError", mock.Anything).
-					Return(false)
+				m.On("CheckError", mock.Anything, []byte("buf")).
+					Return(nil)
 				m.On("Meta", mock.Anything).
 					Return(httputil.Meta{Message: "message", ID: "10"})
 			},
@@ -69,19 +68,14 @@ func TestClient_Do(t *testing.T) {
 			},
 		},
 		"Bad Request": {
-			input:      &httputil.Request{Url: "@#@#$$%$"},
-			handler:    nil,
-			bodyReader: io.ReadAll,
-			want:       "invalid URL escape",
+			input: &httputil.Request{Url: "@#@#$$%$"},
+			want:  "invalid URL escape",
 		},
 		"Do Error": {
-			input:      &httputil.Request{Url: "wrong"},
-			handler:    nil,
-			bodyReader: io.ReadAll,
-			want:       "unsupported protocol scheme",
+			input: &httputil.Request{Url: "wrong"},
+			want:  "unsupported protocol scheme",
 		},
 		"Body Read Error": {
-			input:   &httputil.Request{},
 			handler: successHandler,
 			bodyReader: func(r io.Reader) ([]byte, error) {
 				return nil, errors.New("body read error")
@@ -89,7 +83,6 @@ func TestClient_Do(t *testing.T) {
 			want: "body read error",
 		},
 		"Unmarshal Error": {
-			input:   &httputil.Request{},
 			handler: successHandler,
 			responder: func(m *mocks.Responder) {
 				m.On("Unmarshal", mock.Anything).
@@ -99,14 +92,11 @@ func TestClient_Do(t *testing.T) {
 			want:       "unmarshal error",
 		},
 		"Responder Error": {
-			input:   &httputil.Request{},
 			handler: successHandler,
 			responder: func(m *mocks.Responder) {
 				m.On("Unmarshal", mock.Anything).
 					Return(nil)
-				m.On("HasError", mock.Anything).
-					Return(true)
-				m.On("Error").
+				m.On("CheckError", mock.Anything, []byte("buf")).
 					Return(errors.New("response error"))
 			},
 			bodyReader: io.ReadAll,
@@ -118,6 +108,10 @@ func TestClient_Do(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			server := httptest.NewServer(test.handler)
 			defer server.Close()
+
+			if test.input == nil {
+				test.input = &httputil.Request{}
+			}
 
 			if test.input.Url == "" {
 				test.input.Url = server.URL
@@ -206,7 +200,7 @@ func TestClient_MakeRequest(t *testing.T) {
 			defer func() { mail.Debug = false }()
 			mail.Debug = true
 
-			c := NewClient()
+			c := New()
 
 			mock := &mocks.Payload{}
 			if test.payload != nil {
