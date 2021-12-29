@@ -16,7 +16,7 @@ package mail
 import "errors"
 
 var (
-	// Set true to write the HTTP requests in curl for to stdout
+	// Debug - Set true to write the HTTP requests in curl for to stdout
 	Debug = false
 
 	ErrEmptyBody = errors.New("error, empty body")
@@ -25,6 +25,10 @@ var (
 // Mailer defines the sender for go-mail returning a
 // Response or error when an email is sent.
 type Mailer interface {
+	// Send accepts a mail.Transmission to send an email through a particular
+	// driver/provider. Transmissions will be validated before sending.
+	// A mail.Response or an error will be returned. In some circumstances
+	// the body and status code will be attached to the response for debugging.
 	Send(t *Transmission) (Response, error)
 }
 

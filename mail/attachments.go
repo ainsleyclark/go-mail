@@ -18,9 +18,8 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
-// Attachment defines the mail file that has been
-// uploaded via the forms endpoint. It contains
-// useful information for sending files over
+// Attachment defines an email attachment for Go Mail.
+// It contains useful information for sending files via
 // the mail driver.
 type Attachment struct {
 	Filename string

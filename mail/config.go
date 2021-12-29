@@ -16,9 +16,8 @@ package mail
 import "errors"
 
 // Config represents the configuration passed when a new
-// client is constructed. FromAddress, FromName and
-// an APIKey are all required to create a new
-// client.
+// client is constructed. Dependant on what driver is used,
+// different options are required to be present.
 type Config struct {
 	URL         string
 	APIKey      string
