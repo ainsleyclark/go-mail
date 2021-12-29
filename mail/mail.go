@@ -22,7 +22,6 @@ var (
 	ErrEmptyBody = errors.New("error, empty body")
 )
 
-
 // Mailer defines the sender for go-mail returning a
 // Response or error when an email is sent.
 type Mailer interface {

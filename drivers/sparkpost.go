@@ -153,31 +153,31 @@ type (
 	}
 )
 
-func (p *spResponse) Unmarshal(buf []byte) error {
+func (r *spResponse) Unmarshal(buf []byte) error {
 	resp := &spResponse{}
 	err := json.Unmarshal(buf, resp)
 	if err != nil {
 		return err
 	}
-	*p = *resp
+	*r = *resp
 	return nil
 }
 
-func (p *spResponse) CheckError(response *http.Response, buf []byte) error{
-	if len(p.Errors) == 0 {
+func (r *spResponse) CheckError(response *http.Response, buf []byte) error {
+	if len(r.Errors) == 0 {
 		return nil
 	}
 	if len(buf) == 0 {
 		return mail.ErrEmptyBody
 	}
-	return fmt.Errorf("%s - code: %s, message: %s", sparkpostErrorMessage, p.Errors[0].Code, p.Errors[0].Message)
+	return fmt.Errorf("%s - code: %s, message: %s", sparkpostErrorMessage, r.Errors[0].Code, r.Errors[0].Message)
 }
 
-func (p *spResponse) Meta() httputil.Meta {
+func (r *spResponse) Meta() httputil.Meta {
 	m := httputil.Meta{
 		Message: "Successfully sent Sparkpost email",
 	}
-	if val, ok := p.Results["id"]; ok {
+	if val, ok := r.Results["id"]; ok {
 		m.ID = fmt.Sprintf("%v", val)
 	}
 	return m

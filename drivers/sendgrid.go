@@ -16,7 +16,7 @@ package drivers
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"github.com/ainsleyclark/go-mail/internal/client"
 	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
@@ -38,6 +38,9 @@ const (
 	// sendGridEndpoint defines the endpoint to POST to.
 	// The host for Web API v3 requests is always https://sendgrid.com/v3/
 	sendGridEndpoint = "https://api.sendgrid.com/v3/mail/send"
+	// sendgridErrorMessage defines the message when an error occurred
+	// when sending mail via the SendGrid API.
+	sendgridErrorMessage = "error sending transmission to SendGrid API"
 )
 
 // NewSendGrid creates a new sendGrid client. Configuration
@@ -102,33 +105,50 @@ type (
 		Disposition string `json:"disposition,omitempty"`
 		ContentID   string `json:"content_id,omitempty"`
 	}
+	// sgResponse contains the response data from the SendGrid
+	// API.
+	// Note: No response data is passed if the response code is 2xx
+	//
+	// Example JSON Response:
+	// {"errors":[{"message":"The from object must be provided for every email send. It is an object that requires the email parameter, but may also contain a name parameter.  e.g. {\"email\" : \"example@example.com\"}  or {\"email\" : \"example@example.com\", \"name\" : \"Example Recipient\"}.","field":"from.email","help":"http://sendgrid.com/docs/API_Reference/Web_API_v3/Mail/errors.html#message.from"}]}
 	sgResponse struct {
-		StatusCode int                 // e.g. 200
-		Body       string              // e.g. {"result: success"}
-		Headers    map[string][]string // e.g. map[X-Ratelimit-Limit:[600]]
+		Errors []sgError `json:"errors"`
+	}
+	// sgError defines a singular validation error from the API.
+	sgError struct {
+		Message string `json:"message"`
+		Field   string `json:"field"`
+		Help    string `json:"help"`
 	}
 )
 
-func (s *sgResponse) Unmarshal(buf []byte) error {
+func (r *sgResponse) Unmarshal(buf []byte) error {
+	if len(buf) == 0 {
+		return nil
+	}
 	resp := &sgResponse{}
 	err := json.Unmarshal(buf, resp)
 	if err != nil {
 		return err
 	}
-	*s = *resp
+	*r = *resp
 	return nil
 }
 
-func (s *sgResponse) CheckError(response *http.Response, buf []byte) error {
+func (r *sgResponse) CheckError(response *http.Response, buf []byte) error {
 	if client.Is2XX(response.StatusCode) {
 		return nil
 	}
-	return errors.New("TEMP")
+	if len(r.Errors) == 0 {
+		return  nil
+	}
+	return fmt.Errorf("%s - message: %s, field: %s, help: %s", sendgridErrorMessage, r.Errors[0].Message, r.Errors[0].Field, r.Errors[0].Help)
 }
 
-func (s *sgResponse) Meta() httputil.Meta {
+func (r *sgResponse) Meta() httputil.Meta {
 	return httputil.Meta{
-		Message: "",
+		Message: "Successfully sent Sendgrid Email",
+		// No response data from Sendgrid
 		ID:      "",
 	}
 }
@@ -140,19 +160,19 @@ func (d *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
 	}
 
 	tx := sgTransmission{
-		From:             &sgEmail{
-			Name:    d.cfg.FromName,
+		From: &sgEmail{
+			Name: d.cfg.FromName,
 			Address: d.cfg.FromAddress,
 		},
-		Subject:          t.Subject,
+		Subject: t.Subject,
 		Personalizations: []*sgPersonalization{
 			{Subject: t.Subject},
 		},
-		Content:          []*sgContent{
-			{Type:  "text/plain", Value: t.PlainText},
-			{Type:  "text/html", Value: t.HTML},
+		Content: []*sgContent{
+			{Type: "text/plain", Value: t.PlainText},
+			{Type: "text/html", Value: t.HTML},
 		},
-		Attachments:      nil,
+		Attachments: nil,
 	}
 
 	for _, r := range t.Recipients {
@@ -196,7 +216,7 @@ func (d *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
 	}
 
 	req := httputil.NewHTTPRequest(http.MethodPost, sendGridEndpoint)
-	req.AddHeader("Authorization", "Bearer " + d.cfg.APIKey)
+	req.AddHeader("Authorization", "Bearer "+d.cfg.APIKey)
 
 	return d.client.Do(context.Background(), req, pl, &sgResponse{})
 }
