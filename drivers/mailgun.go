@@ -61,10 +61,10 @@ type (
 	// mailGunResponse defines the data sent back from the MailGun API.
 	// ID is included on successful transmission.
 	//
-	// Example JSON Response:
+	// Example JSON Responses:
+	// {"id":"<20211229082318.a988bed7abe472bd@sandboxa6807a568a404524b2b216817d7ed775.mailgun.org>","message":"Queued. Thank you."}
 	// {"message":"Need at least one of 'text' or 'html' parameters specified"}
 	// {"message":"from parameter is missing"}
-	// {"id":"<20211229082318.a988bed7abe472bd@sandboxa6807a568a404524b2b216817d7ed775.mailgun.org>","message":"Queued. Thank you."}
 	mailgunResponse struct {
 		Message string `json:"message"`
 		ID      string `json:"id,omitempty"`

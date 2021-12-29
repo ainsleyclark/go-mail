@@ -78,6 +78,10 @@ type (
 	// postalResponse defines the data sent back from the Postal API.
 	// Status can either be "success" or "error" and data is
 	// dynamic dependent on if an error occurred during processing.
+	//
+	// Example JSON Responses:
+	// {"status":"success","time":0.08,"flags":{},"data":{"message_id":"080c21de-52f9-4be1-9cbe-19d63450949c@rp.postal.example.com","messages":{"info@ainsleyclark.com":{"id":28,"token":"WEjrFfpnynRm"}}}}
+	// {"status":"error","time":0.0,"flags":{},"data":{"code":"NoRecipients","message":"There are no recipients defined to receive this message"}}
 	postalResponse struct {
 		Status string                 `json:"status"`
 		Time   float32                `json:"time"`

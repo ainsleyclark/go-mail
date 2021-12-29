@@ -89,6 +89,10 @@ type (
 	}
 	// postmarkResponse defines the data sent back from the Postmark API.
 	// An error code of 0 represents a successful transmission.
+	//
+	// Example JSON Responses:
+	// {"To":"info@ainsleyclark.com","SubmittedAt":"2021-12-29T15:58:17.8637679Z","MessageID":"947125ed-9e43-4dce-b66c-def49198b3d3","ErrorCode":0,"Message":"OK"}
+	// {"ErrorCode":300,"Message":"Zero recipients specified"}
 	postmarkResponse struct {
 		To          string    `json:"To"`
 		SubmittedAt time.Time `json:"SubmittedAt"`
