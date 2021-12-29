@@ -134,6 +134,39 @@ tx := &mail.Transmission{
 }
 ```
 
+## Examples
+
+#### Mailgun
+
+```go
+cfg := mail.Config{
+	URL:         "my-url",
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+	Domain:      "my-domain",
+}
+
+mailer, err := drivers.NewMailgun(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "plain text",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
 ## Todo
 
 - Remove external dependencies.
