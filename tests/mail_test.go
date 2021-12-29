@@ -40,9 +40,10 @@ func LoadEnv(t *testing.T) {
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 
-	err = godotenv.Load(filepath.Join(filepath.Dir(wd), "/.env"))
+	path := filepath.Join(filepath.Dir(wd), "/.env")
+	err = godotenv.Load()
 	if err != nil {
-		t.Fatal("Error loading .env file")
+		fmt.Printf("Error loading .env file with path: %s, using system defaults.\n", path)
 	}
 }
 
@@ -57,6 +58,7 @@ func GetTransmission(t *testing.T) *mail.Transmission {
 	path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
+
 		t.Fatal("Error getting attachment with the path: "+path, err)
 	}
 
