@@ -14,7 +14,7 @@
 package httputil
 
 import (
-	"errors"
+	"github.com/ainsleyclark/go-mail/internal/errors"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"mime/multipart"
@@ -32,11 +32,11 @@ func TestNewJSONData(t *testing.T) {
 		},
 		"Marshal Error": {
 			map[string]interface{}{"test": make(chan struct{})},
-			"unsupported type",
+			"Error marshalling payload",
 		},
 		"Unmarshal Error": {
 			1,
-			"cannot unmarshal",
+			"Error unmarshalling payload",
 		},
 	}
 
@@ -44,7 +44,7 @@ func TestNewJSONData(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			pl, err := NewJSONData(test.input)
 			if err != nil {
-				assert.Contains(t, err.Error(), test.want)
+				assert.Contains(t, errors.Message(err), test.want)
 				return
 			}
 			assert.Equal(t, test.want, pl.values)

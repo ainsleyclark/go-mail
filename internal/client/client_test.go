@@ -16,7 +16,7 @@ package client
 import (
 	"bytes"
 	"context"
-	"errors"
+	"github.com/ainsleyclark/go-mail/internal/errors"
 	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
 	mocks "github.com/ainsleyclark/go-mail/mocks/httputil"
@@ -69,18 +69,18 @@ func TestClient_Do(t *testing.T) {
 		},
 		"Bad Request": {
 			input: &httputil.Request{URL: "@#@#$$%$"},
-			want:  "invalid URL escape",
+			want:  "Error creating http request",
 		},
 		"Do Error": {
 			input: &httputil.Request{URL: "wrong"},
-			want:  "unsupported protocol scheme",
+			want:  "Error doing request",
 		},
 		"Body Read Error": {
 			handler: successHandler,
 			bodyReader: func(r io.Reader) ([]byte, error) {
 				return nil, errors.New("body read error")
 			},
-			want: "body read error",
+			want: "Error reading response body",
 		},
 		"Unmarshal Error": {
 			handler: successHandler,
@@ -89,7 +89,7 @@ func TestClient_Do(t *testing.T) {
 					Return(errors.New("unmarshal error"))
 			},
 			bodyReader: io.ReadAll,
-			want:       "unmarshal error",
+			want:       "Error unmarshalling response error",
 		},
 		"Responder Error": {
 			handler: successHandler,
@@ -100,7 +100,7 @@ func TestClient_Do(t *testing.T) {
 					Return(errors.New("response error"))
 			},
 			bodyReader: io.ReadAll,
-			want:       "response error",
+			want:       "Error performing mail request",
 		},
 	}
 
@@ -129,7 +129,7 @@ func TestClient_Do(t *testing.T) {
 
 			got, err := c.Do(context.Background(), test.input, nil, responder)
 			if err != nil {
-				assert.Contains(t, err.Error(), test.want)
+				assert.Contains(t, errors.Message(err), test.want)
 				return
 			}
 
@@ -162,9 +162,12 @@ func TestClient_MakeRequest(t *testing.T) {
 				Headers:           map[string]string{"header": "Value"},
 			},
 			func(m *mocks.Payload) {
-				m.On("Buffer").Return(&bytes.Buffer{}, nil)
-				m.On("ContentType").Return(httputil.JSONContentType)
-				m.On("Values").Return(map[string]string{"key": "value"})
+				m.On("Buffer").
+					Return(&bytes.Buffer{}, nil)
+				m.On("ContentType").
+					Return(httputil.JSONContentType)
+				m.On("Values").
+					Return(map[string]string{"key": "value"})
 			},
 			&http.Request{
 				Method: http.MethodPost,
@@ -179,7 +182,8 @@ func TestClient_MakeRequest(t *testing.T) {
 		"Buffer Error": {
 			&httputil.Request{},
 			func(m *mocks.Payload) {
-				m.On("Buffer").Return(nil, errors.New("buffer error"))
+				m.On("Buffer").
+					Return(nil, &errors.Error{Message: "buffer error"})
 			},
 			"buffer error",
 		},
@@ -191,7 +195,7 @@ func TestClient_MakeRequest(t *testing.T) {
 				m.On("Buffer").
 					Return(&bytes.Buffer{}, nil)
 			},
-			"invalid URL escape",
+			"Error creating http request",
 		},
 	}
 
@@ -209,7 +213,7 @@ func TestClient_MakeRequest(t *testing.T) {
 
 			request, err := c.makeRequest(context.Background(), test.request, mock)
 			if err != nil {
-				assert.Contains(t, err.Error(), test.want)
+				assert.Contains(t, errors.Message(err), test.want)
 				return
 			}
 

@@ -15,12 +15,15 @@ package httputil
 
 import "net/http"
 
+// Responder defines the methods used for a response back
+// from a mailer's API.
 type Responder interface {
 	Unmarshal(buf []byte) error
 	CheckError(response *http.Response, buf []byte) error
 	Meta() Meta
 }
 
+// Meta defines the data used for creating a mail.Response.
 type Meta struct {
 	Message string
 	ID      string

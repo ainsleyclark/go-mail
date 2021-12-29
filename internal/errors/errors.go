@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/mail"
 )
 
 // Application error codes.
@@ -27,8 +28,8 @@ const (
 	INTERNAL = "internal" // Internal error
 	// INVALID - Validation failed
 	INVALID = "invalid" // Validation failed
-	// NOTFOUND - Entity does not exist
-	NOTFOUND = "not_found"
+	// API - Error in the http request.
+	API = "api"
 	// Prefix is the string prefixed to an error message.
 	Prefix = "go-mail"
 	// GlobalError is a general message when no error message
@@ -53,7 +54,7 @@ func (e *Error) Error() string {
 	fmt.Fprintf(&buf, "%s: ", Prefix)
 
 	// Print the current operation in our stack, if any.
-	if e.Operation != "" {
+	if e.Operation != "" && mail.Debug {
 		fmt.Fprintf(&buf, "%s: ", e.Operation)
 	}
 

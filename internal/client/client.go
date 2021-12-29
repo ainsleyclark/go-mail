@@ -16,6 +16,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/errors"
 	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
 	"io"
@@ -63,6 +64,8 @@ type Client struct {
 // Returns an error if data could not be marshalled/unmarshalled
 // or if the request could not be processed.
 func (c *Client) Do(ctx context.Context, r *httputil.Request, payload httputil.Payload, responder httputil.Responder) (mail.Response, error) {
+	const op = "Client.Do"
+
 	req, err := c.makeRequest(ctx, r, payload)
 	if err != nil {
 		return mail.Response{}, err
@@ -70,7 +73,7 @@ func (c *Client) Do(ctx context.Context, r *httputil.Request, payload httputil.P
 
 	resp, err := c.Client.Do(req)
 	if err != nil {
-		return mail.Response{}, err
+		return mail.Response{}, &errors.Error{Code: errors.API, Message: "Error doing request", Operation: op, Err: err}
 	}
 	defer resp.Body.Close()
 
@@ -80,18 +83,18 @@ func (c *Client) Do(ctx context.Context, r *httputil.Request, payload httputil.P
 
 	buf, err := c.bodyReader(resp.Body)
 	if err != nil {
-		return response, err
+		return response, &errors.Error{Code: errors.INTERNAL, Message: "Error reading response body", Operation: op, Err: err}
 	}
 	response.Body = buf
 
 	err = responder.Unmarshal(buf)
 	if err != nil {
-		return response, err
+		return response, &errors.Error{Code: errors.INVALID, Message: "Error unmarshalling response error", Operation: op, Err: err}
 	}
 
 	err = responder.CheckError(resp, buf)
 	if err != nil {
-		return response, err
+		return response, &errors.Error{Code: errors.API, Message: "Error performing mail request", Operation: op, Err: err}
 	}
 
 	meta := responder.Meta()
@@ -108,6 +111,8 @@ func (c *Client) Do(ctx context.Context, r *httputil.Request, payload httputil.P
 // Content-Type, BasicAuth and headers are attached to the request.
 // Returns an error if the request could not be created.
 func (c *Client) makeRequest(ctx context.Context, r *httputil.Request, payload httputil.Payload) (*http.Request, error) {
+	const op = "Client.MakeRequest"
+
 	var body io.Reader
 	if payload != nil {
 		b, err := payload.Buffer()
@@ -119,7 +124,7 @@ func (c *Client) makeRequest(ctx context.Context, r *httputil.Request, payload h
 
 	req, err := http.NewRequest(r.Method, r.URL, body)
 	if err != nil {
-		return nil, err
+		return nil, &errors.Error{Code: errors.INVALID, Message: "Error creating http request", Operation: op, Err: err}
 	}
 
 	if mail.Debug {

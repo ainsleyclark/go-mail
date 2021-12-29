@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/errors"
 	"io"
 	"mime/multipart"
 )
@@ -51,15 +52,17 @@ type JSONData struct {
 // It adds a struct type to the JSON Data payload.
 // Returns an error if the struct could not be marshalled or unmarshalled.
 func NewJSONData(obj interface{}) (*JSONData, error) {
+	const op = "HTTPUtil.NewJSONData"
+
 	buf, err := json.Marshal(obj)
 	if err != nil {
-		return nil, err
+		return nil, &errors.Error{Code: errors.INTERNAL, Message: "Error marshalling payload", Operation: op, Err: err}
 	}
 
 	m := make(map[string]interface{})
 	err = json.Unmarshal(buf, &m)
 	if err != nil {
-		return nil, err
+		return nil, &errors.Error{Code: errors.INTERNAL, Message: "Error unmarshalling payload", Operation: op, Err: err}
 	}
 
 	return &JSONData{
@@ -70,9 +73,10 @@ func NewJSONData(obj interface{}) (*JSONData, error) {
 
 // Buffer returns the byte buffer for making the request.
 func (j *JSONData) Buffer() (*bytes.Buffer, error) {
+	const op = "JSONData.Buffer"
 	buf, err := json.Marshal(j.values)
 	if err != nil {
-		return nil, err
+		return nil, &errors.Error{Code: errors.INTERNAL, Message: "Error marshalling values", Operation: op, Err: err}
 	}
 	return bytes.NewBuffer(buf), nil
 }
@@ -132,6 +136,8 @@ var newWriter = multipart.NewWriter
 
 // Buffer returns the byte buffer for making the request.
 func (f *FormData) Buffer() (*bytes.Buffer, error) {
+	const op = "FormData.Buffer"
+
 	data := &bytes.Buffer{}
 	writer := newWriter(data)
 	defer writer.Close()
@@ -140,7 +146,7 @@ func (f *FormData) Buffer() (*bytes.Buffer, error) {
 		if tmp, err := writer.CreateFormField(key); err == nil {
 			tmp.Write([]byte(val)) // nolint
 		} else {
-			return nil, err
+			return nil, &errors.Error{Code: errors.INTERNAL, Message: "Error creating form field", Operation: op, Err: err}
 		}
 	}
 
@@ -149,7 +155,7 @@ func (f *FormData) Buffer() (*bytes.Buffer, error) {
 			r := bytes.NewReader(buff.value)
 			io.Copy(tmp, r) // nolint
 		} else {
-			return nil, err
+			return nil, &errors.Error{Code: errors.INTERNAL, Message: "Error creating form file", Operation: op, Err: err}
 		}
 	}
 

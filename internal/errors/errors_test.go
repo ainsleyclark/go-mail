@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -9,25 +10,36 @@ import (
 func TestError_Error(t *testing.T) {
 	tt := map[string]struct {
 		input *Error
+		debug bool
 		want  string
 	}{
 		"Normal": {
 			&Error{Code: INTERNAL, Message: "test", Operation: "op", Err: fmt.Errorf("err")},
+			false,
+			fmt.Sprintf("%s: err", Prefix),
+		},
+		"Debug": {
+			&Error{Code: INTERNAL, Message: "test", Operation: "op", Err: fmt.Errorf("err")},
+			true,
 			fmt.Sprintf("%s: op: err", Prefix),
 		},
 		"Nil Operation": {
 			&Error{Code: INTERNAL, Message: "test", Operation: "", Err: fmt.Errorf("err")},
+			false,
 			fmt.Sprintf("%s: err", Prefix),
 		},
 		"Nil Err": {
 			&Error{Code: INTERNAL, Message: "test", Operation: "", Err: nil},
+			false,
 			fmt.Sprintf("%s: <internal> test", Prefix),
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, test.input.Error(), test.want)
+			defer func() { mail.Debug = false }()
+			mail.Debug = test.debug
+			assert.Equal(t, test.want, test.input.Error())
 		})
 	}
 }
