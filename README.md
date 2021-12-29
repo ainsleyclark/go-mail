@@ -33,7 +33,7 @@ if err != nil {
 tx := &mail.Transmission{
     Recipients:  []string{"hello@gophers.com"},
     Subject:     "My email",
-    HTML:        "<h1>Hello from go mail!</h1>",
+    HTML:        "<h1>Hello from Go Mail!</h1>",
 }
 
 result, err := mailer.Send(tx)
@@ -97,7 +97,7 @@ indicating if the transmission was successful.
 tx := &mail.Transmission{
     Recipients: []string{"hello@gophers.com"},
     Subject:    "My email",
-    HTML:       "<h1>Hello from go mail!</h1>",
+    HTML:       "<h1>Hello from Go Mail!</h1>",
     PlainText:  "plain text",
 }
 
@@ -123,7 +123,7 @@ if err != nil {
 tx := &mail.Transmission{
     Recipients: []string{"hello@gophers.com"},
     Subject:    "My email",
-    HTML:       "<h1>Hello from go mail!</h1>",
+    HTML:       "<h1>Hello from Go Mail!</h1>",
     PlainText:  "plain text",
     Attachments: mail.Attachments{
         mail.Attachment{
@@ -144,4 +144,4 @@ We welcome contributors, but please read the [contributing document](CONTRIBUTIN
 
 ## Licence
 
-Code Copyright 2021 go mail. Code released under the [MIT Licence](LICENCE).
+Code Copyright 2021 Go Mail. Code released under the [MIT Licence](LICENCE).

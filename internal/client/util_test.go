@@ -11,13 +11,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package httputil
+package client
 
-// Is2XX returns true if the provided HTTP response code is
-// in the range 200-299.
-func Is2XX(code int) bool {
-	if code < 300 && code >= 200 {
-		return true
+import (
+	"github.com/stretchr/testify/assert"
+	"net/http"
+	"testing"
+)
+
+func TestIs2XX(t *testing.T) {
+	tt := map[string]struct {
+		input int
+		want  bool
+	}{
+		"< 200": {
+			http.StatusContinue,
+			false,
+		},
+		"200": {
+			http.StatusOK,
+			true,
+		},
+		"300 >": {
+			http.StatusMultipleChoices,
+			false,
+		},
 	}
-	return false
+
+	for name, test := range tt {
+		t.Run(name, func(t *testing.T) {
+			got := Is2XX(test.input)
+			assert.Equal(t, test.want, got)
+		})
+	}
 }

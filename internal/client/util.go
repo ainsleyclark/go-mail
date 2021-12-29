@@ -11,16 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package client
 
-// Response represents the data passed back from a
-// successful transmission. Where possible, a
-// status code, body, headers will be
-// returned within the response.
-type Response struct {
-	StatusCode int                 // e.g. 200
-	Body       []byte              // e.g. {"result: success"}
-	Headers    map[string][]string // e.g. map[X-Ratelimit-Limit:[600]]
-	ID         string              // e.g "100"
-	Message    interface{}         // e.g "Email sent successfully"
+// Is2XX returns true if the provided HTTP response code is
+// in the range 200-299.
+func Is2XX(code int) bool {
+	if code < 300 && code >= 200 {
+		return true
+	}
+	return false
 }

@@ -13,35 +13,16 @@
 
 package httputil
 
-import (
-	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
-)
+import "net/http"
 
-func TestIs2XX(t *testing.T) {
-	tt := map[string]struct {
-		input int
-		want  bool
-	}{
-		"< 200": {
-			http.StatusContinue,
-			false,
-		},
-		"200": {
-			http.StatusOK,
-			true,
-		},
-		"300 >": {
-			http.StatusMultipleChoices,
-			false,
-		},
-	}
+type Responder interface {
+	Unmarshal(buf []byte) error
+	HasError(response *http.Response) bool
+	Error() error
+	Meta() Meta
+}
 
-	for name, test := range tt {
-		t.Run(name, func(t *testing.T) {
-			got := Is2XX(test.input)
-			assert.Equal(t, test.want, got)
-		})
-	}
+type Meta struct {
+	Message string
+	ID      string
 }

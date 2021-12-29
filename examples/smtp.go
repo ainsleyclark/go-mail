@@ -38,7 +38,7 @@ func SMTP() {
 	tx := &mail.Transmission{
 		Recipients: []string{"hello@gophers.com"},
 		Subject:    "My email",
-		HTML:       "<h1>Hello from go mail!</h1>",
+		HTML:       "<h1>Hello from Go Mail!</h1>",
 		PlainText:  "plain text",
 	}
 

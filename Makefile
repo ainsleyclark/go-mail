@@ -30,7 +30,7 @@ cover: test
 
 # Make mocks keeping directory tree
 mocks:
-	rm -rf mocks && mockery --all
+	rm -rf mocks && mockery --all --keeptree && mv mocks/internal/* mocks/ && rm -rf mocks/internal
 .PHONY: mocks
 
 # Make format, lint and test

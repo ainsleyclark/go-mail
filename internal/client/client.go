@@ -14,33 +14,32 @@
 package client
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
+	"github.com/ainsleyclark/go-mail/mail"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 )
 
-// Requester defines the method used to send data to a mail
-// driver API endpoint.
 type Requester interface {
-	// Do accepts a message, URL endpoint and optional headers to POST data
+	// Do accepts a message, url endpoint and optional Headers to POST data
 	// to a drivers API.
 	// Returns an error if data could not be marshalled/unmarshalled
 	// or if the request could not be processed.
-	Do(message interface{}, url string, headers http.Header) ([]byte, *http.Response, error)
+	Do(ctx context.Context, r *httputil.Request, payload httputil.Payload, responder httputil.Responder) (mail.Response, error)
 }
 
-// Client defines a http.Client to interact with the mail
-// drivers API's. It acts as a reusable helper to send
-// data to the endpoints.
-type Client struct {
-	http       *http.Client
-	baseURL    string
-	marshaller func(v interface{}) ([]byte, error)
-	bodyReader func(r io.Reader) ([]byte, error)
+// NewClient creates a new Client with a stdlib http.Client.
+func NewClient() *Client {
+	return &Client{
+		Client: &http.Client{
+			Timeout: Timeout,
+		},
+		bodyReader: io.ReadAll,
+	}
 }
 
 const (
@@ -49,62 +48,109 @@ const (
 	Timeout = time.Second * 10
 )
 
-// New creates a new Client accepting a baseURL for
-// request endpoints.
-func New(baseURL string) *Client {
-	return &Client{
-		http: &http.Client{
-			Timeout: Timeout,
-		},
-		baseURL:    strings.TrimSuffix(baseURL, "/"),
-		marshaller: json.Marshal,
-		bodyReader: io.ReadAll,
-	}
+// Client defines a http.Client to interact with the mail
+// drivers API's. It acts as a reusable helper to send
+// data to the drivers endpoints.
+type Client struct {
+	Client     *http.Client
+	bodyReader func(r io.Reader) ([]byte, error)
 }
 
-func (c *Client) Do(message interface{}, url string, headers http.Header) ([]byte, *http.Response, error) {
-	data, err := c.marshaller(message)
+// Do accepts a message, Request and a Payload to POST data
+// to a drivers API.
+// Logs Curl output if mail.debug is set to true.
+//
+// Returns an error if data could not be marshalled/unmarshalled
+// or if the request could not be processed.
+func (c *Client) Do(ctx context.Context, r *httputil.Request, payload httputil.Payload, responder httputil.Responder) (mail.Response, error) {
+	req, err := c.makeRequest(ctx, r, payload)
 	if err != nil {
-		return nil, nil, err
+		return mail.Response{}, err
 	}
 
-	// Setup request with URL, ensures URL's are
-	// trimmed.
-	url = fmt.Sprintf("%s/%s", c.baseURL, strings.TrimPrefix(url, "/"))
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
+	resp, err := c.Client.Do(req)
 	if err != nil {
-		return nil, nil, err
-	}
-
-	if len(headers) == 0 {
-		headers = http.Header{}
-	}
-
-	req.Header = headers
-	req.Header.Set("User-Agent", "Go Mail v0.1")
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.http.Do(req)
-	if err != nil {
-		return nil, resp, err
+		return mail.Response{}, err
 	}
 	defer resp.Body.Close()
 
-	// Read the response body into a buffer for processing using
-	// the bodyReader function.
 	buf, err := c.bodyReader(resp.Body)
 	if err != nil {
-		return nil, resp, err
+		return mail.Response{}, err
 	}
 
-	return buf, resp, nil
+	err = responder.Unmarshal(buf)
+	if err != nil {
+		return mail.Response{}, err
+	}
+
+	if responder.HasError(resp) {
+		return mail.Response{}, responder.Error()
+	}
+
+	meta := responder.Meta()
+
+	return mail.Response{
+		StatusCode: resp.StatusCode,
+		Body:       buf,
+		Headers:    resp.Header,
+		ID:         meta.ID,
+		Message:    meta.Message,
+	}, nil
 }
 
-// Is2XX returns true if the provided HTTP response code is
-// in the range 200-299.
-func Is2XX(code int) bool {
-	if code < 300 && code >= 200 {
-		return true
+// makeRequest creates a stdlib http.Request.
+// Content-Type, BasicAuth and headers are attached to the request.
+// Returns an error if the request could not be created.
+func (c *Client) makeRequest(ctx context.Context, r *httputil.Request, payload httputil.Payload) (*http.Request, error) {
+	var body io.Reader = nil
+	if payload != nil {
+		b, err := payload.Buffer()
+		if err != nil {
+			return nil, err
+		}
+		body = b
 	}
-	return false
+
+	req, err := http.NewRequest(r.Method, r.Url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	if mail.Debug {
+		fmt.Println(c.curlString(req, payload))
+	}
+
+	req = req.WithContext(ctx)
+
+	if payload != nil && payload.ContentType() != "" {
+		req.Header.Add("Content-Type", payload.ContentType())
+	}
+
+	if r.BasicAuthUser != "" && r.BasicAuthPassword != "" {
+		req.SetBasicAuth(r.BasicAuthUser, r.BasicAuthPassword)
+	}
+
+	for header, value := range r.Headers {
+		req.Header.Add(header, value)
+	}
+
+	return req, nil
+}
+
+// curlString constructs a string used for posting the
+// request via Curl.
+func (c *Client) curlString(req *http.Request, p httputil.Payload) string {
+	parts := []string{"curl", "-i", "-X", req.Method, req.URL.String()}
+	for key, value := range req.Header {
+		parts = append(parts, fmt.Sprintf("-H \"%s: %s\"", key, value[0]))
+	}
+
+	if p != nil {
+		for key, value := range p.Values() {
+			parts = append(parts, fmt.Sprintf(" -F %s='%s'", key, value))
+		}
+	}
+
+	return strings.Join(parts, " ")
 }

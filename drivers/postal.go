@@ -17,7 +17,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/internal/client"
+	"github.com/ainsleyclark/go-mail/internal/clientold"
 	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
 )
@@ -29,7 +29,7 @@ import (
 // See: https://apiv1.postalserver.io/controllers/send/message.html
 type postal struct {
 	cfg    mail.Config
-	client client.Requester
+	client clientold.Requester
 }
 
 const (
@@ -49,7 +49,7 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postal{
 		cfg:    cfg,
-		client: client.New(cfg.URL),
+		client: clientold.New(cfg.URL),
 	}, nil
 }
 
@@ -107,7 +107,7 @@ func (p *postalResponse) Error() error {
 func (p *postalResponse) ToResponse(resp *http.Response, buf []byte) mail.Response {
 	response := mail.Response{
 		StatusCode: resp.StatusCode,
-		Body:       string(buf),
+		Body:       buf,
 		Headers:    resp.Header,
 		Message:    "Successfully sent Postal email",
 	}
@@ -117,7 +117,7 @@ func (p *postalResponse) ToResponse(resp *http.Response, buf []byte) mail.Respon
 	return response
 }
 
-// Send posts the go mail Transmission to the Postal
+// Send posts the Go Mail Transmission to the Postal
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error
 // upon failure.

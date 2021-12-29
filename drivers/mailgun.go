@@ -15,8 +15,10 @@ package drivers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/client"
 	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
@@ -29,7 +31,7 @@ import (
 // data.
 type mailGun struct {
 	cfg    mail.Config
-	client httputil.Requester
+	client client.Requester
 }
 
 const (
@@ -49,10 +51,53 @@ func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &mailGun{
 		cfg:    cfg,
-		client: httputil.NewClient(),
+		client: client.NewClient(),
 	}, nil
 }
 
+type (
+	// mailGunResponse defines the data sent back from the MailGun API.
+	// ID is included on successful transmission.
+	//
+	// Example JSON Response:
+	// {"message":"Need at least one of 'text' or 'html' parameters specified"}
+	// {"message":"from parameter is missing"}
+	// {"id":"<20211229082318.a988bed7abe472bd@sandboxa6807a568a404524b2b216817d7ed775.mailgun.org>","message":"Queued. Thank you."}
+	mailgunResponse struct {
+		Message string `json:"message"`
+		ID      string `json:"id,omitempty"`
+	}
+)
+
+func (m *mailgunResponse) HasError(response *http.Response) bool {
+	return !client.Is2XX(response.StatusCode)
+}
+
+func (m *mailgunResponse) Error() error {
+	return errors.New(m.Message)
+}
+
+func (m *mailgunResponse) Unmarshal(buf []byte) error {
+	resp := &mailgunResponse{}
+	err := json.Unmarshal(buf, resp)
+	if err != nil {
+		return err
+	}
+	*m = *resp
+	return nil
+}
+
+func (m *mailgunResponse) Meta() httputil.Meta {
+	return httputil.Meta{
+		Message: m.Message,
+		ID:      m.ID,
+	}
+}
+
+// Send posts the Go Mail Transmission to the MailGun
+// API. Transmissions are validated before sending
+// and attachments are added. Returns an error
+// upon failure.
 func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
@@ -91,13 +136,5 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 	req := httputil.NewHTTPRequest(http.MethodPost, url)
 	req.SetBasicAuth("api", m.cfg.APIKey)
 
-	buf, resp, err := m.client.Do(context.Background(), req, f)
-	if err != nil {
-		return mail.Response{}, err
-	}
-
-	fmt.Println("here", string(buf))
-	fmt.Printf("%+v\n", resp)
-
-	return mail.Response{}, nil
+	return m.client.Do(context.Background(), req, f, &mailgunResponse{})
 }

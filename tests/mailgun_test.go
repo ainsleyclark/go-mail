@@ -14,6 +14,7 @@
 package mail
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail/drivers"
 	"github.com/ainsleyclark/go-mail/mail"
 	"os"
@@ -38,6 +39,7 @@ func (t *MailTestSuite) Test_MailGun() {
 		t.FailNow("Error sending MailGun email: " + err.Error())
 	}
 
+	fmt.Printf("%+v\n", result)
 	t.Equal(200, result.StatusCode)
 	t.NotNil(result.Body)
 	t.NotEmpty(result.Message)

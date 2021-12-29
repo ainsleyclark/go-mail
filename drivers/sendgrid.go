@@ -49,7 +49,7 @@ func NewSendGrid(cfg mail.Config) (mail.Mailer, error) {
 	}, nil
 }
 
-// Send posts the go mail mail.Transmission to the SendGrid
+// Send posts the Go Mail mail.Transmission to the SendGrid
 // API. mail.Transmissions are validated before sending
 // and attachments are added. Returns an error
 // upon failure.
@@ -125,7 +125,7 @@ func (m *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
 
 	return mail.Response{
 		StatusCode: response.StatusCode,
-		Body:       response.Body,
+		Body:       []byte(response.Body),
 		Headers:    response.Headers,
 		ID:         "",
 		Message:    "",

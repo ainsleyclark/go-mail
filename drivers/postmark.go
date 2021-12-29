@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/client"
 	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
@@ -30,7 +31,7 @@ import (
 // See: https://postmarkapp.com/developer/api/email-api
 type postmark struct {
 	cfg    mail.Config
-	client httputil.Requester
+	client client.Requester
 }
 
 const (
@@ -50,7 +51,7 @@ func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postmark{
 		cfg:    cfg,
-		client: httputil.NewClient(),
+		client: client.NewClient(),
 	}, nil
 }
 
@@ -91,16 +92,31 @@ type (
 	postmarkResponse struct {
 		To          string    `json:"To"`
 		SubmittedAt time.Time `json:"SubmittedAt"`
-		MessageID   string    `json:"MessageID"`
+		ID          string    `json:"MessageID"`
 		ErrorCode   int       `json:"ErrorCode"`
 		Message     string    `json:"Message"`
 	}
 )
 
-// HasError determines if the Postal call was successful
-// by comparing the status.
-func (p *postmarkResponse) HasError() bool {
+func (p *postmarkResponse) Unmarshal(buf []byte) error {
+	resp := &postmarkResponse{}
+	err := json.Unmarshal(buf, resp)
+	if err != nil {
+		return err
+	}
+	*p = *resp
+	return nil
+}
+
+func (p *postmarkResponse) HasError(response *http.Response) bool {
 	return p.ErrorCode != 0
+}
+
+func (p *postmarkResponse) Meta() httputil.Meta {
+	return httputil.Meta{
+		Message: p.Message,
+		ID:      p.ID,
+	}
 }
 
 // Error returns a formatted response error.
@@ -108,7 +124,7 @@ func (p *postmarkResponse) Error() error {
 	return fmt.Errorf("%s - code: %d, message: %s", postmarkErrorMessage, p.ErrorCode, p.Message)
 }
 
-// Send posts the go mail Transmission to the Postal
+// Send posts the Go Mail Transmission to the Postal
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error
 // upon failure.
@@ -148,27 +164,5 @@ func (d *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 	req := httputil.NewHTTPRequest(http.MethodPost, postmarkEndpoint)
 	req.AddHeader("X-Postmark-Server-Token", d.cfg.APIKey)
 
-	buf, resp, err := d.client.Do(context.Background(), req, pl)
-	if err != nil {
-		return mail.Response{}, err
-	}
-
-	// Unmarshal the buffer into a postmarkResponse.
-	response := postmarkResponse{}
-	err = json.Unmarshal(buf, &response)
-	if err != nil {
-		return mail.Response{}, err
-	}
-
-	if response.HasError() {
-		return mail.Response{}, response.Error()
-	}
-
-	return mail.Response{
-		StatusCode: resp.StatusCode,
-		Body:       string(buf),
-		Headers:    resp.Header,
-		ID:         response.MessageID,
-		Message:    response.Message,
-	}, nil
+	return d.client.Do(context.Background(), req, pl, &postmarkResponse{})
 }

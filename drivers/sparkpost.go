@@ -16,7 +16,7 @@ package drivers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/internal/client"
+	"github.com/ainsleyclark/go-mail/internal/clientold"
 	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
 	"strings"
@@ -29,7 +29,7 @@ import (
 // data.
 type sparkPost struct {
 	cfg    mail.Config
-	client client.Requester
+	client clientold.Requester
 }
 
 const (
@@ -50,7 +50,7 @@ func NewSparkPost(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &sparkPost{
 		cfg:    cfg,
-		client: client.New(cfg.URL),
+		client: clientold.New(cfg.URL),
 	}, nil
 }
 
@@ -165,7 +165,7 @@ func (p *spResponse) Error() error {
 func (p *spResponse) ToResponse(resp *http.Response, buf []byte) mail.Response {
 	response := mail.Response{
 		StatusCode: resp.StatusCode,
-		Body:       string(buf),
+		Body:       buf,
 		Headers:    resp.Header,
 		Message:    "Successfully sent Sparkpost email",
 	}
@@ -175,7 +175,7 @@ func (p *spResponse) ToResponse(resp *http.Response, buf []byte) mail.Response {
 	return response
 }
 
-// Send posts the go mail Transmission to the SparkPost
+// Send posts the Go Mail Transmission to the SparkPost
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error
 // upon failure.

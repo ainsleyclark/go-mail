@@ -26,7 +26,7 @@ import (
 // See: https://mailchimp.com/developer/transactional/api/messages/send-new-message/
 type mailchimp struct {
 	cfg    mail.Config
-	client client.Requester
+	client clientold.Requester
 }
 
 // NewMailChimp creates a new Postal client. Configuration
@@ -38,7 +38,7 @@ func NewMailChimp(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &mailchimp{
 		cfg:    cfg,
-		client: client.New("https://mandrillapp.com/api/1.0"),
+		client: clientold.New("https://mandrillapp.com/api/1.0"),
 	}, nil
 }
 
@@ -114,7 +114,7 @@ type (
 	}
 )
 
-// Send posts the go mail Transmission to the MailChimp
+// Send posts the Go Mail Transmission to the MailChimp
 // API. Transmissions are validated before sending
 // and attachments are added. Returns an error
 // upon failure.
