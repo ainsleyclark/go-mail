@@ -2,7 +2,7 @@ name: Email
 
 on:
   push:
-    branches: [ main, deps ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
   schedule:
@@ -59,7 +59,6 @@ jobs:
           SPARKPOST_FROM_ADDRESS: ${{ secrets.SPARKPOST_FROM_ADDRESS }}
           SPARKPOST_FROM_NAME: ${{ secrets.SPARKPOST_FROM_NAME }}
         run: |
-          which bash
           # Make file runnable, might not be necessary
           chmod +x "${GITHUB_WORKSPACE}/bin/tests.sh"
           # Run tests
