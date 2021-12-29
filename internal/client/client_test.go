@@ -68,11 +68,11 @@ func TestClient_Do(t *testing.T) {
 			},
 		},
 		"Bad Request": {
-			input: &httputil.Request{Url: "@#@#$$%$"},
+			input: &httputil.Request{URL: "@#@#$$%$"},
 			want:  "invalid URL escape",
 		},
 		"Do Error": {
-			input: &httputil.Request{Url: "wrong"},
+			input: &httputil.Request{URL: "wrong"},
 			want:  "unsupported protocol scheme",
 		},
 		"Body Read Error": {
@@ -113,8 +113,8 @@ func TestClient_Do(t *testing.T) {
 				test.input = &httputil.Request{}
 			}
 
-			if test.input.Url == "" {
-				test.input.Url = server.URL
+			if test.input.URL == "" {
+				test.input.URL = server.URL
 			}
 
 			responder := &mocks.Responder{}
@@ -156,7 +156,7 @@ func TestClient_MakeRequest(t *testing.T) {
 		"Success": {
 			&httputil.Request{
 				Method:            http.MethodPost,
-				Url:               "https://gomail.example.com",
+				URL:               "https://gomail.example.com",
 				BasicAuthUser:     "user",
 				BasicAuthPassword: "password",
 				Headers:           map[string]string{"header": "Value"},
@@ -185,7 +185,7 @@ func TestClient_MakeRequest(t *testing.T) {
 		},
 		"Request Error": {
 			&httputil.Request{
-				Url: "@#@#$$%$",
+				URL: "@#@#$$%$",
 			},
 			func(m *mocks.Payload) {
 				m.On("Buffer").

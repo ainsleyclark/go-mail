@@ -22,7 +22,7 @@ import (
 func TestNewHTTPRequest(t *testing.T) {
 	req := NewHTTPRequest(http.MethodGet, "https://gomail.example.com")
 	assert.Equal(t, http.MethodGet, req.Method)
-	assert.Equal(t, "https://gomail.example.com", req.Url)
+	assert.Equal(t, "https://gomail.example.com", req.URL)
 }
 
 func TestRequest_AddHeader(t *testing.T) {

@@ -18,7 +18,7 @@ package httputil
 // std http.Request for Go Mail.
 type Request struct {
 	Method            string
-	Url               string
+	URL               string
 	Headers           map[string]string
 	BasicAuthUser     string
 	BasicAuthPassword string
@@ -28,7 +28,7 @@ type Request struct {
 func NewHTTPRequest(method, url string) *Request {
 	return &Request{
 		Method: method,
-		Url:    url,
+		URL:    url,
 	}
 }
 

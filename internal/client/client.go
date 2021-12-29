@@ -108,7 +108,7 @@ func (c *Client) Do(ctx context.Context, r *httputil.Request, payload httputil.P
 // Content-Type, BasicAuth and headers are attached to the request.
 // Returns an error if the request could not be created.
 func (c *Client) makeRequest(ctx context.Context, r *httputil.Request, payload httputil.Payload) (*http.Request, error) {
-	var body io.Reader = nil
+	var body io.Reader
 	if payload != nil {
 		b, err := payload.Buffer()
 		if err != nil {
@@ -117,7 +117,7 @@ func (c *Client) makeRequest(ctx context.Context, r *httputil.Request, payload h
 		body = b
 	}
 
-	req, err := http.NewRequest(r.Method, r.Url, body)
+	req, err := http.NewRequest(r.Method, r.URL, body)
 	if err != nil {
 		return nil, err
 	}

@@ -159,5 +159,5 @@ func (d *postal) Send(t *mail.Transmission) (mail.Response, error) {
 	req := httputil.NewHTTPRequest(http.MethodPost, fmt.Sprintf(postalEndpoint, d.cfg.URL))
 	req.AddHeader("X-Server-API-Key", d.cfg.APIKey)
 
-	return d.client.Do(context.Background(), req, pl, &postmarkResponse{})
+	return d.client.Do(context.Background(), req, pl, &postalResponse{})
 }

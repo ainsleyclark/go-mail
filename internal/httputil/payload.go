@@ -46,7 +46,7 @@ type jsonData struct {
 }
 
 // NewJSONData creates a new JSON Data Payload type.
-func NewJSONData() *jsonData {
+func NewJSONData() *jsonData { //nolint
 	return &jsonData{}
 }
 
@@ -108,7 +108,7 @@ type keyNameBuff struct {
 }
 
 // NewFormData creates a new Form Data Payload type.
-func NewFormData() *formData {
+func NewFormData() *formData { // nolint
 	return &formData{}
 }
 
@@ -139,7 +139,7 @@ func (f *formData) Buffer() (*bytes.Buffer, error) {
 
 	for key, val := range f.values {
 		if tmp, err := writer.CreateFormField(key); err == nil {
-			tmp.Write([]byte(val))
+			tmp.Write([]byte(val)) // nolint
 		} else {
 			return nil, err
 		}
@@ -148,7 +148,7 @@ func (f *formData) Buffer() (*bytes.Buffer, error) {
 	for _, buff := range f.buffers {
 		if tmp, err := writer.CreateFormFile(buff.key, buff.name); err == nil {
 			r := bytes.NewReader(buff.value)
-			io.Copy(tmp, r)
+			io.Copy(tmp, r) // nolint
 		} else {
 			return nil, err
 		}
@@ -162,7 +162,7 @@ func (f *formData) Buffer() (*bytes.Buffer, error) {
 // ContentType returns the `Content-Type` header.
 func (f *formData) ContentType() string {
 	if f.contentType == "" {
-		f.Buffer()
+		f.Buffer() // nolint
 	}
 	return f.contentType
 }
