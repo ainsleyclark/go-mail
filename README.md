@@ -27,6 +27,7 @@
 - [SendGrid (sendgrid)](https://sendgrid.com/)
 - [SparkPost (sparkpost)](https://www.sparkpost.com/))
 - SMTP
+- More to come
 
 ## Introduction
 
@@ -318,9 +319,8 @@ if err != nil {
 fmt.Printf("%+v\n", result)
 ```
 
-## Todo
+## Development
 
-- Remove external dependencies.
 
 ## Contributing
 
