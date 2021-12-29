@@ -14,12 +14,11 @@
 package drivers
 
 import (
-	"context"
 	"errors"
-	"github.com/ainsleyclark/go-mail/internal/client"
 	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/ainsleyclark/go-mail/mocks/client"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"net/http"
@@ -51,6 +50,7 @@ const (
 	DataPath = "testdata"
 )
 
+
 var (
 	// Trans is the transmission used for testing.
 	Trans = &mail.Transmission{
@@ -69,6 +69,15 @@ var (
 		HTML:        "<h1>HTML</h1>",
 		PlainText:   "PlainText",
 		Attachments: []mail.Attachment{{Filename: "test.jpg"}},
+	}
+	// Config is the default configuration used
+	// for testing.
+	Comfig =    mail.Config{
+		URL:         "my-url",
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+		Domain:      "my-domain",
 	}
 )
 
@@ -95,7 +104,7 @@ func (t *DriversTestSuite) UtilTestUnmarshal(r httputil.Responder, buf []byte) {
 	t.NoError(err)
 }
 
-func (t *DriversTestSuite) UtilTestCheckError(r httputil.Responder, errMsg string) {
+func (t *DriversTestSuite) UtilTestCheckError(r httputil.Responder, errMsg string, checkBody bool) {
 	tt := map[string]struct {
 		response *http.Response
 		buf      []byte
@@ -119,6 +128,9 @@ func (t *DriversTestSuite) UtilTestCheckError(r httputil.Responder, errMsg strin
 	}
 
 	for name, test := range tt {
+		if !checkBody && name == "Empty Body" {
+			continue
+		}
 		t.Run(name, func() {
 			err := r.CheckError(test.response, test.buf)
 			if err != nil {
@@ -130,45 +142,42 @@ func (t *DriversTestSuite) UtilTestCheckError(r httputil.Responder, errMsg strin
 	}
 }
 
-func (t *DriversTestSuite) UtilTestMeta(r httputil.Responder, message string, id *string) {
+func (t *DriversTestSuite) UtilTestMeta(r httputil.Responder, message, id string) {
 	got := r.Meta()
 	t.Equal(message, got.Message)
-	if id != nil {
-		t.Equal(*id, got.ID)
-	}
+	t.Equal(id, got.ID)
 }
 
-func (t *DriversTestSuite) UtilTestSend(r httputil.Responder) {
+func (t *DriversTestSuite) UtilTestSend(fn func(m *mocks.Requester) mail.Mailer) {
+	res := mail.Response{
+		StatusCode: http.StatusOK,
+		Body:       []byte("body"),
+		Headers:    nil,
+		ID:         "1",
+		Message:    "success",
+	}
+
 	tt := map[string]struct {
 		input *mail.Transmission
 		mock  func(m *mocks.Requester)
 		want  interface{}
-	}{ //"Success": {
-		//	Trans,
-		//	func(m *mocks.Requester) {
-		//
-		//	},
-		//	mail.Response{
-		//		StatusCode: 200,
-		//		Body:       "",
-		//		Headers:    nil,
-		//		ID:         "1",
-		//		Message:    "success",
-		//	},
-		//},
-		//"With Attachment": {
-		//	TransWithAttachment,
-		//	func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-		//		return "success", "1", nil
-		//	},
-		//	mail.Response{
-		//		StatusCode: 200,
-		//		Body:       "",
-		//		Headers:    nil,
-		//		ID:         "1",
-		//		Message:    "success",
-		//	},
-		//},
+	}{
+		"Success": {
+			Trans,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(res, nil)
+			},
+			res,
+		},
+		"With Attachment": {
+			TransWithAttachment,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(res, nil)
+			},
+			res,
+		},
 		"Validation Failed": {
 			nil,
 			nil,
@@ -177,9 +186,28 @@ func (t *DriversTestSuite) UtilTestSend(r httputil.Responder) {
 		"Send Error": {
 			Trans,
 			func(m *mocks.Requester) {
-
+				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(mail.Response{}, errors.New("send error"))
 			},
 			"send error",
 		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			requester := &mocks.Requester{}
+			if test.mock != nil {
+				test.mock(requester)
+			}
+
+			m := fn(requester)
+
+			got, err := m.Send(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.Equal(test.want, got)
+		})
 	}
 }

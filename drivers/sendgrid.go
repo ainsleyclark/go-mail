@@ -147,7 +147,7 @@ func (r *sgResponse) CheckError(response *http.Response, buf []byte) error {
 
 func (r *sgResponse) Meta() httputil.Meta {
 	return httputil.Meta{
-		Message: "Successfully sent Sendgrid Email",
+		Message: "Successfully sent Sendgrid email",
 		// No response data from Sendgrid
 		ID: "",
 	}

@@ -14,59 +14,50 @@
 package drivers
 
 import (
-	"context"
 	"github.com/ainsleyclark/go-mail/mail"
+	mocks "github.com/ainsleyclark/go-mail/mocks/client"
 )
 
-//
-//import (
-//	"context"
-//	"errors"
-//	"github.com/ainsleyclark/go-mail/mail"
-//	"github.com/mailgun/mailgun-go/v4"
-//)
+func (t *DriversTestSuite) TestNewMailGun() {
+	tt := map[string]struct {
+		input mail.Config
+		want  interface{}
+	}{
+		"Success": {
+			mail.Config{
+				URL:         "https://mailgun.example.com",
+				FromAddress: "addr",
+				FromName:    "name",
+				APIKey:      "key",
+				Domain:      "domain",
+			},
+			nil,
+		},
+		"Validation Failed": {
+			mail.Config{},
+			"driver requires from address",
+		},
+		"No Domain": {
+			mail.Config{
+				FromName:    "name",
+				FromAddress: "hello@gophers.com",
+				APIKey:      "key",
+			},
+			"driver requires a domain",
+		},
+	}
 
-//
-//func (t *DriversTestSuite) TestNewMailGun() {
-//	tt := map[string]struct {
-//		input mail.Config
-//		want  interface{}
-//	}{
-//		"Success": {
-//			mail.Config{
-//				URL:         "https://mailgun.example.com",
-//				FromAddress: "addr",
-//				FromName:    "name",
-//				APIKey:      "key",
-//				Domain:      "domain",
-//			},
-//			nil,
-//		},
-//		"Validation Failed": {
-//			mail.Config{},
-//			"driver requires from address",
-//		},
-//		"No Domain": {
-//			mail.Config{
-//				FromName:    "name",
-//				FromAddress: "hello@gophers.com",
-//				APIKey:      "key",
-//			},
-//			"driver requires a domain",
-//		},
-//	}
-//
-//	for name, test := range tt {
-//		t.Run(name, func() {
-//			got, err := NewMailGun(test.input)
-//			if err != nil {
-//				t.Contains(err.Error(), test.want)
-//				return
-//			}
-//			t.NotNil(got)
-//		})
-//	}
-//}
+	for name, test := range tt {
+		t.Run(name, func() {
+			got, err := NewMailGun(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.NotNil(got)
+		})
+	}
+}
 
 func (t *DriversTestSuite) TestMailgunResponse_Unmarshal() {
 	t.UtilTestUnmarshal(&mailgunResponse{}, []byte(`{"message": "Hello"}`))
@@ -74,76 +65,16 @@ func (t *DriversTestSuite) TestMailgunResponse_Unmarshal() {
 
 func (t *DriversTestSuite) TestMailgunResponse_CheckError() {
 	d := &mailgunResponse{Message: "Error"}
-	t.UtilTestCheckError(d, d.Message)
+	t.UtilTestCheckError(d, d.Message, true)
 }
 
 func (t *DriversTestSuite) TestMailgunResponse_Meta() {
-	d := &mailgunResponse{Message: "Error", ID: "id"}
-	t.UtilTestMeta(d, d.Message, &d.ID)
+	d := &mailgunResponse{Message: "Success", ID: "id"}
+	t.UtilTestMeta(d, d.Message, d.ID)
 }
 
 func (t *DriversTestSuite) TestMailGun_Send() {
-	tt := map[string]struct {
-		input *mail.Transmission
-		send  mailGunSendFunc
-		want  interface{}
-	}{
-		"Success": {
-			Trans,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "success", "1", nil
-			},
-			mail.Response{
-				StatusCode: 200,
-				Body:       "",
-				Headers:    nil,
-				ID:         "1",
-				Message:    "success",
-			},
-		},
-		"With Attachment": {
-			TransWithAttachment,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "success", "1", nil
-			},
-			mail.Response{
-				StatusCode: 200,
-				Body:       "",
-				Headers:    nil,
-				ID:         "1",
-				Message:    "success",
-			},
-		},
-		"Validation Failed": {
-			nil,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "", "", nil
-			},
-			"can't validate a nil transmission",
-		},
-		"Send Error": {
-			Trans,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "", "", errors.New("send error")
-			},
-			"send error",
-		},
-	}
-
-	for name, test := range tt {
-		t.Run(name, func() {
-			spark := mailGun{
-				cfg: mail.Config{
-					FromAddress: "from",
-				},
-				send: test.send,
-			}
-			resp, err := spark.Send(test.input)
-			if err != nil {
-				t.Contains(err.Error(), test.want)
-				return
-			}
-			t.Equal(test.want, resp)
-		})
-	}
+	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
+		return &mailGun{cfg: Comfig, client: m}
+	})
 }
