@@ -61,5 +61,5 @@ jobs:
           SPARKPOST_API_KEY: ${{ secrets.SPARKPOST_API_KEY }}
           SPARKPOST_FROM_ADDRESS: ${{ secrets.SPARKPOST_FROM_ADDRESS }}
           SPARKPOST_FROM_NAME: ${{ secrets.SPARKPOST_FROM_NAME }}
-        run: make test-driver
+        run: ./bin/tests.sh
 
