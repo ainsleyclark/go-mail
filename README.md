@@ -11,11 +11,18 @@
   </p>
 </p>
 
+## Overview
+
+- ✅ Multiple mail drivers for your needs or create your own Mailer.
+- ✅ Direct dependency free, all requests are made with the stdlib http.Client.
+- ✅ Send attachments with two struct fields.
+- ✅ Send CC & BCC messages.
+- ✅ Extremely lightweight.
+
 ## Introduction
 
-Go Mail aims to unify multiple popular mail API's (SparkPost, Mailgun, SendGrid, Postal & SMTP) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
+Go Mail aims to unify multiple popular mail API's into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
 choose what platform they use.
-
 
 ```go
 cfg := mail.Config{
@@ -52,17 +59,12 @@ go get -u github.com/ainsleyclark/go-mail
 
 ## Supported API's
 
-Currently, Sparkpost, Mailgun and SendGrid is supported, if you want to see more, just submit a feature request or create a new Driver and
-submit a pull request.
-
-| API         | Dependency                                                                   | Examples                      |
-|-------------|------------------------------------------------------------------------------|-------------------------------|
-| SparkPost   | [github.com/SparkPost/gosparkpost](https://github.com/SparkPost/gosparkpost) | [Here](examples/sparkpost.go) |
-| Mailgun     | [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4])        | [Here](examples/mailgun.go)   |
-| SendGrid    | [github.com/sendgrid/sendgrid-go](github.com/sendgrid/sendgrid-go)           | [Here](examples/sendgrid.go)  |
-| Postmark    |  None         																														   | [Here](examples/postmark.go)  |
-| Postal      |  None         																														   | [Here](examples/postal.go)  |
-| SMTP        |  None - only use in development.                                             | [Here](examples/smtp.go)      |
+- [Mailgun (mailgun)](https://documentation.mailgun.com/e)
+- [Postal (postal)](https://docs.postalserver.io/)
+- [Postmark (postmark)](https://postmarkapp.com/)
+- [SendGrid (sendgrid)](https://sendgrid.com/)
+- [SparkPost (sparkpost)](https://www.sparkpost.com/))
+- SMTP
 
 ## Docs
 
@@ -98,7 +100,7 @@ tx := &mail.Transmission{
     Recipients: []string{"hello@gophers.com"},
     Subject:    "My email",
     HTML:       "<h1>Hello from Go Mail!</h1>",
-    PlainText:  "plain text",
+    PlainText:  "Hello from Go Mail!",
 }
 
 result, err := mailer.Send(tx)
@@ -121,16 +123,16 @@ if err != nil {
 }
 
 tx := &mail.Transmission{
-    Recipients: []string{"hello@gophers.com"},
-    Subject:    "My email",
-    HTML:       "<h1>Hello from Go Mail!</h1>",
-    PlainText:  "plain text",
-    Attachments: mail.Attachments{
-        mail.Attachment{
-            Filename: "gopher.jpg",
-            Bytes:    image,
-        },
-    },
+	Recipients: []string{"hello@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "plain text",
+	Attachments: []mail.Attachment{
+		{
+			Filename: "gopher.jpg",
+			Bytes:    image,
+		},
+	},
 }
 ```
 
@@ -156,7 +158,7 @@ tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
-	PlainText:  "plain text",
+	PlainText:  "Hello from Go Mail!",
 }
 
 result, err := mailer.Send(tx)
@@ -186,7 +188,7 @@ tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
-	PlainText:  "plain text",
+	PlainText:  "Hello from Go Mail!",
 }
 
 result, err := mailer.Send(tx)
@@ -215,7 +217,7 @@ tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
-	PlainText:  "plain text",
+	PlainText:  "Hello from Go Mail!",
 }
 
 result, err := mailer.Send(tx)
@@ -244,7 +246,7 @@ tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
-	PlainText:  "plain text",
+	PlainText:  "Hello from Go Mail!",
 }
 
 result, err := mailer.Send(tx)
@@ -275,7 +277,7 @@ tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
-	PlainText:  "plain text",
+	PlainText:  "Hello from Go Mail!",
 }
 
 result, err := mailer.Send(tx)
@@ -305,7 +307,7 @@ tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
-	PlainText:  "plain text",
+	PlainText:  "Hello from Go Mail!",
 }
 
 result, err := mailer.Send(tx)
