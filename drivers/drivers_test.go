@@ -50,7 +50,6 @@ const (
 	DataPath = "testdata"
 )
 
-
 var (
 	// Trans is the transmission used for testing.
 	Trans = &mail.Transmission{
@@ -72,7 +71,7 @@ var (
 	}
 	// Config is the default configuration used
 	// for testing.
-	Comfig =    mail.Config{
+	Comfig = mail.Config{
 		URL:         "my-url",
 		APIKey:      "my-key",
 		FromAddress: "hello@gophers.com",
@@ -104,7 +103,7 @@ func (t *DriversTestSuite) UtilTestUnmarshal(r httputil.Responder, buf []byte) {
 	t.NoError(err)
 }
 
-func (t *DriversTestSuite) UtilTestCheckError(r httputil.Responder, errMsg string, checkBody bool) {
+func (t *DriversTestSuite) UtilTestCheckError_Error(r httputil.Responder, errMsg string, checkBody bool) {
 	tt := map[string]struct {
 		response *http.Response
 		buf      []byte
@@ -114,11 +113,6 @@ func (t *DriversTestSuite) UtilTestCheckError(r httputil.Responder, errMsg strin
 			&http.Response{StatusCode: http.StatusInternalServerError},
 			[]byte("test"),
 			errors.New(errMsg),
-		},
-		"200": {
-			&http.Response{StatusCode: http.StatusOK},
-			nil,
-			nil,
 		},
 		"Empty Body": {
 			&http.Response{StatusCode: http.StatusInternalServerError},
@@ -140,6 +134,12 @@ func (t *DriversTestSuite) UtilTestCheckError(r httputil.Responder, errMsg strin
 			t.Equal(test.want, err)
 		})
 	}
+}
+
+func (t *DriversTestSuite) UtilTestCheckError_Success(r httputil.Responder) {
+	res := &http.Response{StatusCode: http.StatusOK}
+	err := r.CheckError(res, []byte("test"))
+	t.NoError(err)
 }
 
 func (t *DriversTestSuite) UtilTestMeta(r httputil.Responder, message, id string) {

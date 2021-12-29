@@ -62,12 +62,12 @@ func (t *DriversTestSuite) TestNewSparkPost() {
 func (t *DriversTestSuite) TestSparkpostResponse_Unmarshal() {
 	t.UtilTestUnmarshal(&spResponse{}, []byte(`{"results": {}}`))
 }
-//
-//func (t *DriversTestSuite) TestPostmarkResponse_CheckError() {
-//	d := &postmarkResponse{Status: "error"}
-//	t.UtilTestCheckError(d, postmarkErrorMessage, true)
-//}
-//
+
+func (t *DriversTestSuite) TestSparkpostResponse_CheckError() {
+	t.UtilTestCheckError_Error(&spResponse{Errors: []spError{{Message: "error"}}}, sparkpostErrorMessage, true)
+	t.UtilTestCheckError_Success(&spResponse{})
+}
+
 func (t *DriversTestSuite) TestSparkpostResponse_Meta() {
 	d := &spResponse{
 		Results: map[string]interface{}{"id": "10"},
@@ -81,4 +81,3 @@ func (t *DriversTestSuite) TestSparkpost_Send() {
 		return &sparkPost{cfg: Comfig, client: m}
 	})
 }
-

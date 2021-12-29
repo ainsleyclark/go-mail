@@ -57,6 +57,7 @@ func NewSendGrid(cfg mail.Config) (mail.Mailer, error) {
 }
 
 type (
+	// postalTransmission defines the data to be sent to the sendGrid API.
 	sgTransmission struct {
 		From             *sgEmail             `json:"from,omitempty"`
 		Subject          string               `json:"subject,omitempty"`
@@ -73,6 +74,7 @@ type (
 		IPPoolID         string               `json:"ip_pool_name,omitempty"`
 		ReplyTo          *sgEmail             `json:"reply_to,omitempty"`
 	}
+	// sgPersonalization holds the mail body struct.
 	sgPersonalization struct {
 		To                  []*sgEmail             `json:"to,omitempty"`
 		From                *sgEmail               `json:"from,omitempty"`
@@ -86,17 +88,17 @@ type (
 		Categories          []string               `json:"categories,omitempty"`
 		SendAt              int                    `json:"send_at,omitempty"`
 	}
-	// sgEmail holds email name and address info
+	// sgEmail holds email name and address info.
 	sgEmail struct {
 		Name    string `json:"name,omitempty"`
 		Address string `json:"email,omitempty"`
 	}
-	// sgContent defines content of the mail body
+	// sgContent defines content of the mail body.
 	sgContent struct {
 		Type  string `json:"type,omitempty"`
 		Value string `json:"value,omitempty"`
 	}
-	// sgAttachment holds attachement information
+	// sgAttachment holds attachment information.
 	sgAttachment struct {
 		Content     string `json:"content,omitempty"`
 		Type        string `json:"type,omitempty"`

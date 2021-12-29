@@ -13,7 +13,6 @@
 
 package drivers
 
-
 import (
 	"github.com/ainsleyclark/go-mail/mail"
 	mocks "github.com/ainsleyclark/go-mail/mocks/client"
@@ -52,13 +51,16 @@ func (t *DriversTestSuite) TestNewSendgrid() {
 }
 
 func (t *DriversTestSuite) TestSendgridResponse_Unmarshal() {
-	t.UtilTestUnmarshal(&postalResponse{}, []byte(`{"errors": []}`))
+	t.UtilTestUnmarshal(&sgResponse{}, []byte(`{"errors": []}`))
+	res := sgResponse{}
+	err := res.Unmarshal(nil)
+	t.NoError(err)
 }
-//
-//func (t *DriversTestSuite) TestPostalResponse_CheckError() {
-//	d := &postalResponse{Status: "error"}
-//	t.UtilTestCheckError(d, postalErrorMessage, true)
-//}
+
+func (t *DriversTestSuite) TestSendgridResponse_CheckError() {
+	t.UtilTestCheckError_Error(&sgResponse{Errors: []sgError{{Message: "error"}}}, sendgridErrorMessage, false)
+	t.UtilTestCheckError_Success(&sgResponse{})
+}
 
 func (t *DriversTestSuite) TestSendgridResponse_Meta() {
 	d := &sgResponse{}

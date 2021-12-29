@@ -64,8 +64,8 @@ func (t *DriversTestSuite) TestMailgunResponse_Unmarshal() {
 }
 
 func (t *DriversTestSuite) TestMailgunResponse_CheckError() {
-	d := &mailgunResponse{Message: "Error"}
-	t.UtilTestCheckError(d, d.Message, true)
+	t.UtilTestCheckError_Error(&mailgunResponse{Message: "message"}, "message", true)
+	t.UtilTestCheckError_Success(&mailgunResponse{})
 }
 
 func (t *DriversTestSuite) TestMailgunResponse_Meta() {

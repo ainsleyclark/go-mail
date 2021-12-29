@@ -14,6 +14,7 @@
 package drivers
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
 	mocks "github.com/ainsleyclark/go-mail/mocks/client"
 	"net/http"
@@ -58,11 +59,18 @@ func (t *DriversTestSuite) TestNewPostal() {
 func (t *DriversTestSuite) TestPostalResponse_Unmarshal() {
 	t.UtilTestUnmarshal(&postalResponse{}, []byte(`{"status": "success"}`))
 }
-//
-//func (t *DriversTestSuite) TestPostalResponse_CheckError() {
-//	d := &postalResponse{Status: "error"}
-//	t.UtilTestCheckError(d, postalErrorMessage, true)
-//}
+
+func (t *DriversTestSuite) TestPostalResponse_CheckError() {
+	t.UtilTestCheckError_Error(
+		&postalResponse{
+			Status: "error",
+			Data:   map[string]interface{}{"code": "code", "message": "message"},
+		},
+		fmt.Sprintf("%s - code: code, message: message", postalErrorMessage),
+		true,
+	)
+	t.UtilTestCheckError_Success(&postalResponse{Status: "success"})
+}
 
 func (t *DriversTestSuite) TestPostalResponse_Meta() {
 	d := &postalResponse{

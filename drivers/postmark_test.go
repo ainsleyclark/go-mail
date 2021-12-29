@@ -52,12 +52,12 @@ func (t *DriversTestSuite) TestNewPostmark() {
 func (t *DriversTestSuite) TestPostmarkResponse_Unmarshal() {
 	t.UtilTestUnmarshal(&postmarkResponse{}, []byte(`{"message": "Hello"}`))
 }
-//
-//func (t *DriversTestSuite) TestPostmarkResponse_CheckError() {
-//	d := &postmarkResponse{Status: "error"}
-//	t.UtilTestCheckError(d, postmarkErrorMessage, true)
-//}
-//
+
+func (t *DriversTestSuite) TestPostmarkResponse_CheckError() {
+	t.UtilTestCheckError_Error(&postmarkResponse{ErrorCode: 10}, postmarkErrorMessage, true)
+	t.UtilTestCheckError_Success(&postmarkResponse{})
+}
+
 func (t *DriversTestSuite) TestPostmarkResponse_Meta() {
 	d := &postmarkResponse{Message: "Success", ID: "id"}
 	t.UtilTestMeta(d, d.Message, d.ID)
