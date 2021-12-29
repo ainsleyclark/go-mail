@@ -25,7 +25,7 @@
 - [Postal (postal)](https://docs.postalserver.io/)
 - [Postmark (postmark)](https://postmarkapp.com/)
 - [SendGrid (sendgrid)](https://sendgrid.com/)
-- [SparkPost (sparkpost)](https://www.sparkpost.com/))
+- [SparkPost (sparkpost)](https://www.sparkpost.com/)
 - SMTP
 - More to come
 
@@ -98,12 +98,12 @@ indicating if the transmission was successful.
 
 ```go
 tx := &mail.Transmission{
-    Recipients: []string{"hello@gophers.com"},
-		CC:         []string{"cc@gophers.com"},
-		BCC:        []string{"bcc@gophers.com"},
-    Subject:    "My email",
-    HTML:       "<h1>Hello from Go Mail!</h1>",
-    PlainText:  "Hello from Go Mail!",
+	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "Hello from Go Mail!",
 }
 
 result, err := mailer.Send(tx)

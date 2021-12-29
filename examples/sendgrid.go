@@ -35,9 +35,11 @@ func SendGrid() {
 
 	tx := &mail.Transmission{
 		Recipients: []string{"hello@gophers.com"},
+		CC:         []string{"cc@gophers.com"},
+		BCC:        []string{"bcc@gophers.com"},
 		Subject:    "My email",
 		HTML:       "<h1>Hello from Go Mail!</h1>",
-		PlainText:  "plain text",
+		PlainText:  "Hello from Go Mail!",
 	}
 
 	result, err := mailer.Send(tx)
