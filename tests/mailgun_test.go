@@ -29,5 +29,5 @@ func Test_MailGun(t *testing.T) {
 		FromName:    os.Getenv("MAILGUN_FROM_NAME"),
 		Domain:      os.Getenv("MAILGUN_DOMAIN"),
 	}
-	UtilTestSend(drivers.NewMailgun, cfg, mail.MailGun, t)
+	UtilTestSend(t, drivers.NewMailgun, cfg, mail.MailGun)
 }

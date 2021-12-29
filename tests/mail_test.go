@@ -35,6 +35,8 @@ const (
 
 // Load the Env variables for testing.
 func LoadEnv(t *testing.T) {
+	t.Helper()
+
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 
@@ -47,6 +49,8 @@ func LoadEnv(t *testing.T) {
 // Returns a dummy transition for testing with an
 // attachment.
 func GetTransmission(t *testing.T) *mail.Transmission {
+	t.Helper()
+
 	wd, err := os.Getwd()
 	assert.NoError(t, err)
 
@@ -74,7 +78,9 @@ func GetTransmission(t *testing.T) *mail.Transmission {
 
 // UtilTestSend is a helper function for performing live mailing
 // tests for the drivers.
-func UtilTestSend(fn func(cfg mail.Config) (mail.Mailer, error), cfg mail.Config, driver string, t *testing.T) {
+func UtilTestSend(t *testing.T, fn func(cfg mail.Config) (mail.Mailer, error), cfg mail.Config, driver string) {
+	t.Helper()
+
 	tx := GetTransmission(t)
 
 	mailer, err := fn(cfg)

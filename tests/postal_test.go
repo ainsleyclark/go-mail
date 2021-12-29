@@ -28,5 +28,5 @@ func Test_Postal(t *testing.T) {
 		FromAddress: os.Getenv("POSTAL_FROM_ADDRESS"),
 		FromName:    os.Getenv("POSTAL_FROM_NAME"),
 	}
-	UtilTestSend(drivers.NewPostal, cfg, mail.Postal, t)
+	UtilTestSend(t, drivers.NewPostal, cfg, mail.Postal)
 }
