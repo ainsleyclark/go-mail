@@ -21,14 +21,14 @@ import (
 	"testing"
 )
 
-func TestJSONData_AddStruct(t *testing.T) {
+func TestNewJSONData(t *testing.T) {
 	tt := map[string]struct {
 		input interface{}
 		want  interface{}
 	}{
 		"Success": {
 			map[string]interface{}{"test": 1},
-			nil,
+			map[string]interface{}{"test": float64(1)},
 		},
 		"Marshal Error": {
 			map[string]interface{}{"test": make(chan struct{})},
@@ -42,29 +42,28 @@ func TestJSONData_AddStruct(t *testing.T) {
 
 	for name, test := range tt {
 		t.Run(name, func(t *testing.T) {
-			pl := NewJSONData()
-			err := pl.AddStruct(test.input)
+			pl, err := NewJSONData(test.input)
 			if err != nil {
 				assert.Contains(t, err.Error(), test.want)
 				return
 			}
+			assert.Equal(t, test.want, pl.values)
 			assert.NotNil(t, pl.original)
-			assert.NotNil(t, pl.values)
 		})
 	}
 }
 
 func TestJSONData_Buffer(t *testing.T) {
 	tt := map[string]struct {
-		input jsonData
+		input JSONData
 		want  interface{}
 	}{
 		"Success": {
-			jsonData{values: map[string]interface{}{"test": 1}},
+			JSONData{values: map[string]interface{}{"test": 1}},
 			`{"test":1}`,
 		},
 		"Marshal Error": {
-			jsonData{values: map[string]interface{}{"test": make(chan struct{})}},
+			JSONData{values: map[string]interface{}{"test": make(chan struct{})}},
 			"unsupported type",
 		},
 	}
@@ -82,13 +81,13 @@ func TestJSONData_Buffer(t *testing.T) {
 }
 
 func TestJsonData_ContentType(t *testing.T) {
-	pl := jsonData{}
+	pl := JSONData{}
 	got := pl.ContentType()
 	assert.Equal(t, JSONContentType, got)
 }
 
 func TestJSONData_Values(t *testing.T) {
-	pl := jsonData{values: map[string]interface{}{"test": 1}}
+	pl := JSONData{values: map[string]interface{}{"test": 1}}
 	got := pl.Values()
 	want := map[string]string{"test": "1"}
 	assert.Equal(t, want, got)
@@ -118,12 +117,12 @@ func (m *mockWriterError) Write(p []byte) (n int, err error) {
 
 func TestFormData_Buffer(t *testing.T) {
 	tt := map[string]struct {
-		input  formData
+		input  FormData
 		writer func(w io.Writer) *multipart.Writer
 		want   interface{}
 	}{
 		"Success": {
-			formData{
+			FormData{
 				values: map[string]string{
 					"key": "value",
 				},
@@ -135,7 +134,7 @@ func TestFormData_Buffer(t *testing.T) {
 			"Content-Disposition",
 		},
 		"Value Error": {
-			formData{
+			FormData{
 				values: map[string]string{"key": "value"},
 			},
 			func(w io.Writer) *multipart.Writer {
@@ -144,7 +143,7 @@ func TestFormData_Buffer(t *testing.T) {
 			"write error",
 		},
 		"Buffer Error": {
-			formData{
+			FormData{
 				buffers: []keyNameBuff{
 					{key: "key", name: "file", value: []byte("value")},
 				},
@@ -174,14 +173,14 @@ func TestFormData_Buffer(t *testing.T) {
 }
 
 func TestFormData_ContentType(t *testing.T) {
-	pl := formData{values: map[string]string{"test": "1"}}
+	pl := FormData{values: map[string]string{"test": "1"}}
 	got := pl.ContentType()
 	want := "multipart/form-data"
 	assert.Contains(t, got, want)
 }
 
 func TestFormData_Values(t *testing.T) {
-	pl := formData{values: map[string]string{"test": "1"}}
+	pl := FormData{values: map[string]string{"test": "1"}}
 	got := pl.Values()
 	want := map[string]string{"test": "1"}
 	assert.Equal(t, want, got)

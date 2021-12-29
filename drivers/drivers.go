@@ -16,10 +16,10 @@ package drivers
 import "github.com/ainsleyclark/go-mail/internal/httputil"
 
 var (
-	// jsonDataFN is an alias for httputil.NewJSONData
+	// newJSONData is an alias for httputil.NewJSONData
 	// for creating JSON payloads.
-	jsonDataFn = httputil.NewJSONData
+	newJSONData = httputil.NewJSONData
 	// formDataFn is an alias for httputil.NewFormData
 	// for creating form data payloads.
-	formDataFn = httputil.NewFormData
+	newFormData = httputil.NewFormData
 )

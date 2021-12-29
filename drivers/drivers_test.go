@@ -103,52 +103,13 @@ func (t *DriversTestSuite) UtilTestUnmarshal(r httputil.Responder, buf []byte) {
 	t.NoError(err)
 }
 
-func (t *DriversTestSuite) UtilTestCheckError_Error(r httputil.Responder, errMsg string, checkBody bool) {
-	tt := map[string]struct {
-		response *http.Response
-		buf      []byte
-		want     error
-	}{
-		"Error": {
-			&http.Response{StatusCode: http.StatusInternalServerError},
-			[]byte("test"),
-			errors.New(errMsg),
-		},
-		"Empty Body": {
-			&http.Response{StatusCode: http.StatusInternalServerError},
-			nil,
-			mail.ErrEmptyBody,
-		},
-	}
-
-	for name, test := range tt {
-		if !checkBody && name == "Empty Body" {
-			continue
-		}
-		t.Run(name, func() {
-			err := r.CheckError(test.response, test.buf)
-			if err != nil {
-				t.Contains(err.Error(), test.want.Error())
-				return
-			}
-			t.Equal(test.want, err)
-		})
-	}
-}
-
-func (t *DriversTestSuite) UtilTestCheckError_Success(r httputil.Responder) {
-	res := &http.Response{StatusCode: http.StatusOK}
-	err := r.CheckError(res, []byte("test"))
-	t.NoError(err)
-}
-
 func (t *DriversTestSuite) UtilTestMeta(r httputil.Responder, message, id string) {
 	got := r.Meta()
 	t.Equal(message, got.Message)
 	t.Equal(id, got.ID)
 }
 
-func (t *DriversTestSuite) UtilTestSend(fn func(m *mocks.Requester) mail.Mailer) {
+func (t *DriversTestSuite) UtilTestSend(fn func(m *mocks.Requester) mail.Mailer, json bool) {
 	res := mail.Response{
 		StatusCode: http.StatusOK,
 		Body:       []byte("body"),
@@ -158,9 +119,10 @@ func (t *DriversTestSuite) UtilTestSend(fn func(m *mocks.Requester) mail.Mailer)
 	}
 
 	tt := map[string]struct {
-		input *mail.Transmission
-		mock  func(m *mocks.Requester)
-		want  interface{}
+		input  *mail.Transmission
+		mock   func(m *mocks.Requester)
+		jsonFn func(obj interface{}) (*httputil.JSONData, error)
+		want   interface{}
 	}{
 		"Success": {
 			Trans,
@@ -168,6 +130,7 @@ func (t *DriversTestSuite) UtilTestSend(fn func(m *mocks.Requester) mail.Mailer)
 				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(res, nil)
 			},
+			httputil.NewJSONData,
 			res,
 		},
 		"With Attachment": {
@@ -176,12 +139,25 @@ func (t *DriversTestSuite) UtilTestSend(fn func(m *mocks.Requester) mail.Mailer)
 				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(res, nil)
 			},
+			httputil.NewJSONData,
 			res,
 		},
 		"Validation Failed": {
 			nil,
 			nil,
+			httputil.NewJSONData,
 			"can't validate a nil transmission",
+		},
+		"JSON Error": {
+			Trans,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(mail.Response{}, errors.New("send error"))
+			},
+			func(obj interface{}) (*httputil.JSONData, error) {
+				return nil, errors.New("json error")
+			},
+			"json error",
 		},
 		"Send Error": {
 			Trans,
@@ -189,12 +165,21 @@ func (t *DriversTestSuite) UtilTestSend(fn func(m *mocks.Requester) mail.Mailer)
 				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 					Return(mail.Response{}, errors.New("send error"))
 			},
+			httputil.NewJSONData,
 			"send error",
 		},
 	}
 
 	for name, test := range tt {
+		if name == "JSON Error" && !json {
+			continue
+		}
+
 		t.Run(name, func() {
+			orig := newJSONData
+			defer func() { newJSONData = orig }()
+			newJSONData = test.jsonFn
+
 			requester := &mocks.Requester{}
 			if test.mock != nil {
 				test.mock(requester)

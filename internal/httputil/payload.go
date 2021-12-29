@@ -36,41 +36,40 @@ type Payload interface {
 }
 
 const (
+	// JSONContentType is the Content-Type header for
+	// JSON payloads.
 	JSONContentType = "application/json"
 )
 
-// jsonData defines the payload for JSON types.
-type jsonData struct {
+// JSONData defines the payload for JSON types.
+type JSONData struct {
 	original interface{}
 	values   map[string]interface{}
 }
 
 // NewJSONData creates a new JSON Data Payload type.
-func NewJSONData() *jsonData { //nolint
-	return &jsonData{}
-}
-
-// AddStruct adds a struct type to the JSON Data payload.
+// It adds a struct type to the JSON Data payload.
 // Returns an error if the struct could not be marshalled or unmarshalled.
-func (j *jsonData) AddStruct(obj interface{}) error {
+func NewJSONData(obj interface{}) (*JSONData, error) {
 	buf, err := json.Marshal(obj)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	m := make(map[string]interface{})
 	err = json.Unmarshal(buf, &m)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	j.values = m
-	j.original = obj
-	return nil
+	return &JSONData{
+		original: obj,
+		values:   m,
+	}, nil
 }
 
 // Buffer returns the byte buffer for making the request.
-func (j *jsonData) Buffer() (*bytes.Buffer, error) {
+func (j *JSONData) Buffer() (*bytes.Buffer, error) {
 	buf, err := json.Marshal(j.values)
 	if err != nil {
 		return nil, err
@@ -79,13 +78,13 @@ func (j *jsonData) Buffer() (*bytes.Buffer, error) {
 }
 
 // ContentType returns the `Content-Type` header.
-func (j *jsonData) ContentType() string {
+func (j *JSONData) ContentType() string {
 	return JSONContentType
 }
 
 // Values returns a map of key - value pairs used for testing
 // and debugging.
-func (j *jsonData) Values() map[string]string {
+func (j *JSONData) Values() map[string]string {
 	m := make(map[string]string)
 	for key, value := range j.values {
 		m[key] = fmt.Sprintf("%v", value)
@@ -93,8 +92,8 @@ func (j *jsonData) Values() map[string]string {
 	return m
 }
 
-// formData defines the payload for URL encoded types.
-type formData struct {
+// FormData defines the payload for URL encoded types.
+type FormData struct {
 	contentType string
 	values      map[string]string
 	buffers     []keyNameBuff
@@ -108,12 +107,12 @@ type keyNameBuff struct {
 }
 
 // NewFormData creates a new Form Data Payload type.
-func NewFormData() *formData { // nolint
-	return &formData{}
+func NewFormData() *FormData {
+	return &FormData{}
 }
 
 // AddValue adds a key - value string pair to the Payload.
-func (f *formData) AddValue(key, value string) {
+func (f *FormData) AddValue(key, value string) {
 	if len(f.values) == 0 {
 		f.values = make(map[string]string)
 	}
@@ -121,7 +120,7 @@ func (f *formData) AddValue(key, value string) {
 }
 
 // AddBuffer adds a file buffer to the Payload with a filename.
-func (f *formData) AddBuffer(key, fileName string, buff []byte) {
+func (f *FormData) AddBuffer(key, fileName string, buff []byte) {
 	f.buffers = append(f.buffers, keyNameBuff{
 		key:   key,
 		name:  fileName,
@@ -132,7 +131,7 @@ func (f *formData) AddBuffer(key, fileName string, buff []byte) {
 var newWriter = multipart.NewWriter
 
 // Buffer returns the byte buffer for making the request.
-func (f *formData) Buffer() (*bytes.Buffer, error) {
+func (f *FormData) Buffer() (*bytes.Buffer, error) {
 	data := &bytes.Buffer{}
 	writer := newWriter(data)
 	defer writer.Close()
@@ -160,7 +159,7 @@ func (f *formData) Buffer() (*bytes.Buffer, error) {
 }
 
 // ContentType returns the `Content-Type` header.
-func (f *formData) ContentType() string {
+func (f *FormData) ContentType() string {
 	if f.contentType == "" {
 		f.Buffer() // nolint
 	}
@@ -169,6 +168,6 @@ func (f *formData) ContentType() string {
 
 // Values returns a map of key - value pairs used for testing
 // and debugging.
-func (f *formData) Values() map[string]string {
+func (f *FormData) Values() map[string]string {
 	return f.values
 }

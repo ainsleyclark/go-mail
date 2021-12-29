@@ -61,15 +61,42 @@ func (t *DriversTestSuite) TestPostalResponse_Unmarshal() {
 }
 
 func (t *DriversTestSuite) TestPostalResponse_CheckError() {
-	t.UtilTestCheckError_Error(
-		&postalResponse{
-			Status: "error",
-			Data:   map[string]interface{}{"code": "code", "message": "message"},
+	tt := map[string]struct {
+		input    postalResponse
+		response *http.Response
+		buf      []byte
+		want     error
+	}{
+		"Success": {
+			postalResponse{Status: "success"},
+			&http.Response{StatusCode: http.StatusOK},
+			[]byte("test"),
+			nil,
 		},
-		fmt.Sprintf("%s - code: code, message: message", postalErrorMessage),
-		true,
-	)
-	t.UtilTestCheckError_Success(&postalResponse{Status: "success"})
+		"Empty Body": {
+			postalResponse{},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			nil,
+			mail.ErrEmptyBody,
+		},
+		"Error": {
+			postalResponse{Data: map[string]interface{}{"code": "code", "message": "message"}},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			[]byte("test"),
+			fmt.Errorf("%s - code: code, message: message", postalErrorMessage),
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			err := test.input.CheckError(test.response, test.buf)
+			if err != nil {
+				t.Contains(err.Error(), test.want.Error())
+				return
+			}
+			t.Equal(test.want, err)
+		})
+	}
 }
 
 func (t *DriversTestSuite) TestPostalResponse_Meta() {
@@ -82,5 +109,5 @@ func (t *DriversTestSuite) TestPostalResponse_Meta() {
 func (t *DriversTestSuite) TestPostal_Send() {
 	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
 		return &postal{cfg: Comfig, client: m}
-	})
+	}, true)
 }

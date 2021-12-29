@@ -14,8 +14,10 @@
 package drivers
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
 	mocks "github.com/ainsleyclark/go-mail/mocks/client"
+	"net/http"
 )
 
 func (t *DriversTestSuite) TestNewSendgrid() {
@@ -58,8 +60,42 @@ func (t *DriversTestSuite) TestSendgridResponse_Unmarshal() {
 }
 
 func (t *DriversTestSuite) TestSendgridResponse_CheckError() {
-	t.UtilTestCheckError_Error(&sgResponse{Errors: []sgError{{Message: "error"}}}, sendgridErrorMessage, false)
-	t.UtilTestCheckError_Success(&sgResponse{})
+	tt := map[string]struct {
+		input    sgResponse
+		response *http.Response
+		buf      []byte
+		want     error
+	}{
+		"Success": {
+			sgResponse{Errors: nil},
+			&http.Response{StatusCode: http.StatusOK},
+			[]byte("test"),
+			nil,
+		},
+		"No Errors": {
+			sgResponse{},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			nil,
+			nil,
+		},
+		"Error": {
+			sgResponse{Errors: []sgError{{Message: "message", Field: "field", Help: "help"}}},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			[]byte("test"),
+			fmt.Errorf("%s - message: message, field: field, help: help", sendgridErrorMessage),
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			err := test.input.CheckError(test.response, test.buf)
+			if err != nil {
+				t.Contains(err.Error(), test.want.Error())
+				return
+			}
+			t.Equal(test.want, err)
+		})
+	}
 }
 
 func (t *DriversTestSuite) TestSendgridResponse_Meta() {
@@ -70,5 +106,5 @@ func (t *DriversTestSuite) TestSendgridResponse_Meta() {
 func (t *DriversTestSuite) TestSendgrid_Send() {
 	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
 		return &sendGrid{cfg: Comfig, client: m}
-	})
+	}, true)
 }

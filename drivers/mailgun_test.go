@@ -14,8 +14,10 @@
 package drivers
 
 import (
+	"errors"
 	"github.com/ainsleyclark/go-mail/mail"
 	mocks "github.com/ainsleyclark/go-mail/mocks/client"
+	"net/http"
 )
 
 func (t *DriversTestSuite) TestNewMailGun() {
@@ -64,8 +66,39 @@ func (t *DriversTestSuite) TestMailgunResponse_Unmarshal() {
 }
 
 func (t *DriversTestSuite) TestMailgunResponse_CheckError() {
-	t.UtilTestCheckError_Error(&mailgunResponse{Message: "message"}, "message", true)
-	t.UtilTestCheckError_Success(&mailgunResponse{})
+	tt := map[string]struct {
+		response *http.Response
+		buf      []byte
+		want     error
+	}{
+		"2xx": {
+			&http.Response{StatusCode: http.StatusOK},
+			[]byte("test"),
+			nil,
+		},
+		"Empty Body": {
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			nil,
+			mail.ErrEmptyBody,
+		},
+		"Error": {
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			[]byte("test"),
+			errors.New("error"),
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			resp := mailgunResponse{Message: "error"}
+			err := resp.CheckError(test.response, test.buf)
+			if err != nil {
+				t.Contains(err.Error(), test.want.Error())
+				return
+			}
+			t.Equal(test.want, err)
+		})
+	}
 }
 
 func (t *DriversTestSuite) TestMailgunResponse_Meta() {
@@ -76,5 +109,5 @@ func (t *DriversTestSuite) TestMailgunResponse_Meta() {
 func (t *DriversTestSuite) TestMailGun_Send() {
 	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
 		return &mailGun{cfg: Comfig, client: m}
-	})
+	}, false)
 }

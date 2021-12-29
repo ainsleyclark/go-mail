@@ -14,8 +14,10 @@
 package drivers
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
 	mocks "github.com/ainsleyclark/go-mail/mocks/client"
+	"net/http"
 )
 
 func (t *DriversTestSuite) TestNewPostmark() {
@@ -54,8 +56,42 @@ func (t *DriversTestSuite) TestPostmarkResponse_Unmarshal() {
 }
 
 func (t *DriversTestSuite) TestPostmarkResponse_CheckError() {
-	t.UtilTestCheckError_Error(&postmarkResponse{ErrorCode: 10}, postmarkErrorMessage, true)
-	t.UtilTestCheckError_Success(&postmarkResponse{})
+	tt := map[string]struct {
+		input    postmarkResponse
+		response *http.Response
+		buf      []byte
+		want     error
+	}{
+		"Success": {
+			postmarkResponse{ErrorCode: 0},
+			&http.Response{StatusCode: http.StatusOK},
+			[]byte("test"),
+			nil,
+		},
+		"Empty Body": {
+			postmarkResponse{ErrorCode: 10},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			nil,
+			mail.ErrEmptyBody,
+		},
+		"Error": {
+			postmarkResponse{ErrorCode: 10, Message: "message"},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			[]byte("test"),
+			fmt.Errorf("%s - code: 10, message: message", postmarkErrorMessage),
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			err := test.input.CheckError(test.response, test.buf)
+			if err != nil {
+				t.Contains(err.Error(), test.want.Error())
+				return
+			}
+			t.Equal(test.want, err)
+		})
+	}
 }
 
 func (t *DriversTestSuite) TestPostmarkResponse_Meta() {
@@ -66,5 +102,5 @@ func (t *DriversTestSuite) TestPostmarkResponse_Meta() {
 func (t *DriversTestSuite) TestPostmark_Send() {
 	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
 		return &postmark{cfg: Comfig, client: m}
-	})
+	}, true)
 }

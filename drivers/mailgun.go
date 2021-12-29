@@ -104,7 +104,7 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 		return mail.Response{}, err
 	}
 
-	f := httputil.NewFormData()
+	f := newFormData()
 	f.AddValue("from", fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress))
 	f.AddValue("subject", t.Subject)
 	f.AddValue("html", t.HTML)

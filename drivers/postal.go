@@ -150,8 +150,7 @@ func (d *postal) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	pl := httputil.NewJSONData()
-	err = pl.AddStruct(tx)
+	pl, err := newJSONData(tx)
 	if err != nil {
 		return mail.Response{}, err
 	}

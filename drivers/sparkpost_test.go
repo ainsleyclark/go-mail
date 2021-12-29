@@ -14,8 +14,10 @@
 package drivers
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
 	mocks "github.com/ainsleyclark/go-mail/mocks/client"
+	"net/http"
 )
 
 func (t *DriversTestSuite) TestNewSparkPost() {
@@ -64,8 +66,42 @@ func (t *DriversTestSuite) TestSparkpostResponse_Unmarshal() {
 }
 
 func (t *DriversTestSuite) TestSparkpostResponse_CheckError() {
-	t.UtilTestCheckError_Error(&spResponse{Errors: []spError{{Message: "error"}}}, sparkpostErrorMessage, true)
-	t.UtilTestCheckError_Success(&spResponse{})
+	tt := map[string]struct {
+		input    spResponse
+		response *http.Response
+		buf      []byte
+		want     error
+	}{
+		"Success": {
+			spResponse{Errors: nil},
+			&http.Response{StatusCode: http.StatusOK},
+			[]byte("test"),
+			nil,
+		},
+		"No Errors": {
+			spResponse{Errors: []spError{{Message: "message", Code: "code"}}},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			nil,
+			mail.ErrEmptyBody,
+		},
+		"Error": {
+			spResponse{Errors: []spError{{Message: "message", Code: "code"}}},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			[]byte("test"),
+			fmt.Errorf("%s - code: code, message: message", sparkpostErrorMessage),
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			err := test.input.CheckError(test.response, test.buf)
+			if err != nil {
+				t.Contains(err.Error(), test.want.Error())
+				return
+			}
+			t.Equal(test.want, err)
+		})
+	}
 }
 
 func (t *DriversTestSuite) TestSparkpostResponse_Meta() {
@@ -79,5 +115,5 @@ func (t *DriversTestSuite) TestSparkpostResponse_Meta() {
 func (t *DriversTestSuite) TestSparkpost_Send() {
 	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
 		return &sparkPost{cfg: Comfig, client: m}
-	})
+	}, true)
 }
