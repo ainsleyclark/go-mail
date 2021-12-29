@@ -18,12 +18,48 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v2
+
         with:
           go-version: 1.17
 
       - name: TestEnv
         run: printenv
 
-#      - name: Test
-#        run: make test
+      - name: Test
+        env:
+          # Email
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_CC: ${{ secrets.EMAIL_CC }}
+          EMAIL_BCC: ${{ secrets.EMAIL_BCC }}
+          # MailGun
+          MAILGUN_URL: ${{ secrets.MAILGUN_URL }}
+          MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+          MAILGUN_FROM_ADDRESS: ${{ secrets.MAILGUN_FROM_ADDRESS }}
+          MAILGUN_FROM_NAME: ${{ secrets.MAILGUN_FROM_NAME }}
+          MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
+          # Postal
+          POSTAL_URL: ${{ secrets.POSTAL_URL }}
+          POSTAL_API_KEY: ${{ secrets.POSTAL_API_KEY }}
+          POSTAL_FROM_ADDRESS: ${{ secrets.POSTAL_FROM_ADDRESS }}
+          POSTAL_FROM_NAME: ${{ secrets.POSTAL_FROM_NAME }}
+          # Postmark
+          POSTMARK_API_KEY: ${{ secrets.POSTMARK_API_KEY }}
+          POSTMARK_FROM_ADDRESS: ${{ secrets.POSTMARK_FROM_ADDRESS }}
+          POSTMARK_FROM_NAME: ${{ secrets.POSTMARK_FROM_NAME }}
+          # SendGrid
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_FROM_ADDRESS: ${{ secrets.SENDGRID_FROM_ADDRESS }}
+          SENDGRID_FROM_NAME: ${{ secrets.SENDGRID_FROM_NAME }}
+          # SMTP
+          SMTP_URL: ${{ secrets.SMTP_URL }}
+          SMTP_FROM_ADDRESS: ${{ secrets.SMTP_FROM_ADDRESS }}
+          SMTP_FROM_NAME: ${{ secrets.SMTP_FROM_NAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          # SparkPost
+          SPARKPOST_URL: ${{ secrets.SPARKPOST_URL }}
+          SPARKPOST_API_KEY: ${{ secrets.SPARKPOST_API_KEY }}
+          SPARKPOST_FROM_ADDRESS: ${{ secrets.SPARKPOST_FROM_ADDRESS }}
+          SPARKPOST_FROM_NAME: ${{ secrets.SPARKPOST_FROM_NAME }}
+        run: make test-driver
 
