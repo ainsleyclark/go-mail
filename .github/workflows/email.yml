@@ -2,7 +2,7 @@ name: Email
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, deps ]
   pull_request:
     branches: [ main ]
   schedule:
