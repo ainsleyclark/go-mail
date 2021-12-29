@@ -28,5 +28,5 @@ func Test_SparkPost(t *testing.T) {
 		FromAddress: os.Getenv("SPARKPOST_FROM_ADDRESS"),
 		FromName:    os.Getenv("SPARKPOST_FROM_NAME"),
 	}
-	UtilTestSend(t, drivers.NewSparkPost, cfg, mail.SparkPost)
+	UtilTestSend(t, drivers.NewSparkPost, cfg, "SparkPost")
 }

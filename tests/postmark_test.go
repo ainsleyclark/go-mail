@@ -27,5 +27,5 @@ func Test_Postmark(t *testing.T) {
 		FromAddress: os.Getenv("POSTMARK_FROM_ADDRESS"),
 		FromName:    os.Getenv("POSTMARK_FROM_NAME"),
 	}
-	UtilTestSend(t, drivers.NewPostmark, cfg, mail.Postmark)
+	UtilTestSend(t, drivers.NewPostmark, cfg, "Postmark")
 }

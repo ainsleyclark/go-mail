@@ -34,5 +34,5 @@ func Test_SMTP(t *testing.T) {
 		Password:    os.Getenv("SMTP_PASSWORD"),
 		Port:        port,
 	}
-	UtilTestSend(t, drivers.NewSMTP, cfg, mail.SMTP)
+	UtilTestSend(t, drivers.NewSMTP, cfg, "SMTP")
 }

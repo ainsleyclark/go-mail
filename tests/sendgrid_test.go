@@ -27,5 +27,5 @@ func Test_SendGrid(t *testing.T) {
 		FromAddress: os.Getenv("SENDGRID_FROM_ADDRESS"),
 		FromName:    os.Getenv("SENDGRID_FROM_NAME"),
 	}
-	UtilTestSend(t, drivers.NewSendGrid, cfg, mail.SendGrid)
+	UtilTestSend(t, drivers.NewSendGrid, cfg, "SendGrid")
 }

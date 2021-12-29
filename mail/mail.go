@@ -16,9 +16,12 @@ package mail
 import "errors"
 
 var (
-	// Debug - Set true to write the HTTP requests in curl for to stdout
+	// Debug - Set true to write the HTTP requests in curl for to stdout.
+	// Additional information will also be displayed in the errors such as
+	// method operations.
 	Debug = false
-
+	// ErrEmptyBody is returned by Send when there is nobody attached to the
+	// request.
 	ErrEmptyBody = errors.New("error, empty body")
 )
 
@@ -31,18 +34,3 @@ type Mailer interface {
 	// the body and status code will be attached to the response for debugging.
 	Send(t *Transmission) (Response, error)
 }
-
-const (
-	// SparkPost driver type.
-	SparkPost = "sparkpost"
-	// MailGun driver type.
-	MailGun = "mailgun"
-	// SendGrid driver type.
-	SendGrid = "sendgrid"
-	// Postmark driver type.
-	Postmark = "postmark"
-	// Postal driver type.
-	Postal = "postal"
-	// SMTP driver type.
-	SMTP = "smtp"
-)
