@@ -66,8 +66,8 @@ func (t *MailTestSuite) GetTransmission() *mail.Transmission {
 		Subject:   "Test - Go Mail",
 		HTML:      "<h1>Hello from Go Mail!</h1>",
 		PlainText: "Hello from Go Mail!",
-		Attachments: mail.Attachments{
-			mail.Attachment{
+		Attachments: []mail.Attachment{
+			{
 				Filename: "gopher.png",
 				Bytes:    file,
 			},

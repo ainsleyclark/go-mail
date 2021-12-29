@@ -126,7 +126,7 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		for _, v := range t.Attachments {
 			f.AddBuffer("attachment", v.Filename, v.Bytes)
 		}

@@ -140,7 +140,7 @@ func (d *postal) Send(t *mail.Transmission) (mail.Response, error) {
 		PlainText: t.PlainText,
 	}
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		for _, v := range t.Attachments {
 			tx.Attachments = append(tx.Attachments, postalAttachment{
 				Name:        v.Filename,

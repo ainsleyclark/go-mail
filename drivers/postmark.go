@@ -142,7 +142,7 @@ func (d *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 		MessageStream: "outbound",
 	}
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		for _, v := range t.Attachments {
 			tx.Attachments = append(tx.Attachments, postmarkAttachment{
 				Name:        v.Filename,

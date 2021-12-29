@@ -43,8 +43,8 @@ func Attachments() {
 		Subject:    "My email",
 		HTML:       "<h1>Hello from Go Mail!</h1>",
 		PlainText:  "plain text",
-		Attachments: mail.Attachments{
-			mail.Attachment{
+		Attachments: []mail.Attachment{
+			{
 				Filename: "gopher.jpg",
 				Bytes:    image,
 			},

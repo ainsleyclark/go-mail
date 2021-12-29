@@ -18,9 +18,6 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
-// Attachments defines the slice of mail attachments.
-type Attachments []Attachment
-
 // Attachment defines the mail file that has been
 // uploaded via the forms endpoint. It contains
 // useful information for sending files over
@@ -28,11 +25,6 @@ type Attachments []Attachment
 type Attachment struct {
 	Filename string
 	Bytes    []byte
-}
-
-// Exists determines if there are any attachments in the slice.
-func (a Attachments) Exists() bool {
-	return len(a) != 0
 }
 
 // Mime returns the Mime type of the byte data.

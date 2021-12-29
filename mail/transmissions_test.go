@@ -62,3 +62,28 @@ func (t *MailTestSuite) TestTransmission_Validate() {
 		})
 	}
 }
+
+func (t *MailTestSuite) TestTransmission_HasAttachments() {
+	tt := map[string]struct {
+		input Transmission
+		want  bool
+	}{
+		"Exists": {
+			Transmission{
+				Attachments: []Attachment{{Filename: PNGName}},
+			},
+			true,
+		},
+		"Nil": {
+			Transmission{},
+			false,
+		},
+	}
+
+	for name, test := range tt {
+		t.Run(name, func() {
+			got := test.input.HasAttachments()
+			t.Equal(test.want, got)
+		})
+	}
+}

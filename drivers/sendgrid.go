@@ -197,7 +197,7 @@ func (d *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		for _, v := range t.Attachments {
 			tx.Attachments = append(tx.Attachments, &sgAttachment{
 				Content:     v.B64(),

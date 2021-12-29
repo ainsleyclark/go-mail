@@ -58,15 +58,11 @@ var (
 	// Trans is the transmission with an
 	// attachment used for testing.
 	TransWithAttachment = &mail.Transmission{
-		Recipients: []string{"recipient@test.com"},
-		Subject:    "Subject",
-		HTML:       "<h1>HTML</h1>",
-		PlainText:  "PlainText",
-		Attachments: mail.Attachments{
-			mail.Attachment{
-				Filename: "test.jpg",
-			},
-		},
+		Recipients:  []string{"recipient@test.com"},
+		Subject:     "Subject",
+		HTML:        "<h1>HTML</h1>",
+		PlainText:   "PlainText",
+		Attachments: []mail.Attachment{{Filename: "test.jpg"}},
 	}
 )
 

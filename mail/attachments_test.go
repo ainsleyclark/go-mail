@@ -13,33 +13,6 @@
 
 package mail
 
-func (t *MailTestSuite) TestAttachments_Exists() {
-	tt := map[string]struct {
-		input Attachments
-		want  bool
-	}{
-		"Exists": {
-			Attachments{
-				Attachment{
-					Filename: PNGName,
-				},
-			},
-			true,
-		},
-		"Nil": {
-			nil,
-			false,
-		},
-	}
-
-	for name, test := range tt {
-		t.Run(name, func() {
-			got := test.input.Exists()
-			t.Equal(test.want, got)
-		})
-	}
-}
-
 func (t *MailTestSuite) TestAttachment_Mime() {
 	tt := map[string]struct {
 		input string

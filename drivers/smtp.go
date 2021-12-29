@@ -106,7 +106,7 @@ func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 	writer := multipart.NewWriter(buf)
 	boundary := writer.Boundary()
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		buf.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=%s\n", boundary))
 		buf.WriteString(fmt.Sprintf("--%s\n", boundary))
 	} else {
@@ -123,7 +123,7 @@ func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 		buf.WriteString(t.HTML)
 	}
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		for _, v := range t.Attachments {
 			buf.WriteString(fmt.Sprintf("\n\n--%s\n", boundary))
 			buf.WriteString(fmt.Sprintf("Content-Type: %s\n", v.Mime()))

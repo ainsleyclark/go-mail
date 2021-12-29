@@ -228,7 +228,7 @@ func (d *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		for _, v := range t.Attachments {
 			tx.Content.Attachments = append(tx.Content.Attachments, spAttachment{
 				MIMEType: v.Mime(),
