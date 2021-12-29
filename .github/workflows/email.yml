@@ -22,9 +22,6 @@ jobs:
         with:
           go-version: 1.17
 
-      - name: TestEnv
-        run: printenv
-
       - name: Test
         env:
           # Email
@@ -62,6 +59,7 @@ jobs:
           SPARKPOST_FROM_ADDRESS: ${{ secrets.SPARKPOST_FROM_ADDRESS }}
           SPARKPOST_FROM_NAME: ${{ secrets.SPARKPOST_FROM_NAME }}
         run: |
+          which bash
           # Make file runnable, might not be necessary
           chmod +x "${GITHUB_WORKSPACE}/bin/tests.sh"
           # Run tests
