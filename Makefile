@@ -1,5 +1,6 @@
 # Setup
 setup:
+	sudo chmod +x ./bin/tests.sh
 	go mod tidy
 .PHONY: setup
 
@@ -22,6 +23,12 @@ test:
 test-v:
 	go clean -testcache && go test -race -v $$(go list ./... | grep -v tests | grep -v examples | grep -v res | grep -v mocks) -coverprofile=coverage.out -covermode=atomic
 .PHONY: test-v
+
+# Runs real world tests for a driver or all drivers.
+# See ./bin/tests.sh for example usage.
+test-driver:
+	./bin/tests.sh $(driver)
+.PHONY: test-driver
 
 # Run all the tests and opens the coverage report
 cover: test

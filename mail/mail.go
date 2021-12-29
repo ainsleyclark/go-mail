@@ -35,6 +35,8 @@ const (
 	MailGun = "mailgun"
 	// SendGrid driver type.
 	SendGrid = "sendgrid"
+	// Postmark driver type.
+	Postmark = "postmark"
 	// Postal driver type.
 	Postal = "postal"
 	// SMTP driver type.

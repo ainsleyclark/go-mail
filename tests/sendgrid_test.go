@@ -14,33 +14,18 @@
 package mail
 
 import (
-	"fmt"
 	"github.com/ainsleyclark/go-mail/drivers"
 	"github.com/ainsleyclark/go-mail/mail"
-	"net/http"
 	"os"
+	"testing"
 )
 
-func (t *MailTestSuite) Test_SendGrid() {
-	tx := t.GetTransmission()
-
-	mailer, err := drivers.NewSendGrid(mail.Config{
+func Test_SendGrid(t *testing.T) {
+	LoadEnv(t)
+	cfg := mail.Config{
 		APIKey:      os.Getenv("SENDGRID_API_KEY"),
 		FromAddress: os.Getenv("SENDGRID_FROM_ADDRESS"),
 		FromName:    os.Getenv("SENDGRID_FROM_NAME"),
-	})
-	if err != nil {
-		t.FailNow("Error creating client: " + err.Error())
 	}
-
-	result, err := mailer.Send(tx)
-	if err != nil {
-		t.FailNow("Error sending SendGrid email: " + err.Error())
-	}
-
-	fmt.Println(string(result.Body))
-
-	t.Equal(http.StatusAccepted, result.StatusCode)
-	t.NotNil(result.Body)
-	t.NotEmpty(result.Headers)
+	UtilTestSend(drivers.NewSendGrid, cfg, mail.SendGrid, t)
 }

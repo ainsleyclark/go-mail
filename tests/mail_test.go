@@ -14,26 +14,17 @@
 package mail
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/joho/godotenv"
-	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
-
-// MailTestSuite defines the helper used for mail
-// testing.
-type MailTestSuite struct {
-	suite.Suite
-}
-
-// Assert testing has begun.
-func TestMail(t *testing.T) {
-	suite.Run(t, new(MailTestSuite))
-}
 
 const (
 	// DataPath defines where the test data resides.
@@ -42,21 +33,27 @@ const (
 	PNGName = "gopher.png"
 )
 
-// Returns a dummy transition for testing with an
-// attachment.
-func (t *MailTestSuite) GetTransmission() *mail.Transmission {
+// Load the Env variables for testing.
+func LoadEnv(t *testing.T) {
 	wd, err := os.Getwd()
-	t.NoError(err)
+	assert.NoError(t, err)
 
 	err = godotenv.Load(filepath.Join(filepath.Dir(wd), "/.env"))
 	if err != nil {
-		t.FailNow("Error loading .env file")
+		t.Fatal("Error loading .env file")
 	}
+}
+
+// Returns a dummy transition for testing with an
+// attachment.
+func GetTransmission(t *testing.T) *mail.Transmission {
+	wd, err := os.Getwd()
+	assert.NoError(t, err)
 
 	path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
-		t.FailNow("Error getting attachment with the path: "+path, err)
+		t.Fatal("Error getting attachment with the path: "+path, err)
 	}
 
 	return &mail.Transmission{
@@ -73,4 +70,26 @@ func (t *MailTestSuite) GetTransmission() *mail.Transmission {
 			},
 		},
 	}
+}
+
+// UtilTestSend is a helper function for performing live mailing
+// tests for the drivers.
+func UtilTestSend(fn func(cfg mail.Config) (mail.Mailer, error), cfg mail.Config, driver string, t *testing.T) {
+	tx := GetTransmission(t)
+
+	mailer, err := fn(cfg)
+	if err != nil {
+		t.Fatal("Error creating client: " + err.Error())
+	}
+
+	result, err := mailer.Send(tx)
+	if err != nil {
+		t.Fatalf("Error sending %s email: %s", strings.Title(driver), err.Error())
+	}
+
+	// Print for sanity
+	fmt.Println(string(result.Body))
+
+	assert.InDelta(t, result.StatusCode, http.StatusOK, 299)
+	assert.NotEmpty(t, result.Message)
 }

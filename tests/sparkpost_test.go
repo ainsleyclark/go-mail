@@ -17,28 +17,16 @@ import (
 	"github.com/ainsleyclark/go-mail/drivers"
 	"github.com/ainsleyclark/go-mail/mail"
 	"os"
+	"testing"
 )
 
-func (t *MailTestSuite) Test_SparkPost() {
-	tx := t.GetTransmission()
-
-	driver, err := drivers.NewSparkPost(mail.Config{
+func Test_SparkPost(t *testing.T) {
+	LoadEnv(t)
+	cfg := mail.Config{
 		URL:         os.Getenv("SPARKPOST_URL"),
 		APIKey:      os.Getenv("SPARKPOST_API_KEY"),
 		FromAddress: os.Getenv("SPARKPOST_FROM_ADDRESS"),
 		FromName:    os.Getenv("SPARKPOST_FROM_NAME"),
-	})
-	if err != nil {
-		t.FailNow("Error creating client: " + err.Error())
 	}
-
-	result, err := driver.Send(tx)
-	if err != nil {
-		t.FailNow("Error sending SparkPost email: " + err.Error())
-	}
-
-	t.Equal(200, result.StatusCode)
-	t.NotNil(result.Body)
-	t.NotEmpty(result.Message)
-	t.NotEmpty(result.ID)
+	UtilTestSend(drivers.NewSparkPost, cfg, mail.SparkPost, t)
 }
