@@ -140,7 +140,7 @@ func (r *sgResponse) CheckError(response *http.Response, buf []byte) error {
 		return nil
 	}
 	if len(r.Errors) == 0 {
-		return  nil
+		return nil
 	}
 	return fmt.Errorf("%s - message: %s, field: %s, help: %s", sendgridErrorMessage, r.Errors[0].Message, r.Errors[0].Field, r.Errors[0].Help)
 }
@@ -149,7 +149,7 @@ func (r *sgResponse) Meta() httputil.Meta {
 	return httputil.Meta{
 		Message: "Successfully sent Sendgrid Email",
 		// No response data from Sendgrid
-		ID:      "",
+		ID: "",
 	}
 }
 
@@ -161,7 +161,7 @@ func (d *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
 
 	tx := sgTransmission{
 		From: &sgEmail{
-			Name: d.cfg.FromName,
+			Name:    d.cfg.FromName,
 			Address: d.cfg.FromAddress,
 		},
 		Subject: t.Subject,
