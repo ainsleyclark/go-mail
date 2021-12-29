@@ -19,6 +19,15 @@
 - ✅ Send CC & BCC messages.
 - ✅ Extremely lightweight.
 
+## Supported API's
+
+- [Mailgun (mailgun)](https://documentation.mailgun.com/e)
+- [Postal (postal)](https://docs.postalserver.io/)
+- [Postmark (postmark)](https://postmarkapp.com/)
+- [SendGrid (sendgrid)](https://sendgrid.com/)
+- [SparkPost (sparkpost)](https://www.sparkpost.com/))
+- SMTP
+
 ## Introduction
 
 Go Mail aims to unify multiple popular mail API's into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
@@ -56,15 +65,6 @@ fmt.Printf("%+v\n", result)
 ```bash
 go get -u github.com/ainsleyclark/go-mail
 ```
-
-## Supported API's
-
-- [Mailgun (mailgun)](https://documentation.mailgun.com/e)
-- [Postal (postal)](https://docs.postalserver.io/)
-- [Postmark (postmark)](https://postmarkapp.com/)
-- [SendGrid (sendgrid)](https://sendgrid.com/)
-- [SparkPost (sparkpost)](https://www.sparkpost.com/))
-- SMTP
 
 ## Docs
 
