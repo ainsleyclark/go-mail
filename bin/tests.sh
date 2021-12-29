@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/usr/bin/bash
 
 # Shell script for executing tests based on input.
 # Usage:
