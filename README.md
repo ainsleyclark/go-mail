@@ -13,9 +13,9 @@
 
 ## Overview
 
-- ✅ Multiple mail drivers for your needs or create your own Mailer.
-- ✅ Direct dependency free, all requests are made with the stdlib http.Client.
-- ✅ Send attachments with two struct fields.
+- ✅ Multiple mail drivers for your needs or even create your own custom Mailer.
+- ✅ Direct dependency free, all requests are made with the standard lib http.Client.
+- ✅ Send attachments with two struct fields, it's extremely simple.
 - ✅ Send CC & BCC messages.
 - ✅ Extremely lightweight.
 
@@ -99,6 +99,8 @@ indicating if the transmission was successful.
 ```go
 tx := &mail.Transmission{
     Recipients: []string{"hello@gophers.com"},
+		CC:         []string{"cc@gophers.com"},
+		BCC:        []string{"bcc@gophers.com"},
     Subject:    "My email",
     HTML:       "<h1>Hello from Go Mail!</h1>",
     PlainText:  "Hello from Go Mail!",
@@ -157,6 +159,8 @@ if err != nil {
 
 tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
 	PlainText:  "Hello from Go Mail!",
@@ -187,6 +191,8 @@ if err != nil {
 
 tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
 	PlainText:  "Hello from Go Mail!",
@@ -216,6 +222,8 @@ if err != nil {
 
 tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
 	PlainText:  "Hello from Go Mail!",
@@ -245,6 +253,8 @@ if err != nil {
 
 tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
 	PlainText:  "Hello from Go Mail!",
@@ -276,6 +286,8 @@ if err != nil {
 
 tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
 	PlainText:  "Hello from Go Mail!",
@@ -306,6 +318,8 @@ if err != nil {
 
 tx := &mail.Transmission{
 	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
 	PlainText:  "Hello from Go Mail!",
