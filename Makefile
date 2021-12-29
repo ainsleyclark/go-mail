@@ -27,7 +27,7 @@ test-v:
 # Runs real world tests for a driver or all drivers.
 # See ./bin/tests.sh for example usage.
 test-driver:
-	./bin/tests.sh $(driver)
+	go clean -testcache && ./bin/tests.sh $(driver)
 .PHONY: test-driver
 
 # Run all the tests and opens the coverage report

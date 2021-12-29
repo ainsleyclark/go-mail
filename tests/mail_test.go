@@ -41,8 +41,9 @@ func LoadEnv(t *testing.T) {
 	assert.NoError(t, err)
 
 	path := filepath.Join(filepath.Dir(wd), "/.env")
-	err = godotenv.Load()
+	err = godotenv.Load(path)
 	if err != nil {
+		fmt.Println(err)
 		fmt.Printf("Error loading .env file with path: %s, using system defaults.\n", path)
 	}
 }
@@ -64,11 +65,11 @@ func GetTransmission(t *testing.T) *mail.Transmission {
 
 	return &mail.Transmission{
 		Recipients: strings.Split(os.Getenv("EMAIL_TO"), ","),
-		CC:         strings.Split(os.Getenv("EMAIL_CC"), ","),
-		BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
-		Subject:    "Test - Go Mail",
-		HTML:       "<h1>Hello from Go Mail!</h1>",
-		PlainText:  "Hello from Go Mail!",
+		//CC:         strings.Split(os.Getenv("EMAIL_CC"), ","),
+		//BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
+		Subject:   "Test - Go Mail",
+		HTML:      "<h1>Hello from Go Mail!</h1>",
+		PlainText: "Hello from Go Mail!",
 		Attachments: []mail.Attachment{
 			{
 				Filename: "gopher.png",

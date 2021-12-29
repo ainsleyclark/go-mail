@@ -95,6 +95,16 @@ func (m *smtpClient) getTo(t *mail.Transmission) []string {
 func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 	buf := bytes.NewBuffer(nil)
 
+	buf.WriteString("MIME-Version: 1.0\n")
+	writer := multipart.NewWriter(buf)
+	boundary := writer.Boundary()
+
+	if t.HasAttachments() {
+		buf.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=%s\r\n", boundary))
+	} else {
+		buf.WriteString("Content-Type: text/html; charset=UTF-8\r\n")
+	}
+
 	buf.WriteString(fmt.Sprintf("Subject: %s\n", t.Subject))
 	buf.WriteString(fmt.Sprintf("To: %s\n", strings.Join(t.Recipients, ",")))
 
@@ -102,34 +112,27 @@ func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 		buf.WriteString(fmt.Sprintf("CC: %s\n", strings.Join(t.CC, ",")))
 	}
 
-	buf.WriteString("MIME-Version: 1.0\n")
-	writer := multipart.NewWriter(buf)
-	boundary := writer.Boundary()
-
-	if t.HasAttachments() {
-		buf.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=%s\n", boundary))
-		buf.WriteString(fmt.Sprintf("--%s\n", boundary))
-	} else {
-		buf.WriteString("Content-Type: text/html; charset=\"ascii\"\n")
-	}
-
 	if t.PlainText != "" {
-		buf.WriteString("Content-Type: text/plain; charset=utf-8\n")
-		buf.WriteString(t.PlainText)
+		buf.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+		buf.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
+		buf.WriteString("Content-Type: text/plain; charset=UTF-8\r\n")
+		buf.WriteString(fmt.Sprintf("\r\n%s\r\n", strings.TrimSpace(t.PlainText)))
 	}
 
 	if t.HTML != "" {
-		buf.WriteString("Content-Type: text/html; charset=\"ascii\"\n")
-		buf.WriteString(t.HTML)
+		buf.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+		buf.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
+		buf.WriteString("Content-Type: text/html; charset=UTF-8\r\n")
+		buf.WriteString(fmt.Sprintf("\r\n%s\r\n", t.HTML))
 	}
 
 	if t.HasAttachments() {
 		for _, v := range t.Attachments {
-			buf.WriteString(fmt.Sprintf("\n\n--%s\n", boundary))
+			buf.WriteString(fmt.Sprintf("--%s\r\n", boundary))
 			buf.WriteString(fmt.Sprintf("Content-Type: %s\n", v.Mime()))
 			buf.WriteString("Content-Transfer-Encoding: base64\n")
 			buf.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=%s\n", v.Filename))
-			buf.WriteString(fmt.Sprintf("\n--%s", v.B64()))
+			buf.WriteString(fmt.Sprintf("\r\n--%s", v.B64()))
 		}
 		buf.WriteString("--")
 	}
