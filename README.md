@@ -167,6 +167,155 @@ if err != nil {
 fmt.Printf("%+v\n", result)
 ```
 
+#### Postal
+
+```go
+cfg := mail.Config{
+	URL:         "https://postal.example.com",
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+}
+
+mailer, err := drivers.NewPostal(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "plain text",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
+#### Postmark
+
+```go
+	cfg := mail.Config{
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+	}
+
+	mailer, err := drivers.NewPostmark(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	tx := &mail.Transmission{
+		Recipients: []string{"hello@gophers.com"},
+		Subject:    "My email",
+		HTML:       "<h1>Hello from Go Mail!</h1>",
+		PlainText:  "plain text",
+	}
+
+	result, err := mailer.Send(tx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Printf("%+v\n", result)
+```
+
+#### SendGrid
+
+```go
+cfg := mail.Config{
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+}
+
+mailer, err := drivers.NewSendGrid(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "plain text",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
+#### SMTP
+
+```go
+cfg := mail.Config{
+	URL:         "smtp.gmail.com",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+	Password:    "my-password",
+	Port:        587,
+}
+
+mailer, err := drivers.NewSMTP(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "plain text",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
+#### SparkPost
+
+```go
+cfg := mail.Config{
+	URL:         "https://api.eu.sparkpost.com",
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+}
+
+mailer, err := drivers.NewSparkPost(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "plain text",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
 ## Todo
 
 - Remove external dependencies.
