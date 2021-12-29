@@ -69,7 +69,7 @@ func GetTransmission(t *testing.T) *mail.Transmission {
 		//BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
 		Subject:   "Test - Go Mail",
 		HTML:      "<h1>Hello from Go Mail!</h1>",
-		PlainText: "Hello from Go Mail!",
+		PlainText: "Hello from Go Mail",
 		Attachments: []mail.Attachment{
 			{
 				Filename: "gopher.png",
