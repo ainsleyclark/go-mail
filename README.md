@@ -35,8 +35,8 @@
 
 ## Introduction
 
-Go Mail aims to unify multiple popular mail API's into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
-choose what platform they use.
+Go Mail aims to unify multiple popular mail API's into a singular easy to use interface. Email sending is seriously
+simple and great for allowing the developer or end user to choose what platform they use.
 
 ```go
 cfg := mail.Config{
@@ -73,13 +73,14 @@ go get -u github.com/ainsleyclark/go-mail
 
 ## Docs
 
-Documentation can be found at the [Go Docs](https://pkg.go.dev/github.com/ainsleyclark/go-mail), but we have included a kick start guide below to get you started.
+Documentation can be found at the [Go Docs](https://pkg.go.dev/github.com/ainsleyclark/go-mail), but we have included a
+kick-start guide below to get you started.
 
 ### Creating a new client:
 
-You can create a new driver by calling the `drivers` package and passing in a configuration type which is  needed to create a new mailer, each platform requires its own data,
-for example, Mailgun requires a domain, but SparkPost doesn't.
-This is based of the requirements for the API. For more details see the examples above.
+You can create a new driver by calling the `drivers` package and passing in a configuration type which is required to
+create a new mailer, each platform requires its own data, for example, Mailgun requires a domain, but SparkPost doesn't.
+This is based of the requirements for the API. For more details see the [examples](#Examples) below.
 
 ```go
 cfg := mail.Config{
