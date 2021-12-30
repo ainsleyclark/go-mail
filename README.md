@@ -28,7 +28,7 @@ td, th {
 
 ## Supported API's
 
-<img align="left" src="https://www.google.com/s2/favicons?sz=30&domain_url=https://www.sparkpost.com/" /> [SparkPost (sparkpost)](https://www.sparkpost.com/)
+<img align="left" src="https://www.google.com/s2/favicons?sz=80&domain_url=https://www.sparkpost.com/" /> [SparkPost (sparkpost)](https://www.sparkpost.com/)
 
 
 ## Introduction
