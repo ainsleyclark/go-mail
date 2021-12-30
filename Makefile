@@ -4,12 +4,6 @@ setup:
 	go mod tidy
 .PHONY: setup
 
-# Creates and build dist folder
-dist:
-	goreleaser check
-	goreleaser release --rm-dist --snapshot
-.PHONY: dist
-
 # Run gofmt
 format:
 	go fmt ./...

@@ -7,9 +7,6 @@
 version=$1
 message=$2
 
-# Check goreleaser passed
-goreleaser check
-
 # Check version is not empty
 if [[ $version == "" ]]
   then
