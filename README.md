@@ -31,21 +31,19 @@ td, th {
 <img align="left" src="https://www.google.com/s2/favicons?sz=30&domain_url=https://www.sparkpost.com/" /> [SparkPost (sparkpost)](https://www.sparkpost.com/)
 
 
+## Introduction
+
+Go Mail aims to unify multiple popular mail API's into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
+choose what platform they use.
+
 - [Mailgun (mailgun)](https://documentation.mailgun.com/)
-
-
 - [Postal (postal)](https://docs.postalserver.io/)
 - [Postmark (postmark)](https://postmarkapp.com/)
 - [SendGrid (sendgrid)](https://sendgrid.com/)
 -
 - SMTP
 - More to come
-
-## Introduction
-
-Go Mail aims to unify multiple popular mail API's into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
-choose what platform they use.
-
+-
 ```go
 cfg := mail.Config{
     URL:         "https://api.eu.sparkpost.com",
