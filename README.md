@@ -35,7 +35,7 @@
 
 ## Introduction
 
-Go Mail aims to unify multiple popular mail API's into a singular easy to use interface. Email sending is seriously
+Go Mail aims to unify multiple popular mail APIs into a singular, easy to use interface. Email sending is seriously
 simple and great for allowing the developer or end user to choose what platform they use.
 
 ```go
@@ -79,7 +79,7 @@ kick-start guide below to get you started.
 ### Creating a new client:
 
 You can create a new driver by calling the `drivers` package and passing in a configuration type which is required to
-create a new mailer, each platform requires its own data, for example, Mailgun requires a domain, but SparkPost doesn't.
+create a new mailer. Each platform requires its own data, for example, Mailgun requires a domain, but SparkPost doesn't.
 This is based of the requirements for the API. For more details see the [examples](#Examples) below.
 
 ```go
@@ -98,7 +98,7 @@ if err != nil {
 
 ### Sending Data:
 
-A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Response` and error will
+A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Response` and an `error`
 be returned indicating if the transmission was successful.
 
 ```go
@@ -121,7 +121,7 @@ fmt.Printf("%+v\n", result)
 
 ### Response:
 
-The mail response is used for debugging and inspecting results of the mailer, below is the `Response` type.
+The mail response is used for debugging and inspecting results of the mailer. Below is the `Response` type.
 
 ```go
 // Response represents the data passed back from a successful transmission.
@@ -136,7 +136,7 @@ type Response struct {
 
 ### Adding attachments:
 
-Adding attachments to the transmission is as simple as passing a byte slice and filename, Go Mail takes care of the rest
+Adding attachments to the transmission is as simple as passing a byte slice and filename. Go Mail takes care of the rest
 for you.
 
 ```go
@@ -382,7 +382,7 @@ mail.Debug = true
 
 ### Setup
 
-To get setup with Go Mail simply clone the repo and run the following:
+To get set up with Go Mail simply clone the repo and run the following:
 
 ```bash
 go get github.com/vektra/mockery/v2/.../
@@ -392,10 +392,10 @@ make mocks
 
 ## Env
 
-All secretes are contained within the `.env` file for testing drivers. To begin with, make a copy of the `.env.example`
+All secrets are contained within the `.env` file for testing drivers. To begin with, make a copy of the `.env.example`
 file and name it `.env`. You can the set the environment variables to match your credentials for the mail drivers.
 
-You can set the recipients of emails by modifying the the `EMAIL` variables as show below.
+You can set the recipients of emails by modifying the `EMAIL` variables as show below.
 
 - `EMAIL_TO`: Recipients of test emails in a comma delimited list.
 - `EMAIL_CC`: CC recipients of test emails in a comma delimited list.

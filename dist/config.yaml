@@ -1,0 +1,117 @@
+project_name: GoMail
+release:
+  github:
+    owner: ainsleyclark
+    name: go-mail
+  draft: true
+  name_template: '{{.ProjectName}} v{{.Version}}'
+scoop:
+  name: GoMail
+  commit_author:
+    name: goreleaserbot
+    email: goreleaser@carlosbecker.com
+  commit_msg_template: Scoop update for {{ .ProjectName }} version {{ .PrefixedTag
+    }}
+builds:
+- id: GoMail
+  goos:
+  - linux
+  - darwin
+  goarch:
+  - amd64
+  - arm64
+  - "386"
+  goarm:
+  - "6"
+  gomips:
+  - hardfloat
+  targets:
+  - linux_amd64
+  - linux_arm64
+  - linux_386
+  - darwin_amd64
+  - darwin_arm64
+  dir: .
+  main: .
+  ldflags:
+  - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    -X main.builtBy=goreleaser
+  binary: GoMail
+  builder: go
+  gobinary: go
+archives:
+- id: default
+  builds:
+  - main
+  name_template: '{{ tolower .ProjectName }}_v{{ .Version }}'
+  format: zip
+  wrap_in_directory: insights-proxy
+  files:
+  - src: README.md
+  - src: LICENCE
+  - src: .env.example
+snapshot:
+  name_template: '{{ .Tag }}'
+nightly:
+  name_template: '{{ incpatch .Version }}-{{ .ShortCommit }}-dev'
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+changelog:
+  skip: true
+dist: dist
+env_files:
+  github_token: ~/.config/goreleaser/github_token
+  gitlab_token: ~/.config/goreleaser/gitlab_token
+  gitea_token: ~/.config/goreleaser/gitea_token
+before:
+  hooks:
+  - cmd: go mod tidy
+  - cmd: go generate ./...
+  - cmd: make all
+source:
+  name_template: '{{ .ProjectName }}-{{ .Version }}'
+  format: tar.gz
+gomod:
+  gobinary: go
+announce:
+  twitter:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL
+      }}'
+  reddit:
+    title_template: '{{ .ProjectName }} {{ .Tag }} is out!'
+    url_template: '{{ .ReleaseURL }}'
+  slack:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL
+      }}'
+    username: GoReleaser
+  discord:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL
+      }}'
+    author: GoReleaser
+    color: "3888754"
+    icon_url: https://goreleaser.com/static/avatar.png
+  teams:
+    title_template: '{{ .ProjectName }} {{ .Tag }} is out!'
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL
+      }}'
+    color: '#2D313E'
+    icon_url: https://goreleaser.com/static/avatar.png
+  smtp:
+    subject_template: '{{ .ProjectName }} {{ .Tag }} is out!'
+    body_template: 'You can view details from: {{ .ReleaseURL }}'
+  mattermost:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL
+      }}'
+    title_template: '{{ .ProjectName }} {{ .Tag }} is out!'
+    username: GoReleaser
+  linkedin:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL
+      }}'
+  telegram:
+    message_template: '{{ .ProjectName }} {{ .Tag }} is out! Check it out at {{ .ReleaseURL
+      }}'
+github_urls:
+  download: https://github.com
+gitlab_urls:
+  download: https://gitlab.com
