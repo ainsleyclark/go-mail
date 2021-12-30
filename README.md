@@ -22,12 +22,12 @@
 
 ## Supported API's
 
-<img align="left" src="res/logos/postal.svg" width="100" /><a href="https://docs.postalserver.io/">Postal</a>
+<img align="left" src="res/logos/postal.svg" width="100" /> [Postal (postal)](https://docs.postalserver.io/)
 
 <img align="left" src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" /><a href="https://www.sparkpost.com/">SparkPost</a>
 
 -  [Mailgun (mailgun)](https://documentation.mailgun.com/e)
-- [Postal (postal)](https://docs.postalserver.io/)
+-
 - [Postmark (postmark)](https://postmarkapp.com/)
 - [SendGrid (sendgrid)](https://sendgrid.com/)
 - [SparkPost (sparkpost)]()
