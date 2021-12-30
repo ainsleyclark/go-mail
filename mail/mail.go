@@ -16,7 +16,7 @@ package mail
 import "errors"
 
 var (
-	// Debug - Set true to write the HTTP requests in curl for to stdout.
+	// Debug - Set true to write the HTTP requests in curl to stdout.
 	// Additional information will also be displayed in the errors such as
 	// method operations.
 	Debug = false
@@ -59,6 +59,5 @@ type Mailer interface {
 	//
 	// A mail.Response or an error will be returned. In some circumstances
 	// the body and status code will be attached to the response for debugging.
-	//
 	Send(t *Transmission) (Response, error)
 }

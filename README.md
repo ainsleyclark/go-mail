@@ -338,8 +338,81 @@ if err != nil {
 fmt.Printf("%+v\n", result)
 ```
 
+## Writing a Mailable
+
+You have the ability to create your own custom Mailer by implementing the singular method interface shown below.
+
+```go
+type Mailer interface {
+	// Send accepts a mail.Transmission to send an email through a particular
+	// driver/provider. Transmissions will be validated before sending.
+	//
+	// A mail.Response or an error will be returned. In some circumstances
+	// the body and status code will be attached to the response for debugging.
+	Send(t *Transmission) (Response, error)
+}
+```
+
+## Debugging
+
+To debug any errors or issues you are facing with Go Mail, you are able to change the `Debug` variable in the
+`mail` package. This will write the HTTP requests in curl to stdout. Additional information will also be
+displayed in the errors such as method operations.
+
+```go
+mail.Debug = true
+```
+
 ## Development
 
+### Setup
+
+To get setup with Go Mail simply clone the repo and run the following:
+
+```bash
+go get github.com/vektra/mockery/v2/.../
+make setup
+make mocks
+```
+
+## Env
+
+All secretes are contained within the `.env` file for testing drivers. To begin with, make a copy of the `.env.example`
+file and name it `.env`. You can the set the environment variables to match your credentials for the mail drivers.
+
+You can set the recipients of emails by modifying the the `EMAIL` variables as show below.
+
+- `EMAIL_TO`: Recipients of test emails in a comma delimited list.
+- `EMAIL_CC`: CC recipients of test emails in a comma delimited list.
+- `EMAIL_BCC`: BCC recipients of test emails in a comma delimited list.
+
+### Testing
+
+To run all driver tests, execute the following command:
+
+```bash
+make test-driver
+```
+
+To run a specific driver test, prepend the `driver` flag as show below:
+
+```bash
+make test-driver driver=sparkpost
+```
+
+The driver flag can be one of the following:
+
+- `mailgun`
+- `postal`
+- `postmark`
+- `sendgrid`
+- `smtp`
+- `sparkpost`
+
+## TODO
+
+- Add headers to transmission
+- Add templates to providers - Sparkpost et al.
 
 ## Contributing
 

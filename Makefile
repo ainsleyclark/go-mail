@@ -40,6 +40,7 @@ mocks:
 	rm -rf internal/mocks && mockery --all --keeptree --output ./internal/mocks && mv ./internal/mocks/internal/* ./internal/mocks
 .PHONY: mocks
 
+# Run go doc
 doc:
 	godoc -http localhost:8080
 .PHONY: doc
