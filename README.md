@@ -19,9 +19,17 @@
 - ✅ Send CC & BCC messages.
 - ✅ Extremely lightweight.
 
+
 ## Supported API's
 
-- [Mailgun (mailgun)](https://documentation.mailgun.com/e)
+<table>
+  <tr>
+    <td valign="top"><img src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" /></td>
+    <td valign="top">Test</td>
+  </tr>
+</table>
+
+-  [Mailgun (mailgun)](https://documentation.mailgun.com/e)
 - [Postal (postal)](https://docs.postalserver.io/)
 - [Postmark (postmark)](https://postmarkapp.com/)
 - [SendGrid (sendgrid)](https://sendgrid.com/)
