@@ -24,8 +24,8 @@
 
 <table>
   <tr>
-    <td valign="top"><img src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" /></td>
-    <td valign="top">Test</td>
+    <td style="padding: 0; border: 0;"><img src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" /></td>
+    <td style="padding: 0; border: 0;">Test</td>
   </tr>
 </table>
 
