@@ -11,6 +11,12 @@
   </p>
 </p>
 
+<style>
+td, th {
+   border: none!important;
+}
+</style>
+
 ## Overview
 
 - ✅ Multiple mail drivers for your needs or even create your own custom Mailer.
