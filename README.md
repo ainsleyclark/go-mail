@@ -25,9 +25,8 @@
 - <img align="left" src="res/logos/postal.svg" width="18" /> [Postal](https://docs.postalserver.io/)
 - <img align="left" src="res/logos/postmark.png" width="18" /> [Postmark](https://postmarkapp.com/)
 - <img align="left" src="res/logos/sendgrid.svg" width="18" /> [SendGrid](https://sendgrid.com/)
-- <img align="left" src="res/logos/sparkpost.png" width="18" /> [SparkPost](https://www.sparkpost.com/)
-
-[comment]: <> (- <img align="left" src="res/logos/smtp.svg" width="18" /> [SMTP]&#40;https://pkg.go.dev/net/smtp&#41;)
+- <img align="left" src="res/logos/sparkpost.png" width="15" /> [SparkPost](https://www.sparkpost.com/)
+- <img align="left" src="res/logos/smtp.svg" width="18" /> [SMTP](https://pkg.go.dev/net/smtp)
 
 ## Introduction
 
