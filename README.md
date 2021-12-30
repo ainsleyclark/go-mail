@@ -22,19 +22,14 @@
 
 ## Supported API's
 
-<img align="left" src="res/logos/mailgun.svg" width="24" />  [Mailgun (mailgun)](https://documentation.mailgun.com/e)
+<img align="left" src="res/logos/mailgun.svg" width="24" />  [Mailgun](https://documentation.mailgun.com/)
+<img align="left" src="res/logos/postal.svg" width="24" /> [Postal](https://docs.postalserver.io/)
+<img align="left" src="res/logos/postmark.png" width="24" /> [Postmark](https://postmarkapp.com/)
+<img align="left" src="res/logos/sendgrid.svg" width="24" /> [SendGrid](https://sendgrid.com/)
+<img align="left" src="res/logos/sparkpost.png" width="24" /> [SparkPost](https://www.sparkpost.com/)
+<img align="left" src="res/logos/smtp.svg" width="24" /> SMTP
 
-<img align="left" src="res/logos/postal.svg" width="24" /> [Postal (postal)](https://docs.postalserver.io/)
-
-<img align="left" src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" /><a href="https://www.sparkpost.com/">SparkPost</a>
-
--
--
-- [Postmark (postmark)](https://postmarkapp.com/)
-- [SendGrid (sendgrid)](https://sendgrid.com/)
-- [SparkPost (sparkpost)]()
-- SMTP
-- More to come
+More to come soon...
 
 ## Introduction
 
