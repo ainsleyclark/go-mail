@@ -67,9 +67,9 @@ func GetTransmission(t *testing.T) *mail.Transmission {
 		Recipients: strings.Split(os.Getenv("EMAIL_TO"), ","),
 		CC:         strings.Split(os.Getenv("EMAIL_CC"), ","),
 		BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
-		Subject:   "Test - Go Mail",
-		HTML:      "<h1>Hello from Go Mail!</h1>",
-		PlainText: "Hello from Go Mail!",
+		Subject:    "Test - Go Mail",
+		HTML:       "<h1>Hello from Go Mail!</h1>",
+		PlainText:  "Hello from Go Mail!",
 		Attachments: []mail.Attachment{
 			{
 				Filename: "gopher.png",
@@ -82,12 +82,6 @@ func GetTransmission(t *testing.T) *mail.Transmission {
 // UtilTestSend is a helper function for performing live mailing
 // tests for the drivers.
 func UtilTestSend(t *testing.T, fn func(cfg mail.Config) (mail.Mailer, error), cfg mail.Config, driver string) {
-	// Set debugging to true
-	mail.Debug = true
-	defer func() {
-		mail.Debug = false
-	}()
-
 	t.Helper()
 
 	tx := GetTransmission(t)
