@@ -4,6 +4,7 @@
   <p align="center">A cross platform mail driver for GoLang.</p>
   <p align="center">
 		<a href="https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml"><img src="https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml/badge.svg?branch=main"></a>
+		<a href="https://github.com/ainsleyclark/go-mail/actions/workflows/email.yml"><img src="https://github.com/ainsleyclark/go-mail/actions/workflows/email.yml/badge.svg?branch=main"></a>
     <a href="/LICENSE.md"><img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"></a>
 		<a href="https://codecov.io/gh/ainsleyclark/go-mail"><img src="https://codecov.io/gh/ainsleyclark/go-mail/branch/main/graph/badge.svg?token=1ZI9R34CHQ"/></a>
     <a href="https://goreportcard.com/report/github.com/ainsleyclark/go-mail"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/ainsleyclark/go-mail?update=true"></a>
@@ -436,3 +437,6 @@ We welcome contributors, but please read the [contributing document](CONTRIBUTIN
 ## Licence
 
 Code Copyright 2021 Go Mail. Code released under the [MIT Licence](LICENCE).
+
+<a href="https://www.producthunt.com/posts/go-mail?utm_source=badge-review&utm_medium=badge&utm_souce=badge-go-mail#discussion-body" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/review.svg?post_id=324954&theme=light" alt="Go Mail - 📧 A cross platform mail driver for GoLang. | Product Hunt" width="250" height="54" /></a>
+<a href="https://www.producthunt.com/posts/go-mail?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go-mail" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=324954&theme=light" alt="Go Mail - 📧 A cross platform mail driver for GoLang. | Product Hunt" width="250" height="54" /></a>
