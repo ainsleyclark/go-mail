@@ -15,10 +15,25 @@ package drivers
 
 import (
 	"fmt"
+	mocks "github.com/ainsleyclark/go-mail/internal/mocks/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	mocks "github.com/ainsleyclark/go-mail/mocks/client"
+	"log"
 	"net/http"
 )
+
+func ExampleNewSparkPost() {
+	cfg := mail.Config{
+		URL:         "https://api.eu.sparkpost.com", // Or https://api.sparkpost.com/api/v1
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+	}
+
+	_, err := NewSparkPost(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
 
 func (t *DriversTestSuite) TestNewSparkPost() {
 	tt := map[string]struct {

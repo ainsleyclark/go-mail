@@ -145,11 +145,11 @@ tx := &mail.Transmission{
 
 ```go
 cfg := mail.Config{
-	URL:         "my-url",
+URL:         "https://api.eu.mailgun.net", // Or https://api.mailgun.net
 	APIKey:      "my-key",
 	FromAddress: "hello@gophers.com",
 	FromName:    "Gopher",
-	Domain:      "my-domain",
+	Domain:      "my-domain.com",
 }
 
 mailer, err := drivers.NewMailgun(cfg)
@@ -305,7 +305,7 @@ fmt.Printf("%+v\n", result)
 
 ```go
 cfg := mail.Config{
-	URL:         "https://api.eu.sparkpost.com",
+	URL:         "https://api.eu.sparkpost.com", // Or https://api.sparkpost.com/api/v1
 	APIKey:      "my-key",
 	FromAddress: "hello@gophers.com",
 	FromName:    "Gopher",

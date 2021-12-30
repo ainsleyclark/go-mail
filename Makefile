@@ -37,8 +37,12 @@ cover: test
 
 # Make mocks keeping directory tree
 mocks:
-	rm -rf mocks && mockery --all --keeptree && mv mocks/internal/* mocks/ && rm -rf mocks/internal
+	rm -rf internal/mocks && mockery --all --keeptree --output ./internal/mocks && mv ./internal/mocks/internal/* ./internal/mocks
 .PHONY: mocks
+
+doc:
+	godoc -http localhost:8080
+.PHONY: doc
 
 # Make format, lint and test
 all:

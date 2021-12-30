@@ -16,8 +16,8 @@ package drivers
 import (
 	"errors"
 	"github.com/ainsleyclark/go-mail/internal/httputil"
+	"github.com/ainsleyclark/go-mail/internal/mocks/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/ainsleyclark/go-mail/mocks/client"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"

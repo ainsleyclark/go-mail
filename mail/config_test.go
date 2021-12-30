@@ -13,7 +13,16 @@
 
 package mail
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
+
+func ExampleConfig_Validate() {
+	cfg := Config{}
+	fmt.Println(cfg.Validate())
+	// Output: driver requires from address
+}
 
 func (t *MailTestSuite) TestConfig_Validate() {
 	tt := map[string]struct {
@@ -54,52 +63,6 @@ func (t *MailTestSuite) TestConfig_Validate() {
 	for name, test := range tt {
 		t.Run(name, func() {
 			got := test.input.Validate()
-			t.Equal(test.want, got)
-		})
-	}
-}
-
-func (t *MailTestSuite) TestConfig_HasCC() {
-	tt := map[string]struct {
-		input Transmission
-		want  bool
-	}{
-		"With": {
-			Transmission{CC: []string{"hello@test.com"}},
-			true,
-		},
-		"Without": {
-			Transmission{},
-			false,
-		},
-	}
-
-	for name, test := range tt {
-		t.Run(name, func() {
-			got := test.input.HasCC()
-			t.Equal(test.want, got)
-		})
-	}
-}
-
-func (t *MailTestSuite) TestConfig_HasBCC() {
-	tt := map[string]struct {
-		input Transmission
-		want  bool
-	}{
-		"With": {
-			Transmission{BCC: []string{"hello@test.com"}},
-			true,
-		},
-		"Without": {
-			Transmission{},
-			false,
-		},
-	}
-
-	for name, test := range tt {
-		t.Run(name, func() {
-			got := test.input.HasBCC()
 			t.Equal(test.want, got)
 		})
 	}

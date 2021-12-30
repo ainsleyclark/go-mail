@@ -15,14 +15,25 @@ package drivers
 
 import (
 	"fmt"
+	mocks "github.com/ainsleyclark/go-mail/internal/mocks/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	mocks "github.com/ainsleyclark/go-mail/mocks/client"
+	"log"
 	"net/http"
 )
 
-var (
-	PostalHeaders = http.Header{"Content-Type": []string{"application/json"}, "X-Server-Api-Key": []string{""}}
-)
+func ExampleNewPostal() {
+	cfg := mail.Config{
+		URL:         "https://postal.example.com",
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+	}
+
+	_, err := NewPostal(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
 
 func (t *DriversTestSuite) TestNewPostal() {
 	tt := map[string]struct {

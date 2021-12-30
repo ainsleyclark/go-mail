@@ -15,10 +15,25 @@ package drivers
 
 import (
 	"fmt"
+	mocks "github.com/ainsleyclark/go-mail/internal/mocks/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	mocks "github.com/ainsleyclark/go-mail/mocks/client"
+	"log"
 	"net/http"
 )
+
+func ExampleNewPostmark() {
+	cfg := mail.Config{
+		URL:         "https://postal.example.com",
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+	}
+
+	_, err := NewPostal(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
 
 func (t *DriversTestSuite) TestNewPostmark() {
 	tt := map[string]struct {

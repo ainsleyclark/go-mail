@@ -15,10 +15,26 @@ package drivers
 
 import (
 	"errors"
+	mocks "github.com/ainsleyclark/go-mail/internal/mocks/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	mocks "github.com/ainsleyclark/go-mail/mocks/client"
+	"log"
 	"net/http"
 )
+
+func ExampleNewMailgun() {
+	cfg := mail.Config{
+		URL:         "https://api.eu.mailgun.net", // Or https://api.mailgun.net
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+		Domain:      "my-domain.com",
+	}
+
+	_, err := NewMailgun(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
 
 func (t *DriversTestSuite) TestNewMailGun() {
 	tt := map[string]struct {
