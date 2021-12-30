@@ -15,7 +15,7 @@ package mail
 
 import (
 	"encoding/base64"
-	"github.com/gabriel-vasile/mimetype"
+	"github.com/ainsleyclark/go-mail/internal/mime"
 )
 
 // Attachment defines an email attachment for Go Mail.
@@ -28,7 +28,7 @@ type Attachment struct {
 
 // Mime returns the mime type of the byte data.
 func (a Attachment) Mime() string {
-	return mimetype.Detect(a.Bytes).String()
+	return mime.DetectBuffer(a.Bytes)
 }
 
 // B64 returns the base 64 encoding of the attachment.

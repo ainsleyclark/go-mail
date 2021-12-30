@@ -25,6 +25,8 @@ import (
 	"time"
 )
 
+// Requester defines the method used for interacting with
+// a Mailable API.
 type Requester interface {
 	// Do accepts a message, url endpoint and optional Headers to POST data
 	// to a drivers API.
