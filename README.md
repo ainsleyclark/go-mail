@@ -21,12 +21,12 @@
 
 ## Supported API's
 
-- <img align="left" src="res/logos/mailgun.svg" width="24" />  [Mailgun](https://documentation.mailgun.com/)
-- <img align="left" src="res/logos/postal.svg" width="24" /> [Postal](https://docs.postalserver.io/)
-- <img align="left" src="res/logos/postmark.png" width="24" /> [Postmark](https://postmarkapp.com/)
-- <img align="left" src="res/logos/sendgrid.svg" width="24" /> [SendGrid](https://sendgrid.com/)
-- <img align="left" src="res/logos/sparkpost.png" width="24" /> [SparkPost](https://www.sparkpost.com/)
-- <img align="left" src="res/logos/smtp.svg" width="24" /> SMTP
+- <img align="left" src="res/logos/mailgun.svg" width="18" />  [Mailgun](https://documentation.mailgun.com/)
+- <img align="left" src="res/logos/postal.svg" width="18" /> [Postal](https://docs.postalserver.io/)
+- <img align="left" src="res/logos/postmark.png" width="18" /> [Postmark](https://postmarkapp.com/)
+- <img align="left" src="res/logos/sendgrid.svg" width="18" /> [SendGrid](https://sendgrid.com/)
+- <img align="left" src="res/logos/sparkpost.png" width="18" /> [SparkPost](https://www.sparkpost.com/)
+- <img align="left" src="res/logos/smtp.svg" width="18" /> [SMTP]
 
 ## Introduction
 
