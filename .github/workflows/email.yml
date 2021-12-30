@@ -62,5 +62,9 @@ jobs:
           # Make file runnable, might not be necessary
           chmod +x "${GITHUB_WORKSPACE}/bin/tests.sh"
           # Run tests
-          "${GITHUB_WORKSPACE}/bin/tests.sh"
+          "${GITHUB_WORKSPACE}/bin/tests.sh mailgun"
+          "${GITHUB_WORKSPACE}/bin/tests.sh postmark"
+          "${GITHUB_WORKSPACE}/bin/tests.sh sendgrid"
+          "${GITHUB_WORKSPACE}/bin/tests.sh smtp"
+          "${GITHUB_WORKSPACE}/bin/tests.sh sparkpost"
 
