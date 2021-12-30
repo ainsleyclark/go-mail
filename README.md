@@ -31,7 +31,7 @@
 
 - <img align="left" src="res/logos/sparkpost.png?new=new" width="24" /> [SparkPost](https://www.sparkpost.com/)
 
-- <img align="left" src="res/logos/smtp.svg" width="24" /> [SMTP](https://pkg.go.dev/net/smtp)
+- <img align="left" src="res/logos/smtp.svg" width="24" /> SMTP
 
 ## Introduction
 
