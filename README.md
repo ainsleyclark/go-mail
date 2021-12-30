@@ -98,8 +98,8 @@ if err != nil {
 
 ### Sending Data:
 
-A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Result` and error will be returned
-indicating if the transmission was successful.
+A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Response` and error will
+be returned indicating if the transmission was successful.
 
 ```go
 tx := &mail.Transmission{
@@ -119,10 +119,25 @@ if err != nil {
 fmt.Printf("%+v\n", result)
 ```
 
+### Response:
+
+The mail response is used for debugging and inspecting results of the mailer, below is the `Response` type.
+
+```go
+// Response represents the data passed back from a successful transmission.
+type Response struct {
+	StatusCode int                 // e.g. 200
+	Body       []byte              // e.g. {"result: success"}
+	Headers    map[string][]string // e.g. map[X-Ratelimit-Limit:[600]]
+	ID         string              // e.g "100"
+	Message    interface{}         // e.g "Email sent successfully"
+}
+```
+
 ### Adding attachments:
 
-Adding attachments to the transmission is as simple as passing a byte slice and filename,
-Go Mail takes care of the rest for you.
+Adding attachments to the transmission is as simple as passing a byte slice and filename, Go Mail takes care of the rest
+for you.
 
 ```go
 image, err := ioutil.ReadFile("gopher.jpg")
@@ -349,7 +364,7 @@ type Mailer interface {
 	//
 	// A mail.Response or an error will be returned. In some circumstances
 	// the body and status code will be attached to the response for debugging.
-	Send(t *Transmission) (Response, error)
+	Send(t *mail.Transmission) (mail.Response, error)
 }
 ```
 
