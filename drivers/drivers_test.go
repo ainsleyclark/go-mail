@@ -14,9 +14,14 @@
 package drivers
 
 import (
+	"errors"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
+	"github.com/ainsleyclark/go-mail/internal/mocks/client"
 	"github.com/ainsleyclark/go-mail/mail"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"testing"
 )
@@ -58,15 +63,20 @@ var (
 	// Trans is the transmission with an
 	// attachment used for testing.
 	TransWithAttachment = &mail.Transmission{
-		Recipients: []string{"recipient@test.com"},
-		Subject:    "Subject",
-		HTML:       "<h1>HTML</h1>",
-		PlainText:  "PlainText",
-		Attachments: mail.Attachments{
-			mail.Attachment{
-				Filename: "test.jpg",
-			},
-		},
+		Recipients:  []string{"recipient@test.com"},
+		Subject:     "Subject",
+		HTML:        "<h1>HTML</h1>",
+		PlainText:   "PlainText",
+		Attachments: []mail.Attachment{{Filename: "test.jpg"}},
+	}
+	// Config is the default configuration used
+	// for testing.
+	Comfig = mail.Config{
+		URL:         "my-url",
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+		Domain:      "my-domain",
 	}
 )
 
@@ -82,5 +92,107 @@ func (t *DriversTestSuite) Attachment(name string) mail.Attachment {
 	return mail.Attachment{
 		Filename: name,
 		Bytes:    file,
+	}
+}
+
+func (t *DriversTestSuite) UtilTestUnmarshal(r httputil.Responder, buf []byte) {
+	errBuf := []byte("wrong")
+	err := r.Unmarshal(errBuf)
+	t.Error(err)
+	err = r.Unmarshal(buf)
+	t.NoError(err)
+}
+
+func (t *DriversTestSuite) UtilTestMeta(r httputil.Responder, message, id string) {
+	got := r.Meta()
+	t.Equal(message, got.Message)
+	t.Equal(id, got.ID)
+}
+
+func (t *DriversTestSuite) UtilTestSend(fn func(m *mocks.Requester) mail.Mailer, json bool) {
+	res := mail.Response{
+		StatusCode: http.StatusOK,
+		Body:       []byte("body"),
+		Headers:    nil,
+		ID:         "1",
+		Message:    "success",
+	}
+
+	tt := map[string]struct {
+		input  *mail.Transmission
+		mock   func(m *mocks.Requester)
+		jsonFn func(obj interface{}) (*httputil.JSONData, error)
+		want   interface{}
+	}{
+		"Success": {
+			Trans,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(res, nil)
+			},
+			httputil.NewJSONData,
+			res,
+		},
+		"With Attachment": {
+			TransWithAttachment,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(res, nil)
+			},
+			httputil.NewJSONData,
+			res,
+		},
+		"Validation Failed": {
+			nil,
+			nil,
+			httputil.NewJSONData,
+			"can't validate a nil transmission",
+		},
+		"JSON Error": {
+			Trans,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(mail.Response{}, errors.New("send error"))
+			},
+			func(obj interface{}) (*httputil.JSONData, error) {
+				return nil, errors.New("json error")
+			},
+			"json error",
+		},
+		"Send Error": {
+			Trans,
+			func(m *mocks.Requester) {
+				m.On("Do", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+					Return(mail.Response{}, errors.New("send error"))
+			},
+			httputil.NewJSONData,
+			"send error",
+		},
+	}
+
+	for name, test := range tt {
+		if name == "JSON Error" && !json {
+			continue
+		}
+
+		t.Run(name, func() {
+			orig := newJSONData
+			defer func() { newJSONData = orig }()
+			newJSONData = test.jsonFn
+
+			requester := &mocks.Requester{}
+			if test.mock != nil {
+				test.mock(requester)
+			}
+
+			m := fn(requester)
+
+			got, err := m.Send(test.input)
+			if err != nil {
+				t.Contains(err.Error(), test.want)
+				return
+			}
+			t.Equal(test.want, got)
+		})
 	}
 }

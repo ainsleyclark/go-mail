@@ -14,11 +14,27 @@
 package drivers
 
 import (
-	"context"
 	"errors"
+	mocks "github.com/ainsleyclark/go-mail/internal/mocks/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/mailgun/mailgun-go/v4"
+	"log"
+	"net/http"
 )
+
+func ExampleNewMailgun() {
+	cfg := mail.Config{
+		URL:         "https://api.eu.mailgun.net", // Or https://api.mailgun.net
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+		Domain:      "my-domain.com",
+	}
+
+	_, err := NewMailgun(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
 
 func (t *DriversTestSuite) TestNewMailGun() {
 	tt := map[string]struct {
@@ -51,7 +67,7 @@ func (t *DriversTestSuite) TestNewMailGun() {
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			got, err := NewMailGun(test.input)
+			got, err := NewMailgun(test.input)
 			if err != nil {
 				t.Contains(err.Error(), test.want)
 				return
@@ -61,68 +77,53 @@ func (t *DriversTestSuite) TestNewMailGun() {
 	}
 }
 
-func (t *DriversTestSuite) TestMailGun_Send() {
+func (t *DriversTestSuite) TestMailgunResponse_Unmarshal() {
+	t.UtilTestUnmarshal(&mailgunResponse{}, []byte(`{"message": "Hello"}`))
+}
+
+func (t *DriversTestSuite) TestMailgunResponse_CheckError() {
 	tt := map[string]struct {
-		input *mail.Transmission
-		send  mailGunSendFunc
-		want  interface{}
+		response *http.Response
+		buf      []byte
+		want     error
 	}{
-		"Success": {
-			Trans,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "success", "1", nil
-			},
-			mail.Response{
-				StatusCode: 200,
-				Body:       "",
-				Headers:    nil,
-				ID:         "1",
-				Message:    "success",
-			},
-		},
-		"With Attachment": {
-			TransWithAttachment,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "success", "1", nil
-			},
-			mail.Response{
-				StatusCode: 200,
-				Body:       "",
-				Headers:    nil,
-				ID:         "1",
-				Message:    "success",
-			},
-		},
-		"Validation Failed": {
+		"2xx": {
+			&http.Response{StatusCode: http.StatusOK},
+			[]byte("test"),
 			nil,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "", "", nil
-			},
-			"can't validate a nil transmission",
 		},
-		"Send Error": {
-			Trans,
-			func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error) {
-				return "", "", errors.New("send error")
-			},
-			"send error",
+		"Empty Body": {
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			nil,
+			mail.ErrEmptyBody,
+		},
+		"Error": {
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			[]byte("test"),
+			errors.New("error"),
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			spark := mailGun{
-				cfg: mail.Config{
-					FromAddress: "from",
-				},
-				send: test.send,
-			}
-			resp, err := spark.Send(test.input)
+			resp := mailgunResponse{Message: "error"}
+			err := resp.CheckError(test.response, test.buf)
 			if err != nil {
-				t.Contains(err.Error(), test.want)
+				t.Contains(err.Error(), test.want.Error())
 				return
 			}
-			t.Equal(test.want, resp)
+			t.Equal(test.want, err)
 		})
 	}
+}
+
+func (t *DriversTestSuite) TestMailgunResponse_Meta() {
+	d := &mailgunResponse{Message: "Success", ID: "id"}
+	t.UtilTestMeta(d, d.Message, d.ID)
+}
+
+func (t *DriversTestSuite) TestMailGun_Send() {
+	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
+		return &mailGun{cfg: Comfig, client: m}
+	}, false)
 }

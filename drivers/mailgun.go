@@ -15,30 +15,35 @@ package drivers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/ainsleyclark/go-mail/internal/client"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/mailgun/mailgun-go/v4"
 	"net/http"
-	"time"
+	"strings"
 )
 
-// mailGun represents the data for sending mail via the
-// MailGun API. Configuration, the client and the
-// main send function are parsed for sending
-// data.
+// mailgun represents the entity for sending mail via the
+// Mailgun API.
+//
+// See:
+// https://documentation.mailgun.com/en/latest/api_reference.html
+// https://documentation.mailgun.com/en/latest/api-sending.html
 type mailGun struct {
 	cfg    mail.Config
-	client *mailgun.MailgunImpl
-	send   mailGunSendFunc
+	client client.Requester
 }
 
-// mailGunSendFunc defines the function for ending MailGun
-// transmissions.
-type mailGunSendFunc func(ctx context.Context, message *mailgun.Message) (mes string, id string, err error)
+const (
+	// mailgunEndpoint defines the endpoint to POST to.
+	mailgunEndpoint = "/v3/%s/messages"
+)
 
-// NewMailGun creates a new MailGun client. Configuration
+// NewMailgun creates a new Mailgun client. Configuration
 // is validated before initialisation.
-func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
+func NewMailgun(cfg mail.Config) (mail.Mailer, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err
@@ -46,59 +51,90 @@ func NewMailGun(cfg mail.Config) (mail.Mailer, error) {
 	if cfg.Domain == "" {
 		return nil, errors.New("driver requires a domain")
 	}
-	client := mailgun.NewMailgun(cfg.Domain, cfg.APIKey)
 	return &mailGun{
 		cfg:    cfg,
-		client: client,
-		send:   client.Send,
+		client: client.New(),
 	}, nil
 }
 
-// Send posts the go mail Transmission to the MailGun
-// API. Transmissions are validated before sending
-// and attachments are added. Returns an error
-// upon failure.
+type (
+	// mailGunResponse defines the data sent back from the MailGun API.
+	// ID is included on successful transmission.
+	//
+	// Example JSON Responses:
+	// {"id":"<20211229082318.a988bed7abe472bd@sandboxa6807a568a404524b2b216817d7ed775.mailgun.org>","message":"Queued. Thank you."}
+	// {"message":"Need at least one of 'text' or 'html' parameters specified"}
+	// {"message":"from parameter is missing"}
+	mailgunResponse struct {
+		Message string `json:"message"`
+		ID      string `json:"id,omitempty"`
+	}
+)
+
+func (r *mailgunResponse) Unmarshal(buf []byte) error {
+	resp := &mailgunResponse{}
+	err := json.Unmarshal(buf, resp)
+	if err != nil {
+		return err
+	}
+	*r = *resp
+	return nil
+}
+
+func (r *mailgunResponse) CheckError(response *http.Response, buf []byte) error {
+	if client.Is2XX(response.StatusCode) {
+		return nil
+	}
+	if len(buf) == 0 {
+		return mail.ErrEmptyBody
+	}
+	return errors.New(r.Message)
+}
+
+func (r *mailgunResponse) Meta() httputil.Meta {
+	return httputil.Meta{
+		Message: r.Message,
+		ID:      r.ID,
+	}
+}
+
 func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	message := m.client.NewMessage(m.cfg.FromAddress, t.Subject, t.PlainText, t.Recipients...)
-	message.SetHtml(t.HTML)
+	f := newFormData()
+	f.AddValue("from", fmt.Sprintf("%s <%s>", m.cfg.FromName, m.cfg.FromAddress))
+	f.AddValue("subject", t.Subject)
+	f.AddValue("html", t.HTML)
+	f.AddValue("text", t.PlainText)
+
+	for _, to := range t.Recipients {
+		f.AddValue("to", to)
+	}
 
 	if t.HasCC() {
-		for _, v := range t.CC {
-			message.AddCC(v)
+		for _, c := range t.CC {
+			f.AddValue("cc", c)
 		}
 	}
 
 	if t.HasBCC() {
-		for _, v := range t.BCC {
-			message.AddBCC(v)
+		for _, b := range t.BCC {
+			f.AddValue("bcc", b)
 		}
 	}
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		for _, v := range t.Attachments {
-			message.AddBufferAttachment(v.Filename, v.Bytes)
+			f.AddBuffer("attachment", v.Filename, v.Bytes)
 		}
 	}
 
-	const Timeout = 10
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*Timeout)
-	defer cancel()
+	url := fmt.Sprintf("%s/%s", m.cfg.URL, strings.TrimPrefix(fmt.Sprintf(mailgunEndpoint, m.cfg.Domain), "/"))
+	req := httputil.NewHTTPRequest(http.MethodPost, url)
+	req.SetBasicAuth("api", m.cfg.APIKey)
 
-	msg, id, err := m.send(ctx, message)
-	if err != nil {
-		return mail.Response{}, err
-	}
-
-	return mail.Response{
-		StatusCode: http.StatusOK,
-		Body:       "",
-		Headers:    nil,
-		ID:         id,
-		Message:    msg,
-	}, nil
+	return m.client.Do(context.Background(), req, f, &mailgunResponse{})
 }

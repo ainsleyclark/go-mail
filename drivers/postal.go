@@ -14,10 +14,12 @@
 package drivers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ainsleyclark/go-mail/internal/client"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
 )
@@ -25,8 +27,9 @@ import (
 // postal represents the entity for sending mail via the
 // Postal API.
 //
-// See: https://docs.postalserver.io/developer/api
-// See: https://apiv1.postalserver.io/controllers/send/message.html
+// See:
+// https://docs.postalserver.io/developer/api
+// https://apiv1.postalserver.io/controllers/send/message.html
 type postal struct {
 	cfg    mail.Config
 	client client.Requester
@@ -34,7 +37,7 @@ type postal struct {
 
 const (
 	// postalEndpoint defines the endpoint to POST to.
-	postalEndpoint = "/api/v1/send/message"
+	postalEndpoint = "%s/api/v1/send/message"
 	// postalErrorMessage defines the message when an error occurred
 	// when sending mail via the Postal API.
 	postalErrorMessage = "error sending transmission to Postal API"
@@ -49,7 +52,7 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postal{
 		cfg:    cfg,
-		client: client.New(cfg.URL),
+		client: client.New(),
 	}, nil
 }
 
@@ -75,6 +78,10 @@ type (
 	// postalResponse defines the data sent back from the Postal API.
 	// Status can either be "success" or "error" and data is
 	// dynamic dependent on if an error occurred during processing.
+	//
+	// Example JSON Responses:
+	// {"status":"success","time":0.08,"flags":{},"data":{"message_id":"080c21de-52f9-4be1-9cbe-19d63450949c@rp.postal.example.com","messages":{"info@ainsleyclark.com":{"id":28,"token":"WEjrFfpnynRm"}}}}
+	// {"status":"error","time":0.0,"flags":{},"data":{"code":"NoRecipients","message":"There are no recipients defined to receive this message"}}
 	postalResponse struct {
 		Status string                 `json:"status"`
 		Time   float32                `json:"time"`
@@ -83,64 +90,63 @@ type (
 	}
 )
 
-// HasError determines if the Postal call was successful
-// by comparing the status.
-func (p *postalResponse) HasError() bool {
-	return p.Status != "success"
+func (r *postalResponse) Unmarshal(buf []byte) error {
+	resp := &postalResponse{}
+	err := json.Unmarshal(buf, resp)
+	if err != nil {
+		return err
+	}
+	*r = *resp
+	return nil
 }
 
-// Error returns a formatted response error for a Postal
-// response
-func (p *postalResponse) Error() error {
+func (r *postalResponse) CheckError(response *http.Response, buf []byte) error {
+	if r.Status == "success" {
+		return nil
+	}
+	if len(buf) == 0 {
+		return mail.ErrEmptyBody
+	}
 	msg := postalErrorMessage
-	if code, ok := p.Data["code"]; ok {
+	if code, ok := r.Data["code"]; ok {
 		msg = fmt.Sprintf("%s - code: %s", msg, code)
 	}
-	if message, ok := p.Data["message"]; ok {
+	if message, ok := r.Data["message"]; ok {
 		msg = fmt.Sprintf("%s, message: %s", msg, message)
 	}
 	return errors.New(msg)
 }
 
-// ToResponse transforms a postalResponse into a Go Mail response.
-// Checks if the message_id is attached and sets accordingly.
-func (p *postalResponse) ToResponse(resp *http.Response, buf []byte) mail.Response {
-	response := mail.Response{
-		StatusCode: resp.StatusCode,
-		Body:       string(buf),
-		Headers:    resp.Header,
-		Message:    "Successfully sent Postal email",
+func (r *postalResponse) Meta() httputil.Meta {
+	m := httputil.Meta{
+		Message: "Successfully sent Postal email",
 	}
-	if val, ok := p.Data["message_id"]; ok {
-		response.ID = fmt.Sprintf("%v", val)
+	if val, ok := r.Data["message_id"]; ok {
+		m.ID = fmt.Sprintf("%v", val)
 	}
-	return response
+	return m
 }
 
-// Send posts the go mail Transmission to the Postal
-// API. Transmissions are validated before sending
-// and attachments are added. Returns an error
-// upon failure.
-func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
+func (d *postal) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	m := postalTransmission{
+	tx := postalTransmission{
 		To:        t.Recipients,
 		CC:        t.CC,
 		BCC:       t.BCC,
-		From:      p.cfg.FromAddress,
-		Sender:    p.cfg.FromName,
+		From:      d.cfg.FromAddress,
+		Sender:    d.cfg.FromName,
 		Subject:   t.Subject,
 		HTML:      t.HTML,
 		PlainText: t.PlainText,
 	}
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		for _, v := range t.Attachments {
-			m.Attachments = append(m.Attachments, postalAttachment{
+			tx.Attachments = append(tx.Attachments, postalAttachment{
 				Name:        v.Filename,
 				ContentType: v.Mime(),
 				Data:        v.B64(),
@@ -148,28 +154,13 @@ func (p *postal) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	// Ensure the API Key is set for authorisation
-	// and add the JSON content type.
-	headers := http.Header{}
-	headers.Set("X-Server-API-Key", p.cfg.APIKey)
-
-	buf, resp, err := p.client.Do(m, postalEndpoint, headers)
+	pl, err := newJSONData(tx)
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	// Unmarshal the buffer into a postalResponse.
-	response := postalResponse{}
-	err = json.Unmarshal(buf, &response)
-	if err != nil {
-		return mail.Response{}, err
-	}
+	req := httputil.NewHTTPRequest(http.MethodPost, fmt.Sprintf(postalEndpoint, d.cfg.URL))
+	req.AddHeader("X-Server-API-Key", d.cfg.APIKey)
 
-	// Bail if the status is not `success` and return formatted
-	// error code.
-	if response.HasError() {
-		return mail.Response{}, response.Error()
-	}
-
-	return response.ToResponse(resp, buf), nil
+	return d.client.Do(context.Background(), req, pl, &postalResponse{})
 }

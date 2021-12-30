@@ -17,25 +17,15 @@ import (
 	"github.com/ainsleyclark/go-mail/drivers"
 	"github.com/ainsleyclark/go-mail/mail"
 	"os"
+	"testing"
 )
 
-func (t *MailTestSuite) Test_Postmark() {
-	tx := t.GetTransmission()
-
-	mailer, err := drivers.NewPostmark(mail.Config{
+func Test_Postmark(t *testing.T) {
+	LoadEnv(t)
+	cfg := mail.Config{
 		APIKey:      os.Getenv("POSTMARK_API_KEY"),
 		FromAddress: os.Getenv("POSTMARK_FROM_ADDRESS"),
 		FromName:    os.Getenv("POSTMARK_FROM_NAME"),
-	})
-	if err != nil {
-		t.FailNow("Error creating client: " + err.Error())
 	}
-
-	result, err := mailer.Send(tx)
-	if err != nil {
-		t.FailNow("Error sending Postal email: " + err.Error())
-	}
-
-	t.Equal(200, result.StatusCode)
-	t.NotEmpty(result.Message)
+	UtilTestSend(t, drivers.NewPostmark, cfg, "Postmark")
 }

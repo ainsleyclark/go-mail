@@ -13,13 +13,10 @@
 
 package mail
 
-// Response represents the data passed back from a
-// successful transmission. Where possible, a
-// status code, body, headers will be
-// returned within the response.
+// Response represents the data passed back from a successful transmission.
 type Response struct {
 	StatusCode int                 // e.g. 200
-	Body       string              // e.g. {"result: success"}
+	Body       []byte              // e.g. {"result: success"}
 	Headers    map[string][]string // e.g. map[X-Ratelimit-Limit:[600]]
 	ID         string              // e.g "100"
 	Message    interface{}         // e.g "Email sent successfully"

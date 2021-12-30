@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 26.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 155.2 176.6" style="enable-background:new 0 0 155.2 176.6;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:url(#Path_00000056415468754045561040000014961475019705996167_);}
+	.st1{fill:url(#Path_00000093891219265651379990000000637993264377962910_);}
+	.st2{fill:#BF6D00;}
+</style>
+<g id="Artboard-Copy">
+	<g id="Artboard-1" transform="translate(38.550000, 34.180000)">
+		<g>
+			
+				<linearGradient id="Path_00000078757504340133893920000011151605569796307100_" gradientUnits="userSpaceOnUse" x1="-4.5327" y1="254.6439" x2="-3.5327" y2="254.6439" gradientTransform="matrix(51.65 0 0 -153.19 195.5649 39074.7305)">
+				<stop  offset="0" style="stop-color:#FFDE00"/>
+				<stop  offset="1" style="stop-color:#FF9900"/>
+			</linearGradient>
+			
+				<polygon id="Path_00000157268005994424612180000006466512226055921301_" style="fill:url(#Path_00000078757504340133893920000011151605569796307100_);" points="
+				-38.5,-10.8 -22.6,69.3 -38.5,142.4 13.1,142.4 13.1,-10.8 			"/>
+			
+				<linearGradient id="Path_00000111891855055473510000000004028992701913169561_" gradientUnits="userSpaceOnUse" x1="-3.7033" y1="254.4204" x2="-2.8914" y2="255.2019" gradientTransform="matrix(125.09 0 0 -153.19 453.3388 39051.3125)">
+				<stop  offset="0" style="stop-color:#FFDE00"/>
+				<stop  offset="1" style="stop-color:#FF9900"/>
+			</linearGradient>
+			
+				<path id="Path_00000092434929920899434180000007444180484886889386_" style="fill:url(#Path_00000111891855055473510000000004028992701913169561_);" d="
+				M64.9-34.2H-8.4V119h51.7V69.3h21.7c28.6,0,51.8-23.2,51.8-51.8l0,0C116.7-11,93.5-34.2,64.9-34.2z"/>
+		</g>
+		<polygon id="Path_00000074413616969132275220000005590799584750644640_" class="st2" points="13.1,142.4 -8.4,119 13.1,119 		"/>
+	</g>
+</g>
+</svg>

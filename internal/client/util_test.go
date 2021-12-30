@@ -11,39 +11,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mail
+package client
 
 import (
-	"fmt"
-	"github.com/ainsleyclark/go-mail/drivers"
-	"github.com/ainsleyclark/go-mail/mail"
-	"log"
+	"github.com/stretchr/testify/assert"
+	"net/http"
+	"testing"
 )
 
-// SendGrid example for Go Mail
-func SendGrid() {
-	cfg := mail.Config{
-		APIKey:      "my-key",
-		FromAddress: "hello@gophers.com",
-		FromName:    "Gopher",
+func TestIs2XX(t *testing.T) {
+	tt := map[string]struct {
+		input int
+		want  bool
+	}{
+		"< 200": {
+			http.StatusContinue,
+			false,
+		},
+		"200": {
+			http.StatusOK,
+			true,
+		},
+		"300 >": {
+			http.StatusMultipleChoices,
+			false,
+		},
 	}
 
-	mailer, err := drivers.NewSendGrid(cfg)
-	if err != nil {
-		log.Fatalln(err)
+	for name, test := range tt {
+		t.Run(name, func(t *testing.T) {
+			got := Is2XX(test.input)
+			assert.Equal(t, test.want, got)
+		})
 	}
-
-	tx := &mail.Transmission{
-		Recipients: []string{"hello@gophers.com"},
-		Subject:    "My email",
-		HTML:       "<h1>Hello from go mail!</h1>",
-		PlainText:  "plain text",
-	}
-
-	result, err := mailer.Send(tx)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	fmt.Printf("%+v\n", result)
 }

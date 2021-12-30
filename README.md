@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="Gopher" src="logo.svg" height="250" />
+  <img alt="Gopher" src="res/logos/go-mail.svg" height="250" />
   <h3 align="center">Go Mail</h3>
   <p align="center">A cross platform mail driver for GoLang.</p>
   <p align="center">
@@ -11,11 +11,32 @@
   </p>
 </p>
 
+## Overview
+
+- ✅ Multiple mail drivers for your needs or even create your own custom Mailer.
+- ✅ Direct dependency free, all requests are made with the standard lib http.Client.
+- ✅ Send attachments with two struct fields, it's extremely simple.
+- ✅ Send CC & BCC messages.
+- ✅ Extremely lightweight.
+
+## Supported API's
+
+- <img align="left" src="res/logos/mailgun.svg" width="24" />  [Mailgun](https://documentation.mailgun.com/)
+
+- <img align="left" src="res/logos/postal.svg" width="24" /> [Postal](https://docs.postalserver.io/)
+
+- <img align="left" src="res/logos/postmark.png" width="24" /> [Postmark](https://postmarkapp.com/)
+
+- <img align="left" src="res/logos/sendgrid.svg" width="24" /> [SendGrid](https://sendgrid.com/)
+
+- <img align="left" src="res/logos/sparkpost.png?new=new" width="24" /> [SparkPost](https://www.sparkpost.com/)
+
+- <img align="left" src="res/logos/smtp.svg" width="24" /> SMTP
+
 ## Introduction
 
-Go Mail aims to unify multiple popular mail API's (SparkPost, MailGun, SendGrid, Postal & SMTP) into a singular easy to use interface. Email sending is seriously simple and great for allowing the developer to
-choose what platform they use.
-
+Go Mail aims to unify multiple popular mail API's into a singular easy to use interface. Email sending is seriously
+simple and great for allowing the developer or end user to choose what platform they use.
 
 ```go
 cfg := mail.Config{
@@ -33,7 +54,7 @@ if err != nil {
 tx := &mail.Transmission{
     Recipients:  []string{"hello@gophers.com"},
     Subject:     "My email",
-    HTML:        "<h1>Hello from go mail!</h1>",
+    HTML:        "<h1>Hello from Go Mail!</h1>",
 }
 
 result, err := mailer.Send(tx)
@@ -50,29 +71,16 @@ fmt.Printf("%+v\n", result)
 go get -u github.com/ainsleyclark/go-mail
 ```
 
-## Supported API's
-
-Currently, Sparkpost, MailGun and SendGrid is supported, if you want to see more, just submit a feature request or create a new Driver and
-submit a pull request.
-
-| API         | Dependency                                                                   | Examples                      |
-|-------------|------------------------------------------------------------------------------|-------------------------------|
-| SparkPost   | [github.com/SparkPost/gosparkpost](https://github.com/SparkPost/gosparkpost) | [Here](examples/sparkpost.go) |
-| MailGun     | [github.com/mailgun/mailgun-go/v4](github.com/mailgun/mailgun-go/v4])        | [Here](examples/mailgun.go)   |
-| SendGrid    | [github.com/sendgrid/sendgrid-go](github.com/sendgrid/sendgrid-go)           | [Here](examples/sendgrid.go)  |
-| Postmark    |  None         																														   | [Here](examples/postmark.go)  |
-| Postal      |  None         																														   | [Here](examples/postal.go)  |
-| SMTP        |  None - only use in development.                                             | [Here](examples/smtp.go)      |
-
 ## Docs
 
-Documentation can be found at the [Go Docs](https://pkg.go.dev/github.com/ainsleyclark/go-mail), but we have included a kick start guide below to get you started.
+Documentation can be found at the [Go Docs](https://pkg.go.dev/github.com/ainsleyclark/go-mail), but we have included a
+kick-start guide below to get you started.
 
 ### Creating a new client:
 
-You can create a new driver by calling the `drivers` package and passing in a configuration type which is  needed to create a new mailer, each platform requires its own data,
-for example, MailGun requires a domain, but SparkPost doesn't.
-This is based of the requirements for the API. For more details see the examples above.
+You can create a new driver by calling the `drivers` package and passing in a configuration type which is required to
+create a new mailer, each platform requires its own data, for example, Mailgun requires a domain, but SparkPost doesn't.
+This is based of the requirements for the API. For more details see the [examples](#Examples) below.
 
 ```go
 cfg := mail.Config{
@@ -90,15 +98,17 @@ if err != nil {
 
 ### Sending Data:
 
-A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Result` and error will be returned
-indicating if the transmission was successful.
+A transmission is required to transmit to a mailer as shown below. Once send is called, a `mail.Response` and error will
+be returned indicating if the transmission was successful.
 
 ```go
 tx := &mail.Transmission{
-    Recipients: []string{"hello@gophers.com"},
-    Subject:    "My email",
-    HTML:       "<h1>Hello from go mail!</h1>",
-    PlainText:  "plain text",
+	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "Hello from Go Mail!",
 }
 
 result, err := mailer.Send(tx)
@@ -109,10 +119,25 @@ if err != nil {
 fmt.Printf("%+v\n", result)
 ```
 
+### Response:
+
+The mail response is used for debugging and inspecting results of the mailer, below is the `Response` type.
+
+```go
+// Response represents the data passed back from a successful transmission.
+type Response struct {
+	StatusCode int                 // e.g. 200
+	Body       []byte              // e.g. {"result: success"}
+	Headers    map[string][]string // e.g. map[X-Ratelimit-Limit:[600]]
+	ID         string              // e.g "100"
+	Message    interface{}         // e.g "Email sent successfully"
+}
+```
+
 ### Adding attachments:
 
-Adding attachments to the transmission is as simple as passing a byte slice and filename,
-Go Mail takes care of the rest for you.
+Adding attachments to the transmission is as simple as passing a byte slice and filename, Go Mail takes care of the rest
+for you.
 
 ```go
 image, err := ioutil.ReadFile("gopher.jpg")
@@ -121,22 +146,288 @@ if err != nil {
 }
 
 tx := &mail.Transmission{
-    Recipients: []string{"hello@gophers.com"},
-    Subject:    "My email",
-    HTML:       "<h1>Hello from go mail!</h1>",
-    PlainText:  "plain text",
-    Attachments: mail.Attachments{
-        mail.Attachment{
-            Filename: "gopher.jpg",
-            Bytes:    image,
-        },
-    },
+	Recipients: []string{"hello@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "plain text",
+	Attachments: []mail.Attachment{
+		{
+			Filename: "gopher.jpg",
+			Bytes:    image,
+		},
+	},
 }
 ```
 
-## Todo
+## Examples
 
-- Remove external dependencies.
+#### Mailgun
+
+```go
+cfg := mail.Config{
+URL:         "https://api.eu.mailgun.net", // Or https://api.mailgun.net
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+	Domain:      "my-domain.com",
+}
+
+mailer, err := drivers.NewMailgun(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "Hello from Go Mail!",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
+#### Postal
+
+```go
+cfg := mail.Config{
+	URL:         "https://postal.example.com",
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+}
+
+mailer, err := drivers.NewPostal(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "Hello from Go Mail!",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
+#### Postmark
+
+```go
+cfg := mail.Config{
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+}
+
+mailer, err := drivers.NewPostmark(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "Hello from Go Mail!",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
+#### SendGrid
+
+```go
+cfg := mail.Config{
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+}
+
+mailer, err := drivers.NewSendGrid(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "Hello from Go Mail!",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
+#### SMTP
+
+```go
+cfg := mail.Config{
+	URL:         "smtp.gmail.com",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+	Password:    "my-password",
+	Port:        587,
+}
+
+mailer, err := drivers.NewSMTP(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "Hello from Go Mail!",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
+#### SparkPost
+
+```go
+cfg := mail.Config{
+	URL:         "https://api.eu.sparkpost.com", // Or https://api.sparkpost.com/api/v1
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+}
+
+mailer, err := drivers.NewSparkPost(cfg)
+if err != nil {
+	log.Fatalln(err)
+}
+
+tx := &mail.Transmission{
+	Recipients: []string{"hello@gophers.com"},
+	CC:         []string{"cc@gophers.com"},
+	BCC:        []string{"bcc@gophers.com"},
+	Subject:    "My email",
+	HTML:       "<h1>Hello from Go Mail!</h1>",
+	PlainText:  "Hello from Go Mail!",
+}
+
+result, err := mailer.Send(tx)
+if err != nil {
+	log.Fatalln(err)
+}
+
+fmt.Printf("%+v\n", result)
+```
+
+## Writing a Mailable
+
+You have the ability to create your own custom Mailer by implementing the singular method interface shown below.
+
+```go
+type Mailer interface {
+	// Send accepts a mail.Transmission to send an email through a particular
+	// driver/provider. Transmissions will be validated before sending.
+	//
+	// A mail.Response or an error will be returned. In some circumstances
+	// the body and status code will be attached to the response for debugging.
+	Send(t *mail.Transmission) (mail.Response, error)
+}
+```
+
+## Debugging
+
+To debug any errors or issues you are facing with Go Mail, you are able to change the `Debug` variable in the
+`mail` package. This will write the HTTP requests in curl to stdout. Additional information will also be
+displayed in the errors such as method operations.
+
+```go
+mail.Debug = true
+```
+
+## Development
+
+### Setup
+
+To get setup with Go Mail simply clone the repo and run the following:
+
+```bash
+go get github.com/vektra/mockery/v2/.../
+make setup
+make mocks
+```
+
+## Env
+
+All secretes are contained within the `.env` file for testing drivers. To begin with, make a copy of the `.env.example`
+file and name it `.env`. You can the set the environment variables to match your credentials for the mail drivers.
+
+You can set the recipients of emails by modifying the the `EMAIL` variables as show below.
+
+- `EMAIL_TO`: Recipients of test emails in a comma delimited list.
+- `EMAIL_CC`: CC recipients of test emails in a comma delimited list.
+- `EMAIL_BCC`: BCC recipients of test emails in a comma delimited list.
+
+### Testing
+
+To run all driver tests, execute the following command:
+
+```bash
+make test-driver
+```
+
+To run a specific driver test, prepend the `driver` flag as show below:
+
+```bash
+make test-driver driver=sparkpost
+```
+
+The driver flag can be one of the following:
+
+- `mailgun`
+- `postal`
+- `postmark`
+- `sendgrid`
+- `smtp`
+- `sparkpost`
+
+## TODO
+
+- Add headers to transmission
+- Add templates to providers - Sparkpost et al.
 
 ## Contributing
 
@@ -144,4 +435,4 @@ We welcome contributors, but please read the [contributing document](CONTRIBUTIN
 
 ## Licence
 
-Code Copyright 2021 go mail. Code released under the [MIT Licence](LICENCE).
+Code Copyright 2021 Go Mail. Code released under the [MIT Licence](LICENCE).

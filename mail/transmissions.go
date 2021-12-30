@@ -28,7 +28,7 @@ type Transmission struct {
 	Subject     string
 	HTML        string
 	PlainText   string
-	Attachments Attachments
+	Attachments []Attachment
 }
 
 // Validate runs sanity checks of a Transmission struct.
@@ -64,4 +64,10 @@ func (t *Transmission) HasCC() bool {
 // attached to the transmission.
 func (t *Transmission) HasBCC() bool {
 	return len(t.BCC) != 0
+}
+
+// HasAttachments determines if there are any attachments in
+// the transmission.
+func (t Transmission) HasAttachments() bool {
+	return len(t.Attachments) != 0
 }

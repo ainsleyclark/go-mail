@@ -14,21 +14,34 @@
 package drivers
 
 import (
-	"errors"
+	"fmt"
+	mocks "github.com/ainsleyclark/go-mail/internal/mocks/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/sendgrid/rest"
-	mailsg "github.com/sendgrid/sendgrid-go/helpers/mail"
+	"log"
 	"net/http"
 )
 
-func (t *DriversTestSuite) TestNewSendgrid() {
+func ExampleNewSendGrid() {
+	cfg := mail.Config{
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+	}
+
+	_, err := NewSendGrid(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func (t *DriversTestSuite) TestNewSendGrid() {
 	tt := map[string]struct {
 		input mail.Config
 		want  interface{}
 	}{
 		"Success": {
 			mail.Config{
-				URL:         "https://postal.example.com",
+				URL:         "https://sendgrid.example.com",
 				APIKey:      "key",
 				FromAddress: "addr",
 				FromName:    "name",
@@ -53,76 +66,59 @@ func (t *DriversTestSuite) TestNewSendgrid() {
 	}
 }
 
-func (t *DriversTestSuite) TestSendGrid_Send() {
+func (t *DriversTestSuite) TestSendGridResponse_Unmarshal() {
+	t.UtilTestUnmarshal(&sgResponse{}, []byte(`{"errors": []}`))
+	res := sgResponse{}
+	err := res.Unmarshal(nil)
+	t.NoError(err)
+}
+
+func (t *DriversTestSuite) TestSendGridResponse_CheckError() {
 	tt := map[string]struct {
-		input *mail.Transmission
-		send  sendGridSendFunc
-		want  interface{}
+		input    sgResponse
+		response *http.Response
+		buf      []byte
+		want     error
 	}{
 		"Success": {
-			Trans,
-			func(email *mailsg.SGMailV3) (*rest.Response, error) {
-				return &rest.Response{
-					StatusCode: http.StatusOK,
-					Body:       "body",
-					Headers:    map[string][]string{"msg": {"test"}},
-				}, nil
-			},
-			mail.Response{
-				StatusCode: http.StatusOK,
-				Body:       "body",
-				Headers:    map[string][]string{"msg": {"test"}},
-				ID:         "",
-				Message:    "",
-			},
-		},
-		"With Attachment": {
-			TransWithAttachment,
-			func(email *mailsg.SGMailV3) (*rest.Response, error) {
-				return &rest.Response{
-					StatusCode: http.StatusOK,
-					Body:       "body",
-					Headers:    map[string][]string{"msg": {"test"}},
-				}, nil
-			},
-			mail.Response{
-				StatusCode: http.StatusOK,
-				Body:       "body",
-				Headers:    map[string][]string{"msg": {"test"}},
-				ID:         "",
-				Message:    "",
-			},
-		},
-		"Validation Failed": {
+			sgResponse{Errors: nil},
+			&http.Response{StatusCode: http.StatusOK},
+			[]byte("test"),
 			nil,
-			func(email *mailsg.SGMailV3) (*rest.Response, error) {
-				return nil, nil
-			},
-			"can't validate a nil transmission",
 		},
-		"Send Error": {
-			Trans,
-			func(email *mailsg.SGMailV3) (*rest.Response, error) {
-				return nil, errors.New("send error")
-			},
-			"send error",
+		"No Errors": {
+			sgResponse{},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			nil,
+			nil,
+		},
+		"Error": {
+			sgResponse{Errors: []sgError{{Message: "message", Field: "field", Help: "help"}}},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			[]byte("test"),
+			fmt.Errorf("%s - message: message, field: field, help: help", sendgridErrorMessage),
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			spark := sendGrid{
-				cfg: mail.Config{
-					FromAddress: "from",
-				},
-				send: test.send,
-			}
-			resp, err := spark.Send(test.input)
+			err := test.input.CheckError(test.response, test.buf)
 			if err != nil {
-				t.Contains(err.Error(), test.want)
+				t.Contains(err.Error(), test.want.Error())
 				return
 			}
-			t.Equal(test.want, resp)
+			t.Equal(test.want, err)
 		})
 	}
+}
+
+func (t *DriversTestSuite) TestSendGridResponse_Meta() {
+	d := &sgResponse{}
+	t.UtilTestMeta(d, "Successfully sent SendGrid email", "")
+}
+
+func (t *DriversTestSuite) TestSendGrid_Send() {
+	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
+		return &sendGrid{cfg: Comfig, client: m}
+	}, true)
 }

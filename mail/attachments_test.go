@@ -13,31 +13,21 @@
 
 package mail
 
-func (t *MailTestSuite) TestAttachments_Exists() {
-	tt := map[string]struct {
-		input Attachments
-		want  bool
-	}{
-		"Exists": {
-			Attachments{
-				Attachment{
-					Filename: PNGName,
-				},
-			},
-			true,
-		},
-		"Nil": {
-			nil,
-			false,
-		},
+import "fmt"
+
+func ExampleAttachment_Mime() {
+	svg := `
+<svg width="100" height="100">
+  <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
+</svg>`
+
+	a := Attachment{
+		Filename: "circle.svg",
+		Bytes:    []byte(svg),
 	}
 
-	for name, test := range tt {
-		t.Run(name, func() {
-			got := test.input.Exists()
-			t.Equal(test.want, got)
-		})
-	}
+	fmt.Println(a.Mime())
+	// Output: image/svg+xml
 }
 
 func (t *MailTestSuite) TestAttachment_Mime() {
@@ -66,6 +56,21 @@ func (t *MailTestSuite) TestAttachment_Mime() {
 			t.Equal(test.want, got)
 		})
 	}
+}
+
+func ExampleAttachment_B64() {
+	svg := `
+<svg width="100" height="100">
+  <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
+</svg>`
+
+	a := Attachment{
+		Filename: "circle.svg",
+		Bytes:    []byte(svg),
+	}
+
+	fmt.Println(a.B64())
+	// Output: Cjxzdmcgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiPgogIDxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQwIiBzdHJva2U9ImdyZWVuIiBzdHJva2Utd2lkdGg9IjQiIGZpbGw9InllbGxvdyIgLz4KPC9zdmc+
 }
 
 func (t *MailTestSuite) TestAttachment_B64() {

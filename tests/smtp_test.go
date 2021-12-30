@@ -18,32 +18,21 @@ import (
 	"github.com/ainsleyclark/go-mail/mail"
 	"os"
 	"strconv"
+	"testing"
 )
 
-func (t *MailTestSuite) Test_SMTP() {
-	tx := t.GetTransmission()
-
+func Test_SMTP(t *testing.T) {
+	LoadEnv(t)
 	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
-		t.FailNow("Error parsing SMTP port")
+		t.Fatal("Error parsing SMTP port")
 	}
-
-	driver, err := drivers.NewSMTP(mail.Config{
+	cfg := mail.Config{
 		URL:         os.Getenv("SMTP_URL"),
 		FromAddress: os.Getenv("SMTP_FROM_ADDRESS"),
 		FromName:    os.Getenv("SMTP_FROM_NAME"),
 		Password:    os.Getenv("SMTP_PASSWORD"),
 		Port:        port,
-	})
-	if err != nil {
-		t.FailNow("Error creating client: " + err.Error())
 	}
-
-	result, err := driver.Send(tx)
-	if err != nil {
-		t.FailNow("Error sending SMTP email: " + err.Error())
-	}
-
-	t.Equal(200, result.StatusCode)
-	t.NotEmpty(result.Message)
+	UtilTestSend(t, drivers.NewSMTP, cfg, "SMTP")
 }

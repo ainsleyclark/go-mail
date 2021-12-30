@@ -14,9 +14,11 @@
 package drivers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ainsleyclark/go-mail/internal/client"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
 	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
 	"strings"
@@ -34,7 +36,7 @@ type postmark struct {
 
 const (
 	// postalEndpoint defines the endpoint to POST to.
-	postmarkEndpoint = "/email"
+	postmarkEndpoint = "https://api.postmarkapp.com/email"
 	// postmarkErrorMessage defines the message when an error occurred
 	// when sending mail via the Postmark API.
 	postmarkErrorMessage = "error sending transmission to Postmark API"
@@ -49,7 +51,7 @@ func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postmark{
 		cfg:    cfg,
-		client: client.New("https://api.postmarkapp.com"),
+		client: client.New(),
 	}, nil
 }
 
@@ -68,7 +70,7 @@ type (
 		Headers   []struct {
 			Name  string `json:"Name"`
 			Value string `json:"Value"`
-		} `json:"Headers"`
+		} `json:"headers"`
 		TrackOpens  bool                 `json:"TrackOpens"`
 		TrackLinks  string               `json:"TrackLinks"`
 		Attachments []postmarkAttachment `json:"Attachments"`
@@ -87,50 +89,66 @@ type (
 	}
 	// postmarkResponse defines the data sent back from the Postmark API.
 	// An error code of 0 represents a successful transmission.
+	//
+	// Example JSON Responses:
+	// {"To":"info@ainsleyclark.com","SubmittedAt":"2021-12-29T15:58:17.8637679Z","MessageID":"947125ed-9e43-4dce-b66c-def49198b3d3","ErrorCode":0,"Message":"OK"}
+	// {"ErrorCode":300,"Message":"Zero recipients specified"}
 	postmarkResponse struct {
 		To          string    `json:"To"`
 		SubmittedAt time.Time `json:"SubmittedAt"`
-		MessageID   string    `json:"MessageID"`
+		ID          string    `json:"MessageID"`
 		ErrorCode   int       `json:"ErrorCode"`
 		Message     string    `json:"Message"`
 	}
 )
 
-// HasError determines if the Postal call was successful
-// by comparing the status.
-func (p *postmarkResponse) HasError() bool {
-	return p.ErrorCode != 0
+func (r *postmarkResponse) Unmarshal(buf []byte) error {
+	resp := &postmarkResponse{}
+	err := json.Unmarshal(buf, resp)
+	if err != nil {
+		return err
+	}
+	*r = *resp
+	return nil
 }
 
-// Error returns a formatted response error.
-func (p *postmarkResponse) Error() error {
-	return fmt.Errorf("%s - code: %d, message: %s", postmarkErrorMessage, p.ErrorCode, p.Message)
+func (r *postmarkResponse) CheckError(response *http.Response, buf []byte) error {
+	if r.ErrorCode == 0 {
+		return nil
+	}
+	if len(buf) == 0 {
+		return mail.ErrEmptyBody
+	}
+	return fmt.Errorf("%s - code: %d, message: %s", postmarkErrorMessage, r.ErrorCode, r.Message)
 }
 
-// Send posts the go mail Transmission to the Postal
-// API. Transmissions are validated before sending
-// and attachments are added. Returns an error
-// upon failure.
-func (p *postmark) Send(t *mail.Transmission) (mail.Response, error) {
+func (r *postmarkResponse) Meta() httputil.Meta {
+	return httputil.Meta{
+		Message: r.Message,
+		ID:      r.ID,
+	}
+}
+
+func (d *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 	err := t.Validate()
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	m := postmarkTransmission{
+	tx := postmarkTransmission{
 		To:            strings.Join(t.Recipients, ","),
 		CC:            strings.Join(t.CC, ","),
 		BCC:           strings.Join(t.BCC, ","),
-		From:          fmt.Sprintf("%s <%s>", p.cfg.FromName, p.cfg.FromAddress),
+		From:          fmt.Sprintf("%s <%s>", d.cfg.FromName, d.cfg.FromAddress),
 		Subject:       t.Subject,
 		HTML:          t.HTML,
 		PlainText:     t.PlainText,
 		MessageStream: "outbound",
 	}
 
-	if t.Attachments.Exists() {
+	if t.HasAttachments() {
 		for _, v := range t.Attachments {
-			m.Attachments = append(m.Attachments, postmarkAttachment{
+			tx.Attachments = append(tx.Attachments, postmarkAttachment{
 				Name:        v.Filename,
 				ContentType: v.Mime(),
 				Content:     v.B64(),
@@ -138,32 +156,13 @@ func (p *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
-	// Ensure the API Key is set for authorisation
-	// and add the JSON content type.
-	headers := http.Header{}
-	headers.Set("X-Postmark-Server-Token", p.cfg.APIKey)
-
-	buf, resp, err := p.client.Do(m, postmarkEndpoint, headers)
+	pl, err := newJSONData(tx)
 	if err != nil {
 		return mail.Response{}, err
 	}
 
-	// Unmarshal the buffer into a postmarkResponse.
-	response := postmarkResponse{}
-	err = json.Unmarshal(buf, &response)
-	if err != nil {
-		return mail.Response{}, err
-	}
+	req := httputil.NewHTTPRequest(http.MethodPost, postmarkEndpoint)
+	req.AddHeader("X-Postmark-Server-Token", d.cfg.APIKey)
 
-	if response.HasError() {
-		return mail.Response{}, response.Error()
-	}
-
-	return mail.Response{
-		StatusCode: resp.StatusCode,
-		Body:       string(buf),
-		Headers:    resp.Header,
-		ID:         response.MessageID,
-		Message:    response.Message,
-	}, nil
+	return d.client.Do(context.Background(), req, pl, &postmarkResponse{})
 }

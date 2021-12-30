@@ -18,29 +18,20 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 )
 
-// Attachments defines the slice of mail attachments.
-type Attachments []Attachment
-
-// Attachment defines the mail file that has been
-// uploaded via the forms endpoint. It contains
-// useful information for sending files over
+// Attachment defines an email attachment for Go Mail.
+// It contains useful information for sending files via
 // the mail driver.
 type Attachment struct {
 	Filename string
 	Bytes    []byte
 }
 
-// Exists determines if there are any attachments in the slice.
-func (a Attachments) Exists() bool {
-	return len(a) != 0
-}
-
-// Mime returns the Mime type of the byte data.
+// Mime returns the mime type of the byte data.
 func (a Attachment) Mime() string {
 	return mimetype.Detect(a.Bytes).String()
 }
 
-// B64 returns the base 64 encode of the byte data.
+// B64 returns the base 64 encoding of the attachment.
 func (a Attachment) B64() string {
 	return base64.StdEncoding.EncodeToString(a.Bytes)
 }

@@ -1,5 +1,6 @@
 # Setup
 setup:
+	sudo chmod +x ./bin/tests.sh
 	go mod tidy
 .PHONY: setup
 
@@ -23,6 +24,12 @@ test-v:
 	go clean -testcache && go test -race -v $$(go list ./... | grep -v tests | grep -v examples | grep -v res | grep -v mocks) -coverprofile=coverage.out -covermode=atomic
 .PHONY: test-v
 
+# Runs real world tests for a driver or all drivers.
+# See ./bin/tests.sh for example usage.
+test-driver:
+	go clean -testcache && ./bin/tests.sh $(driver)
+.PHONY: test-driver
+
 # Run all the tests and opens the coverage report
 cover: test
 	go tool cover -html=coverage.out
@@ -30,8 +37,13 @@ cover: test
 
 # Make mocks keeping directory tree
 mocks:
-	rm -rf mocks && mockery --all
+	rm -rf internal/mocks && mockery --all --keeptree --output ./internal/mocks && mv ./internal/mocks/internal/* ./internal/mocks
 .PHONY: mocks
+
+# Run go doc
+doc:
+	godoc -http localhost:8080
+.PHONY: doc
 
 # Make format, lint and test
 all:

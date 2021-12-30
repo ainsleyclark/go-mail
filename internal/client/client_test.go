@@ -14,85 +14,93 @@
 package client
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
+	"bytes"
+	"context"
+	"github.com/ainsleyclark/go-mail/internal/errors"
+	"github.com/ainsleyclark/go-mail/internal/httputil"
+	mocks "github.com/ainsleyclark/go-mail/internal/mocks/httputil"
+	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
-func TestNew(t *testing.T) {
-	base := "https://gomail.example.com"
-	got := New(base)
-	assert.NotNil(t, got.http)
-	assert.Equal(t, base, got.baseURL)
-	assert.NotNil(t, got.marshaller)
+func TestNewClient(t *testing.T) {
+	got := New()
 	assert.NotNil(t, got.bodyReader)
 }
 
 func TestClient_Do(t *testing.T) {
+	successHandler := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte("buf"))
+		assert.NoError(t, err)
+	}
+
 	tt := map[string]struct {
-		input      interface{}
-		url        string
+		input      *httputil.Request
 		handler    http.HandlerFunc
-		marshaller func(v interface{}) ([]byte, error)
+		responder  func(m *mocks.Responder)
 		bodyReader func(r io.Reader) ([]byte, error)
 		want       interface{}
 	}{
 		"Success": {
-			input: "input",
-			url:   "",
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				_, err := w.Write([]byte("buf"))
-				assert.NoError(t, err)
-			},
-			marshaller: json.Marshal,
-			bodyReader: io.ReadAll,
-			want:       "buf",
-		},
-		"Marshal Error": {
-			input:   "input",
-			url:     "",
-			handler: nil,
-			marshaller: func(v interface{}) ([]byte, error) {
-				return nil, fmt.Errorf("marshal error")
+			handler: successHandler,
+			responder: func(m *mocks.Responder) {
+				m.On("Unmarshal", mock.Anything).
+					Return(nil)
+				m.On("CheckError", mock.Anything, []byte("buf")).
+					Return(nil)
+				m.On("Meta", mock.Anything).
+					Return(httputil.Meta{Message: "message", ID: "10"})
 			},
 			bodyReader: io.ReadAll,
-			want:       "marshal error",
+			want: mail.Response{
+				StatusCode: http.StatusOK,
+				Body:       []byte("buf"),
+				Headers:    nil,
+				ID:         "10",
+				Message:    "message",
+			},
 		},
 		"Bad Request": {
-			input:      "input",
-			url:        "@#@#$$%$",
-			handler:    nil,
-			marshaller: json.Marshal,
-			bodyReader: io.ReadAll,
-			want:       "invalid URL escape",
+			input: &httputil.Request{URL: "@#@#$$%$"},
+			want:  "Error creating http request",
 		},
 		"Do Error": {
-			input:      "input",
-			url:        "wrong",
-			handler:    nil,
-			marshaller: json.Marshal,
-			bodyReader: io.ReadAll,
-			want:       "unsupported protocol scheme",
+			input: &httputil.Request{URL: "wrong"},
+			want:  "Error doing request",
 		},
 		"Body Read Error": {
-			input: "input",
-			url:   "",
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				_, err := w.Write([]byte("buf"))
-				assert.NoError(t, err)
-			},
-			marshaller: json.Marshal,
+			handler: successHandler,
 			bodyReader: func(r io.Reader) ([]byte, error) {
 				return nil, errors.New("body read error")
 			},
-			want: "body read error",
+			want: "Error reading response body",
+		},
+		"Unmarshal Error": {
+			handler: successHandler,
+			responder: func(m *mocks.Responder) {
+				m.On("Unmarshal", mock.Anything).
+					Return(errors.New("unmarshal error"))
+			},
+			bodyReader: io.ReadAll,
+			want:       "Error unmarshalling response error",
+		},
+		"Responder Error": {
+			handler: successHandler,
+			responder: func(m *mocks.Responder) {
+				m.On("Unmarshal", mock.Anything).
+					Return(nil)
+				m.On("CheckError", mock.Anything, []byte("buf")).
+					Return(errors.New("response error"))
+			},
+			bodyReader: io.ReadAll,
+			want:       "Error performing mail request",
 		},
 	}
 
@@ -101,53 +109,138 @@ func TestClient_Do(t *testing.T) {
 			server := httptest.NewServer(test.handler)
 			defer server.Close()
 
-			url := server.URL
-			if test.url != "" {
-				url = test.url
+			if test.input == nil {
+				test.input = &httputil.Request{}
+			}
+
+			if test.input.URL == "" {
+				test.input.URL = server.URL
+			}
+
+			responder := &mocks.Responder{}
+			if test.responder != nil {
+				test.responder(responder)
 			}
 
 			c := Client{
-				http:       server.Client(),
-				baseURL:    url,
-				marshaller: test.marshaller,
+				Client:     server.Client(),
 				bodyReader: test.bodyReader,
 			}
 
-			buf, resp, err := c.Do("input", "", nil)
+			got, err := c.Do(context.Background(), test.input, nil, responder)
 			if err != nil {
-				assert.Contains(t, err.Error(), test.want)
+				assert.Contains(t, errors.Message(err), test.want)
 				return
 			}
 
-			assert.Equal(t, test.want, string(buf))
-			assert.Equal(t, resp.StatusCode, http.StatusOK)
+			want := test.want.(mail.Response)
+
+			assert.Equal(t, want.StatusCode, got.StatusCode)
+			assert.Equal(t, want.Body, got.Body)
+			assert.NotEmpty(t, got.Headers)
+			assert.Equal(t, want.ID, got.ID)
+			assert.Equal(t, want.Message, got.Message)
 		})
 	}
 }
 
-func TestIs2XX(t *testing.T) {
+func TestClient_MakeRequest(t *testing.T) {
+	uri, err := url.Parse("https://gomail.example.com")
+	assert.NoError(t, err)
+
 	tt := map[string]struct {
-		input int
-		want  bool
+		request *httputil.Request
+		payload func(m *mocks.Payload)
+		want    interface{}
 	}{
-		"< 200": {
-			http.StatusContinue,
-			false,
+		"Success": {
+			&httputil.Request{
+				Method:            http.MethodPost,
+				URL:               "https://gomail.example.com",
+				BasicAuthUser:     "user",
+				BasicAuthPassword: "password",
+				Headers:           map[string]string{"header": "Value"},
+			},
+			func(m *mocks.Payload) {
+				m.On("Buffer").
+					Return(&bytes.Buffer{}, nil)
+				m.On("ContentType").
+					Return(httputil.JSONContentType)
+				m.On("Values").
+					Return(map[string]string{"key": "value"})
+			},
+			&http.Request{
+				Method: http.MethodPost,
+				URL:    uri,
+				Header: map[string][]string{
+					"Authorization": {"Basic dXNlcjpwYXNzd29yZA=="},
+					"Content-Type":  {httputil.JSONContentType},
+					"Header":        {"Value"},
+				},
+			},
 		},
-		"200": {
-			http.StatusOK,
-			true,
+		"Buffer Error": {
+			&httputil.Request{},
+			func(m *mocks.Payload) {
+				m.On("Buffer").
+					Return(nil, &errors.Error{Message: "buffer error"})
+			},
+			"buffer error",
 		},
-		"300 >": {
-			http.StatusMultipleChoices,
-			false,
+		"Request Error": {
+			&httputil.Request{
+				URL: "@#@#$$%$",
+			},
+			func(m *mocks.Payload) {
+				m.On("Buffer").
+					Return(&bytes.Buffer{}, nil)
+			},
+			"Error creating http request",
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func(t *testing.T) {
-			got := Is2XX(test.input)
-			assert.Equal(t, test.want, got)
+			defer func() { mail.Debug = false }()
+			mail.Debug = true
+
+			c := New()
+
+			mock := &mocks.Payload{}
+			if test.payload != nil {
+				test.payload(mock)
+			}
+
+			request, err := c.makeRequest(context.Background(), test.request, mock)
+			if err != nil {
+				assert.Contains(t, errors.Message(err), test.want)
+				return
+			}
+
+			want := test.want.(*http.Request)
+			assert.Equal(t, want.Method, request.Method)
+			assert.Equal(t, want.URL, request.URL)
+			assert.Equal(t, want.Header, request.Header)
 		})
 	}
+}
+
+func TestClient_CurlString(t *testing.T) {
+	uri, err := url.Parse("https://gomail.example.com")
+	assert.NoError(t, err)
+
+	req := &http.Request{
+		Method: http.MethodGet,
+		URL:    uri,
+		Header: map[string][]string{"header": {"value"}},
+	}
+
+	payload := mocks.Payload{}
+	payload.On("Values").
+		Return(map[string]string{"key": "value"})
+
+	c := Client{}
+	got := c.curlString(req, &payload)
+	want := "curl -i -X GET https://gomail.example.com -H \"header: value\"  -F key='value'"
+	assert.Equal(t, want, got)
 }

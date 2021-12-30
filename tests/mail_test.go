@@ -14,26 +14,17 @@
 package mail
 
 import (
+	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/joho/godotenv"
-	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
-
-// MailTestSuite defines the helper used for mail
-// testing.
-type MailTestSuite struct {
-	suite.Suite
-}
-
-// Assert testing has begun.
-func TestMail(t *testing.T) {
-	suite.Run(t, new(MailTestSuite))
-}
 
 const (
 	// DataPath defines where the test data resides.
@@ -42,35 +33,72 @@ const (
 	PNGName = "gopher.png"
 )
 
+// Load the Env variables for testing.
+func LoadEnv(t *testing.T) {
+	t.Helper()
+
+	wd, err := os.Getwd()
+	assert.NoError(t, err)
+
+	path := filepath.Join(filepath.Dir(wd), "/.env")
+	err = godotenv.Load(path)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Printf("Error loading .env file with path: %s, using system defaults.\n", path)
+	}
+}
+
 // Returns a dummy transition for testing with an
 // attachment.
-func (t *MailTestSuite) GetTransmission() *mail.Transmission {
-	wd, err := os.Getwd()
-	t.NoError(err)
+func GetTransmission(t *testing.T) *mail.Transmission {
+	t.Helper()
 
-	err = godotenv.Load(filepath.Join(filepath.Dir(wd), "/.env"))
-	if err != nil {
-		t.FailNow("Error loading .env file")
-	}
+	wd, err := os.Getwd()
+	assert.NoError(t, err)
 
 	path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
-		t.FailNow("Error getting attachment with the path: "+path, err)
+
+		t.Fatal("Error getting attachment with the path: "+path, err)
 	}
 
 	return &mail.Transmission{
 		Recipients: strings.Split(os.Getenv("EMAIL_TO"), ","),
-		//CC:         strings.Split(os.Getenv("EMAIL_CC"), ","),
-		//BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
-		Subject:   "Test - Go Mail",
-		HTML:      "<h1>Hello from Go Mail!</h1>",
-		PlainText: "Hello from Go Mail!",
-		Attachments: mail.Attachments{
-			mail.Attachment{
+		CC:         strings.Split(os.Getenv("EMAIL_CC"), ","),
+		BCC:        strings.Split(os.Getenv("EMAIL_BCC"), ","),
+		Subject:    "Test - Go Mail",
+		HTML:       "<h1>Hello from Go Mail!</h1>",
+		PlainText:  "Hello from Go Mail!",
+		Attachments: []mail.Attachment{
+			{
 				Filename: "gopher.png",
 				Bytes:    file,
 			},
 		},
 	}
+}
+
+// UtilTestSend is a helper function for performing live mailing
+// tests for the drivers.
+func UtilTestSend(t *testing.T, fn func(cfg mail.Config) (mail.Mailer, error), cfg mail.Config, driver string) {
+	t.Helper()
+
+	tx := GetTransmission(t)
+
+	mailer, err := fn(cfg)
+	if err != nil {
+		t.Fatal("Error creating client: " + err.Error())
+	}
+
+	result, err := mailer.Send(tx)
+	if err != nil {
+		t.Fatalf("Error sending %s email: %s", strings.Title(driver), err.Error())
+	}
+
+	// Print for sanity
+	fmt.Println(string(result.Body))
+
+	assert.InDelta(t, result.StatusCode, http.StatusOK, 299)
+	assert.NotEmpty(t, result.Message)
 }

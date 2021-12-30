@@ -14,17 +14,26 @@
 package drivers
 
 import (
-	"errors"
 	"fmt"
+	mocks "github.com/ainsleyclark/go-mail/internal/mocks/client"
 	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/ainsleyclark/go-mail/mocks"
-	"github.com/stretchr/testify/mock"
+	"log"
 	"net/http"
 )
 
-var (
-	PostmarkHeaders = http.Header{"X-Postmark-Server-Token": []string{""}}
-)
+func ExampleNewPostmark() {
+	cfg := mail.Config{
+		URL:         "https://postal.example.com",
+		APIKey:      "my-key",
+		FromAddress: "hello@gophers.com",
+		FromName:    "Gopher",
+	}
+
+	_, err := NewPostal(cfg)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
 
 func (t *DriversTestSuite) TestNewPostmark() {
 	tt := map[string]struct {
@@ -57,140 +66,56 @@ func (t *DriversTestSuite) TestNewPostmark() {
 	}
 }
 
-//func (t *DriversTestSuite) TestPostalResponse_HasError() {
-//	tt := map[string]struct {
-//		input postalResponse
-//		want  bool
-//	}{
-//		"Error": {
-//			postalResponse{Status: "success"},
-//			false,
-//		},
-//		"No Error": {
-//			postalResponse{Status: "error"},
-//			true,
-//		},
-//	}
-//
-//	for name, test := range tt {
-//		t.Run(name, func() {
-//			got := test.input.HasError()
-//			t.Equal(test.want, got)
-//		})
-//	}
-//}
-//
-//func (t *DriversTestSuite) TestPostalResponse_Error() {
-//	tt := map[string]struct {
-//		input postalResponse
-//		want  string
-//	}{
-//		"Default": {
-//			postalResponse{},
-//			postalErrorMessage,
-//		},
-//		"Code": {
-//			postalResponse{Data: map[string]interface{}{"code": "ValidationFailed"}},
-//			fmt.Sprintf("%s - code: ValidationFailed", postalErrorMessage),
-//		},
-//		"All": {
-//			postalResponse{Data: map[string]interface{}{"code": "ValidationFailed", "message": "Postal Message"}},
-//			fmt.Sprintf("%s - code: ValidationFailed, message: Postal Message", postalErrorMessage),
-//		},
-//	}
-//
-//	for name, test := range tt {
-//		t.Run(name, func() {
-//			got := test.input.Error()
-//			t.Contains(got.Error(), test.want)
-//		})
-//	}
-//}
+func (t *DriversTestSuite) TestPostmarkResponse_Unmarshal() {
+	t.UtilTestUnmarshal(&postmarkResponse{}, []byte(`{"message": "Hello"}`))
+}
 
-func (t *DriversTestSuite) TestPostmark_Send() {
+func (t *DriversTestSuite) TestPostmarkResponse_CheckError() {
 	tt := map[string]struct {
-		input   *mail.Transmission
-		handler func(m *mocks.Requester)
-		want    interface{}
+		input    postmarkResponse
+		response *http.Response
+		buf      []byte
+		want     error
 	}{
 		"Success": {
-			Trans,
-			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postmarkEndpoint, PostmarkHeaders).
-					Return([]byte(`{"To":"hello@gophers.com","MessageID":"10","ErrorCode":0,"Message":"OK"}`), &http.Response{StatusCode: http.StatusOK}, nil)
-			},
-			mail.Response{
-				StatusCode: http.StatusOK,
-				Body:       `{"To":"hello@gophers.com","MessageID":"10","ErrorCode":0,"Message":"OK"}`,
-				Headers:    nil,
-				ID:         "10",
-				Message:    "OK",
-			},
-		},
-		"With Attachment": {
-			TransWithAttachment,
-			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postmarkEndpoint, PostmarkHeaders).
-					Return([]byte(`{"To":"hello@gophers.com","MessageID":"10","ErrorCode":0,"Message":"OK"}`), &http.Response{StatusCode: http.StatusOK}, nil)
-			},
-			mail.Response{
-				StatusCode: http.StatusOK,
-				Body:       `{"To":"hello@gophers.com","MessageID":"10","ErrorCode":0,"Message":"OK"}`,
-				Headers:    nil,
-				ID:         "10",
-				Message:    "OK",
-			},
-		},
-		"Validation Failed": {
+			postmarkResponse{ErrorCode: 0},
+			&http.Response{StatusCode: http.StatusOK},
+			[]byte("test"),
 			nil,
+		},
+		"Empty Body": {
+			postmarkResponse{ErrorCode: 10},
+			&http.Response{StatusCode: http.StatusInternalServerError},
 			nil,
-			"can't validate a nil transmission",
+			mail.ErrEmptyBody,
 		},
-		"Do Error": {
-			Trans,
-			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postmarkEndpoint, PostmarkHeaders).
-					Return([]byte("output"), nil, errors.New("do error"))
-			},
-			"do error",
-		},
-		"Unmarshal Error": {
-			Trans,
-			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postmarkEndpoint, PostmarkHeaders).
-					Return([]byte(`wrong`), nil, nil)
-			},
-			"invalid character",
-		},
-		"Response Error": {
-			Trans,
-			func(m *mocks.Requester) {
-				m.On("Do", mock.Anything, postmarkEndpoint, PostmarkHeaders).
-					Return([]byte(`{"ErrorCode": 10, "Message": "Error"}`), nil, nil)
-			},
-			fmt.Sprintf("%s - code: 10, message: Error", postmarkErrorMessage),
+		"Error": {
+			postmarkResponse{ErrorCode: 10, Message: "message"},
+			&http.Response{StatusCode: http.StatusInternalServerError},
+			[]byte("test"),
+			fmt.Errorf("%s - code: 10, message: message", postmarkErrorMessage),
 		},
 	}
 
 	for name, test := range tt {
 		t.Run(name, func() {
-			m := &mocks.Requester{}
-			if test.handler != nil {
-				test.handler(m)
-			}
-
-			ptl := postmark{
-				cfg:    mail.Config{FromAddress: "from"},
-				client: m,
-			}
-
-			resp, err := ptl.Send(test.input)
+			err := test.input.CheckError(test.response, test.buf)
 			if err != nil {
-				t.Contains(err.Error(), test.want)
+				t.Contains(err.Error(), test.want.Error())
 				return
 			}
-
-			t.Equal(test.want, resp)
+			t.Equal(test.want, err)
 		})
 	}
+}
+
+func (t *DriversTestSuite) TestPostmarkResponse_Meta() {
+	d := &postmarkResponse{Message: "Success", ID: "id"}
+	t.UtilTestMeta(d, d.Message, d.ID)
+}
+
+func (t *DriversTestSuite) TestPostmark_Send() {
+	t.UtilTestSend(func(m *mocks.Requester) mail.Mailer {
+		return &postmark{cfg: Comfig, client: m}
+	}, true)
 }

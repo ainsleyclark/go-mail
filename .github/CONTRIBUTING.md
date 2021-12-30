@@ -1,6 +1,6 @@
 # Contributing
 
-Hello, we are very happy you decided to contribute to go mail. But before you start with your contribution, 
+Hello, we are very happy you decided to contribute to Go Mail. But before you start with your contribution,
 please make sure to read through our guidelines:
 
 - [Issue Reporting Guidline](#issue-reporting-guidline)
@@ -8,13 +8,13 @@ please make sure to read through our guidelines:
 
 ## Issue Reporting Guideline
 
-If you find a bug or believe that some important feature is missing you can open a new issue on the Github-Project page, 
-using our provided issue templates. Before creating a new issue, please make sure that there isn't already an issue 
+If you find a bug or believe that some important feature is missing you can open a new issue on the Github-Project page,
+using our provided issue templates. Before creating a new issue, please make sure that there isn't already an issue
 covering this problem or requesting this feature.
 
 ## Pull Request Guidelines
 
-- The `main` branch always contains the latest stable released version and doesn't take PRs. 
+- The `main` branch always contains the latest stable released version and doesn't take PRs.
   Instead, create dedicated feature branches and submit your PR to our `dev` branch.
 - It's okay if your PR contains several small commits as we will squash the PR before merging it.
 - Please try to use meaningful commit messages.

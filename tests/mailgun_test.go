@@ -17,29 +17,17 @@ import (
 	"github.com/ainsleyclark/go-mail/drivers"
 	"github.com/ainsleyclark/go-mail/mail"
 	"os"
+	"testing"
 )
 
-func (t *MailTestSuite) Test_MailGun() {
-	tx := t.GetTransmission()
-
-	mailer, err := drivers.NewMailGun(mail.Config{
+func Test_MailGun(t *testing.T) {
+	LoadEnv(t)
+	cfg := mail.Config{
 		URL:         os.Getenv("MAILGUN_URL"),
 		APIKey:      os.Getenv("MAILGUN_API_KEY"),
 		FromAddress: os.Getenv("MAILGUN_FROM_ADDRESS"),
 		FromName:    os.Getenv("MAILGUN_FROM_NAME"),
 		Domain:      os.Getenv("MAILGUN_DOMAIN"),
-	})
-	if err != nil {
-		t.FailNow("Error creating client: " + err.Error())
 	}
-
-	result, err := mailer.Send(tx)
-	if err != nil {
-		t.FailNow("Error sending MailGun email: " + err.Error())
-	}
-
-	t.Equal(200, result.StatusCode)
-	t.NotNil(result.Body)
-	t.NotEmpty(result.Message)
-	t.NotEmpty(result.ID)
+	UtilTestSend(t, drivers.NewMailgun, cfg, "MailGun")
 }

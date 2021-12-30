@@ -17,26 +17,16 @@ import (
 	"github.com/ainsleyclark/go-mail/drivers"
 	"github.com/ainsleyclark/go-mail/mail"
 	"os"
+	"testing"
 )
 
-func (t *MailTestSuite) Test_Postal() {
-	tx := t.GetTransmission()
-
-	mailer, err := drivers.NewPostal(mail.Config{
+func Test_Postal(t *testing.T) {
+	LoadEnv(t)
+	cfg := mail.Config{
 		URL:         os.Getenv("POSTAL_URL"),
 		APIKey:      os.Getenv("POSTAL_API_KEY"),
 		FromAddress: os.Getenv("POSTAL_FROM_ADDRESS"),
 		FromName:    os.Getenv("POSTAL_FROM_NAME"),
-	})
-	if err != nil {
-		t.FailNow("Error creating client: " + err.Error())
 	}
-
-	result, err := mailer.Send(tx)
-	if err != nil {
-		t.FailNow("Error sending Postal email: " + err.Error())
-	}
-
-	t.Equal(200, result.StatusCode)
-	t.NotEmpty(result.Message)
+	UtilTestSend(t, drivers.NewPostal, cfg, "Postal")
 }
