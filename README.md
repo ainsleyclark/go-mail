@@ -22,7 +22,7 @@
 
 ## Supported API's
 
-<img align="left" src="res/logos/mailgun.svg" />  [Mailgun (mailgun)](https://documentation.mailgun.com/e)
+<img align="left" src="res/logos/mailgun.svg" width="60" />  [Mailgun (mailgun)](https://documentation.mailgun.com/e)
 
 <img align="left" src="res/logos/postal.svg" width="60" /> [Postal (postal)](https://docs.postalserver.io/)
 
