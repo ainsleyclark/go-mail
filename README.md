@@ -29,7 +29,7 @@
 
 - <img align="left" src="res/logos/sendgrid.svg" width="24" /> [SendGrid](https://sendgrid.com/)
 
-- <img align="left" src="res/logos/sparkpost.png" width="20" /> [SparkPost](https://www.sparkpost.com/)
+- <img align="left" src="res/logos/sparkpost.png" width="24" /> [SparkPost](https://www.sparkpost.com/)
 
 - <img align="left" src="res/logos/smtp.svg" width="24" /> [SMTP](https://pkg.go.dev/net/smtp)
 
