@@ -28,12 +28,7 @@ td, th {
 
 ## Supported API's
 
-<table>
-  <tr>
-    <td style="padding: 0; border: 0;"><img src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" /></td>
-    <td style="padding: 0; border: 0;">Test</td>
-  </tr>
-</table>
+<img align="left" src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" /> Test
 
 -  [Mailgun (mailgun)](https://documentation.mailgun.com/e)
 - [Postal (postal)](https://docs.postalserver.io/)
