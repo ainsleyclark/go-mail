@@ -22,7 +22,7 @@
 
 ## Supported API's
 
-<img align="left" src="res/logos/postal.svg" /><a href="https://docs.postalserver.io/">SparkPost</a>
+<img align="left" src="res/logos/postal.svg" width="100" /><a href="https://docs.postalserver.io/">SparkPost</a>
 <img align="left" src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" /><a href="https://www.sparkpost.com/">SparkPost</a>
 
 -  [Mailgun (mailgun)](https://documentation.mailgun.com/e)
