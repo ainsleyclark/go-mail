@@ -61,10 +61,12 @@ jobs:
         run: |
           # Make file runnable, might not be necessary
           chmod +x "${GITHUB_WORKSPACE}/bin/tests.sh"
+          # Ensure in check dir
+          cd ${GITHUB_WORKSPACE}
           # Run tests
-          "${GITHUB_WORKSPACE}/bin/tests.sh mailgun"
-          "${GITHUB_WORKSPACE}/bin/tests.sh postmark"
-          "${GITHUB_WORKSPACE}/bin/tests.sh sendgrid"
-          "${GITHUB_WORKSPACE}/bin/tests.sh smtp"
-          "${GITHUB_WORKSPACE}/bin/tests.sh sparkpost"
+          "go test -v ./tests/ -run "Test_MailGun";
+          "go test -v ./tests/ -run "Test_Postmark";
+          "go test -v ./tests/ -run "Test_SendGrid";
+          "go test -v ./tests/ -run "Test_SMTP";
+          "go test -v ./tests/ -run "Test_SparkPost";
 
