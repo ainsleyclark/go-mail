@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="Gopher" src="logo.svg" height="250" />
+  <img alt="Gopher" src="res/logos/go-mail.svg" height="250" />
   <h3 align="center">Go Mail</h3>
   <p align="center">A cross platform mail driver for GoLang.</p>
   <p align="center">
@@ -10,12 +10,6 @@
     <a href="https://pkg.go.dev/github.com/ainsleyclark/go-mail"><img src="https://godoc.org/github.com/ainsleyclark/go-mail?status.svg" alt="GoDoc"></a>
   </p>
 </p>
-
-<style>
-td, th {
-   border: none!important;
-}
-</style>
 
 ## Overview
 
@@ -28,7 +22,8 @@ td, th {
 
 ## Supported API's
 
-<img align="left" src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" padding="0" /><a href="https://www.sparkpost.com/">SparkPost</a>
+<img align="left" src="https://www.google.com/s2/favicons?sz=24&domain_url=https://docs.postalserver.io/" /><a href="https://docs.postalserver.io/">SparkPost</a>
+<img align="left" src="https://www.google.com/s2/favicons?sz=24&domain_url=https://www.sparkpost.com/" /><a href="https://www.sparkpost.com/">SparkPost</a>
 
 -  [Mailgun (mailgun)](https://documentation.mailgun.com/e)
 - [Postal (postal)](https://docs.postalserver.io/)
