@@ -126,11 +126,11 @@ The mail response is used for debugging and inspecting results of the mailer. Be
 ```go
 // Response represents the data passed back from a successful transmission.
 type Response struct {
-	StatusCode int                 // e.g. 200
-	Body       []byte              // e.g. {"result: success"}
-	Headers    map[string][]string // e.g. map[X-Ratelimit-Limit:[600]]
-	ID         string              // e.g "100"
-	Message    interface{}         // e.g "Email sent successfully"
+	StatusCode int         // e.g. 200
+	Body       []byte      // e.g. {"result: success"}
+	Headers    http.Header // e.g. map[X-Ratelimit-Limit:[600]]
+	ID         string      // e.g "100"
+	Message    string      // e.g "Email sent successfully"
 }
 ```
 
