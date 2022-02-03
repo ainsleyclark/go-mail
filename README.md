@@ -10,8 +10,6 @@
     <a href="https://pkg.go.dev/github.com/ainsleyclark/go-mail"><img src="https://godoc.org/github.com/ainsleyclark/go-mail?status.svg" alt="GoDoc"></a>
 		<a href="https://twitter.com/ainsleydev"><img src="https://img.shields.io/twitter/follow/ainsleydev" alt="Twitter Handle"></a>
   </p>
-	
-	[![Twitter Follow](https://img.shields.io/twitter/follow/mergestat)](https://twitter.com/mergestat)
 </p>
 
 ## Overview
