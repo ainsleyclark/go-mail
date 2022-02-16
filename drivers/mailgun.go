@@ -132,6 +132,10 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
+	for k, v := range t.Headers {
+		f.AddValue("h:"+k, v)
+	}
+
 	url := fmt.Sprintf("%s/%s", m.cfg.URL, strings.TrimPrefix(fmt.Sprintf(mailgunEndpoint, m.cfg.Domain), "/"))
 	req := httputil.NewHTTPRequest(http.MethodPost, url)
 	req.SetBasicAuth("api", m.cfg.APIKey)

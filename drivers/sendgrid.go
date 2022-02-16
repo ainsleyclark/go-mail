@@ -211,6 +211,8 @@ func (d *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
+	tx.Headers = t.Headers
+
 	pl, err := newJSONData(tx)
 	if err != nil {
 		return mail.Response{}, err

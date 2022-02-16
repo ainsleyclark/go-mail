@@ -238,6 +238,8 @@ func (d *sparkPost) Send(t *mail.Transmission) (mail.Response, error) {
 		}
 	}
 
+	tx.Content.Headers = t.Headers
+
 	pl, err := newJSONData(tx)
 	if err != nil {
 		return mail.Response{}, err

@@ -29,6 +29,7 @@ type Transmission struct {
 	HTML        string
 	PlainText   string
 	Attachments []Attachment
+	Headers     map[string]string
 }
 
 // Validate runs sanity checks of a Transmission struct.
