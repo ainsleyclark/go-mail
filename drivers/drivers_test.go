@@ -59,6 +59,9 @@ var (
 		Subject:    "Subject",
 		HTML:       "<h1>HTML</h1>",
 		PlainText:  "PlainText",
+		Headers: map[string]string{
+			"X-Go-Mail": "Test",
+		},
 	}
 	// Trans is the transmission with an
 	// attachment used for testing.

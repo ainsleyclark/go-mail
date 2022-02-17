@@ -53,7 +53,7 @@ func NewMailgun(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &mailGun{
 		cfg:    cfg,
-		client: client.New(),
+		client: client.New(cfg.Client),
 	}, nil
 }
 

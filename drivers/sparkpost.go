@@ -54,7 +54,7 @@ func NewSparkPost(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &sparkPost{
 		cfg:    cfg,
-		client: client.New(),
+		client: client.New(cfg.Client),
 	}, nil
 }
 

@@ -36,11 +36,14 @@ type Requester interface {
 }
 
 // New creates a new Client with a stdlib http.Client.
-func New() *Client {
-	return &Client{
-		Client: &http.Client{
+func New(client *http.Client) *Client {
+	if client == nil {
+		client = &http.Client{
 			Timeout: Timeout,
-		},
+		}
+	}
+	return &Client{
+		Client:     client,
 		bodyReader: io.ReadAll,
 	}
 }

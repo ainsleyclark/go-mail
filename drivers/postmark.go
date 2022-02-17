@@ -51,7 +51,7 @@ func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postmark{
 		cfg:    cfg,
-		client: client.New(),
+		client: client.New(cfg.Client),
 	}, nil
 }
 

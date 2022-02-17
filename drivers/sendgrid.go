@@ -52,7 +52,7 @@ func NewSendGrid(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &sendGrid{
 		cfg:    cfg,
-		client: client.New(),
+		client: client.New(cfg.Client),
 	}, nil
 }
 

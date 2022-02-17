@@ -89,6 +89,7 @@ cfg := mail.Config{
     APIKey:      "my-key",
     FromAddress: "hello@gophers.com",
     FromName:    "Gopher",
+		Client:			 http.DefaultClient, // Client is optional
 }
 
 mailer, err := drivers.NewSparkpost(cfg)
@@ -110,6 +111,9 @@ tx := &mail.Transmission{
 	Subject:    "My email",
 	HTML:       "<h1>Hello from Go Mail!</h1>",
 	PlainText:  "Hello from Go Mail!",
+	Headers: map[string]string{
+		"X-Go-Mail": "Test",
+	},
 }
 
 result, err := mailer.Send(tx)
@@ -425,11 +429,6 @@ The driver flag can be one of the following:
 - `smtp`
 - `sparkpost`
 
-## TODO
-
-- Add headers to transmission
-- Add templates to providers - Sparkpost et al.
-
 ## Contributing
 
 We welcome contributors, but please read the [contributing document](CONTRIBUTING.md) before making a pull request.
@@ -437,6 +436,3 @@ We welcome contributors, but please read the [contributing document](CONTRIBUTIN
 ## Licence
 
 Code Copyright 2021 Go Mail. Code released under the [MIT Licence](LICENCE).
-
-<a href="https://www.producthunt.com/posts/go-mail?utm_source=badge-review&utm_medium=badge&utm_souce=badge-go-mail#discussion-body" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/review.svg?post_id=324954&theme=light" alt="Go Mail - 📧 A cross platform mail driver for GoLang. | Product Hunt" width="250" height="54" /></a>
-<a href="https://www.producthunt.com/posts/go-mail?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go-mail" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=324954&theme=light" alt="Go Mail - 📧 A cross platform mail driver for GoLang. | Product Hunt" width="250" height="54" /></a>
