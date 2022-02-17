@@ -85,11 +85,11 @@ This is based of the requirements for the API. For more details see the [example
 
 ```go
 cfg := mail.Config{
-    URL:         "https://api.eu.sparkpost.com",
-    APIKey:      "my-key",
-    FromAddress: "hello@gophers.com",
-    FromName:    "Gopher",
-		Client:			 http.DefaultClient, // Client is optional
+	URL:         "https://api.eu.sparkpost.com",
+	APIKey:      "my-key",
+	FromAddress: "hello@gophers.com",
+	FromName:    "Gopher",
+	Client:       http.DefaultClient, // Client is optional
 }
 
 mailer, err := drivers.NewSparkpost(cfg)
