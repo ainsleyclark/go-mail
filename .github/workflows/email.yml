@@ -60,8 +60,6 @@ jobs:
           SPARKPOST_FROM_NAME: ${{ secrets.SPARKPOST_FROM_NAME }}
         run: |
           # Make file runnable, might not be necessary
-          pwd
-          ls
           chmod +x ./bin/tests.sh
           # Run tests
           # Ignore Postal, no server active.
