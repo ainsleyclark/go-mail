@@ -62,12 +62,12 @@ jobs:
           # Make file runnable, might not be necessary
           pwd
           ls
-          chmod +x "./bin/tests.sh"
+          chmod +x ./bin/tests.sh
           # Run tests
           # Ignore Postal, no server active.
-          "./bin/tests.sh mailgun"
-          "./bin/tests.sh postmark"
-          "./bin/tests.sh sendgrid"
-          "./bin/tests.sh smtp"
-          "./bin/tests.sh sparkpost"
+          ./bin/tests.sh mailgun
+          ./bin/tests.sh postmark
+          ./bin/tests.sh sendgrid
+          ./bin/tests.sh smtp
+          ./bin/tests.sh sparkpost
 
