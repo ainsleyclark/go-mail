@@ -61,6 +61,7 @@ jobs:
         run: |
           # Make file runnable, might not be necessary
           pwd
+          ls
           chmod +x "./bin/tests.sh"
           # Run tests
           # Ignore Postal, no server active.
