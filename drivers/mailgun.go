@@ -53,7 +53,7 @@ func NewMailgun(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &mailGun{
 		cfg:    cfg,
-		client: client.New(),
+		client: client.New(cfg.Client),
 	}, nil
 }
 
@@ -130,6 +130,10 @@ func (m *mailGun) Send(t *mail.Transmission) (mail.Response, error) {
 		for _, v := range t.Attachments {
 			f.AddBuffer("attachment", v.Filename, v.Bytes)
 		}
+	}
+
+	for k, v := range t.Headers {
+		f.AddValue("h:"+k, v)
 	}
 
 	url := fmt.Sprintf("%s/%s", m.cfg.URL, strings.TrimPrefix(fmt.Sprintf(mailgunEndpoint, m.cfg.Domain), "/"))

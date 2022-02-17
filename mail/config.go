@@ -13,7 +13,10 @@
 
 package mail
 
-import "errors"
+import (
+	"errors"
+	"net/http"
+)
 
 // Config represents the configuration passed when a new
 // client is constructed. Dependant on what driver is used,
@@ -26,6 +29,7 @@ type Config struct {
 	FromName    string
 	Password    string
 	Port        int
+	Client      *http.Client
 }
 
 // Validate runs sanity checks of a Config struct.

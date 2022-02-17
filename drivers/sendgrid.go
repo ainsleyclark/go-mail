@@ -52,7 +52,7 @@ func NewSendGrid(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &sendGrid{
 		cfg:    cfg,
-		client: client.New(),
+		client: client.New(cfg.Client),
 	}, nil
 }
 
@@ -210,6 +210,8 @@ func (d *sendGrid) Send(t *mail.Transmission) (mail.Response, error) {
 			})
 		}
 	}
+
+	tx.Headers = t.Headers
 
 	pl, err := newJSONData(tx)
 	if err != nil {

@@ -51,26 +51,23 @@ func NewPostmark(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postmark{
 		cfg:    cfg,
-		client: client.New(),
+		client: client.New(cfg.Client),
 	}, nil
 }
 
 type (
 	// postmarkTransmission defines the data to be sent to the Postmark API.
 	postmarkTransmission struct {
-		From      string `json:"From"`
-		To        string `json:"To"`
-		CC        string `json:"Cc"`
-		BCC       string `json:"Bcc"`
-		Subject   string `json:"Subject"`
-		Tag       string `json:"Tag"`
-		HTML      string `json:"HtmlBody"`
-		PlainText string `json:"TextBody"`
-		ReplyTo   string `json:"ReplyTo"`
-		Headers   []struct {
-			Name  string `json:"Name"`
-			Value string `json:"Value"`
-		} `json:"headers"`
+		From        string               `json:"From"`
+		To          string               `json:"To"`
+		CC          string               `json:"Cc"`
+		BCC         string               `json:"Bcc"`
+		Subject     string               `json:"Subject"`
+		Tag         string               `json:"Tag"`
+		HTML        string               `json:"HtmlBody"`
+		PlainText   string               `json:"TextBody"`
+		ReplyTo     string               `json:"ReplyTo"`
+		Headers     []postmarkHeader     `json:"headers"`
 		TrackOpens  bool                 `json:"TrackOpens"`
 		TrackLinks  string               `json:"TrackLinks"`
 		Attachments []postmarkAttachment `json:"Attachments"`
@@ -79,6 +76,12 @@ type (
 			ClientID string `json:"client-id"`
 		} `json:"Metadata"`
 		MessageStream string `json:"MessageStream"`
+	}
+	// postmarkHeaders defines the key value pair of custom headers
+	// to send with the email.
+	postmarkHeader struct {
+		Name  string `json:"Name"`
+		Value string `json:"Value"`
 	}
 	// postmarkAttachment defines a singular Postmark mail attachment.
 	postmarkAttachment struct {
@@ -154,6 +157,13 @@ func (d *postmark) Send(t *mail.Transmission) (mail.Response, error) {
 				Content:     v.B64(),
 			})
 		}
+	}
+
+	for k, v := range t.Headers {
+		tx.Headers = append(tx.Headers, postmarkHeader{
+			Name:  k,
+			Value: v,
+		})
 	}
 
 	pl, err := newJSONData(tx)

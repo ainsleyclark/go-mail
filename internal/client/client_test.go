@@ -30,8 +30,11 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	got := New()
+	got := New(nil)
 	assert.NotNil(t, got.bodyReader)
+	c := &http.Client{}
+	withClient := New(c)
+	assert.Equal(t, withClient.Client, c)
 }
 
 func TestClient_Do(t *testing.T) {
@@ -204,7 +207,7 @@ func TestClient_MakeRequest(t *testing.T) {
 			defer func() { mail.Debug = false }()
 			mail.Debug = true
 
-			c := New()
+			c := New(nil)
 
 			mock := &mocks.Payload{}
 			if test.payload != nil {

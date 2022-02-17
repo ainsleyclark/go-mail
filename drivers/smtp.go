@@ -95,6 +95,10 @@ func (m *smtpClient) getTo(t *mail.Transmission) []string {
 func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 	buf := bytes.NewBuffer(nil)
 
+	for k, v := range t.Headers {
+		buf.WriteString(fmt.Sprintf("%s: %s\n", k, v))
+	}
+
 	buf.WriteString("MIME-Version: 1.0\n")
 	writer := multipart.NewWriter(buf)
 	boundary := writer.Boundary()

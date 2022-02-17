@@ -52,7 +52,7 @@ func NewPostal(cfg mail.Config) (mail.Mailer, error) {
 	}
 	return &postal{
 		cfg:    cfg,
-		client: client.New(),
+		client: client.New(cfg.Client),
 	}, nil
 }
 
@@ -68,6 +68,7 @@ type (
 		HTML        string             `json:"html_body"`
 		PlainText   string             `json:"plain_body"`
 		Attachments []postalAttachment `json:"attachments"`
+		Headers     map[string]string  `json:"headers"`
 	}
 	// postalAttachment defines a singular Postal mail attachment.
 	postalAttachment struct {
@@ -153,6 +154,8 @@ func (d *postal) Send(t *mail.Transmission) (mail.Response, error) {
 			})
 		}
 	}
+
+	tx.Headers = t.Headers
 
 	pl, err := newJSONData(tx)
 	if err != nil {
