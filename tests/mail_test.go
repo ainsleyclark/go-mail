@@ -70,6 +70,9 @@ func GetTransmission(t *testing.T) *mail.Transmission {
 		Subject:    "Test - Go Mail",
 		HTML:       "<h1>Hello from Go Mail!</h1>",
 		PlainText:  "Hello from Go Mail!",
+		Headers: map[string]string{
+			"X-Go-Mail": "Test",
+		},
 		Attachments: []mail.Attachment{
 			{
 				Filename: "gopher.png",

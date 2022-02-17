@@ -96,7 +96,7 @@ func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 	buf := bytes.NewBuffer(nil)
 
 	for k, v := range t.Headers {
-		buf.WriteString(fmt.Sprintf("%s: %s", k, v))
+		buf.WriteString(fmt.Sprintf("%s: %s\n", k, v))
 	}
 
 	buf.WriteString("MIME-Version: 1.0\n")
