@@ -433,6 +433,10 @@ The driver flag can be one of the following:
 
 We welcome contributors, but please read the [contributing document](CONTRIBUTING.md) before making a pull request.
 
+## Credits
+
+Shout out to the incredible [Maria Letta](https://github.com/MariaLetta) for her excellent Gopher illustrations.
+
 ## Licence
 
-Code Copyright 2021 Go Mail. Code released under the [MIT Licence](LICENCE).
+Code Copyright 2022 Go Mail. Code released under the [MIT Licence](LICENCE).
