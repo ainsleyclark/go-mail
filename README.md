@@ -7,7 +7,7 @@
 [![Test](https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/ainsleyclark/go-mail/branch/master/graph/badge.svg?token=K27L8LS7DA)](https://codecov.io/gh/ainsleyclark/go-mail)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/ainsleyclark/go-mail)
-[![Twitter Handle](https://twitter.com/ainsleydev)]("https://img.shields.io/twitter/follow/ainsleydev)
+[![Twitter Handle](https://twitter.com/ainsleydev)](https://img.shields.io/twitter/follow/ainsleydev)
 
 # 📧 Go Mail
 
