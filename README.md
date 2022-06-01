@@ -1,6 +1,7 @@
 <div align="center">
-<img height="250" src="res/logos/go-mail.svg?size=new2" alt="Go Mail Logo" style="margin-bottom: 1rem" />
-</div>
+<img height="250" src="res/logos/go-mail.svg?size=new2" alt="Go Mail Logo" />
+
+&nbsp;
 
 [![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ainsleyclark/go-mail)](https://goreportcard.com/report/github.com/ainsleyclark/go-mail)
@@ -8,6 +9,7 @@
 [![codecov](https://codecov.io/gh/ainsleyclark/go-mail/branch/master/graph/badge.svg?token=K27L8LS7DA)](https://codecov.io/gh/ainsleyclark/go-mail)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/ainsleyclark/go-mail)
 [![Twitter Handle](https://img.shields.io/twitter/follow/ainsleydev)](https://twitter.com/ainsleydev)
+</div>
 
 # 📧 Go Mail
 
