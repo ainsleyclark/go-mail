@@ -1,5 +1,5 @@
 <div align="center">
-<img height="250" src="res/go-mail.svg?size=new" alt="Go Mail Logo" style="margin-bottom: 1rem" />
+<img height="250" src="res/logos/go-mail.svg?size=new" alt="Go Mail Logo" style="margin-bottom: 1rem" />
 </div>
 
 [![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
