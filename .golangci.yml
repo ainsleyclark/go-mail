@@ -11,5 +11,6 @@ linters:
     - wastedassign
     - revive
 run:
+  go: '1.17'
   skip-dirs:
     - res

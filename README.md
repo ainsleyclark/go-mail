@@ -1,16 +1,17 @@
-<p align="center">
-  <img alt="Gopher" src="res/logos/go-mail.svg" height="250" />
-  <h3 align="center">Go Mail</h3>
-  <p align="center">A cross platform mail driver for GoLang.</p>
-  <p align="center">
-		<a href="https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml"><img src="https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml/badge.svg?branch=main"></a>
-    <a href="/LICENSE.md"><img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"></a>
-		<a href="https://codecov.io/gh/ainsleyclark/go-mail"><img src="https://codecov.io/gh/ainsleyclark/go-mail/branch/main/graph/badge.svg?token=1ZI9R34CHQ"/></a>
-    <a href="https://goreportcard.com/report/github.com/ainsleyclark/go-mail"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/ainsleyclark/go-mail?update=true"></a>
-    <a href="https://pkg.go.dev/github.com/ainsleyclark/go-mail"><img src="https://godoc.org/github.com/ainsleyclark/go-mail?status.svg" alt="GoDoc"></a>
-		<a href="https://twitter.com/ainsleydev"><img src="https://img.shields.io/twitter/follow/ainsleydev" alt="Twitter Handle"></a>
-  </p>
-</p>
+<div align="center">
+<img height="250" src="res/go-mail.svg?size=new" alt="Go Mail Logo" style="margin-bottom: 1rem" />
+</div>
+
+[![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ainsleyclark/go-mail)](https://goreportcard.com/report/github.com/ainsleyclark/go-mail)
+[![Test](https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/ainsleyclark/go-mail/branch/master/graph/badge.svg?token=K27L8LS7DA)](https://codecov.io/gh/ainsleyclark/go-mail)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/ainsleyclark/go-mail)
+[![Twitter Handle](https://twitter.com/ainsleydev)]("https://img.shields.io/twitter/follow/ainsleydev)
+
+# 📧 Go Mail
+
+A cross-platform mail driver for GoLang. Featuring Mailgun, Postal, Postmark, SendGrid, SparkPost & SMTP.
 
 ## Overview
 

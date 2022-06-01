@@ -96,7 +96,7 @@ func UtilTestSend(t *testing.T, fn func(cfg mail.Config) (mail.Mailer, error), c
 
 	result, err := mailer.Send(tx)
 	if err != nil {
-		t.Fatalf("Error sending %s email: %s", strings.Title(driver), err.Error())
+		t.Fatalf("Error sending %s email: %s", strings.Title(driver), err.Error()) //nolint
 	}
 
 	// Print for sanity
