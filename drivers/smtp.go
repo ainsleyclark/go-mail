@@ -107,7 +107,7 @@ func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 	if t.HasAttachments() {
 		buf.WriteString(fmt.Sprintf("Content-Type: multipart/alternative; boundary=%s\r\n", boundary))
 	} else {
-		buf.WriteString("Content-Type: text/html; charset=UTF-8\r\n")
+		buf.WriteString(fmt.Sprintf("Content-Type: text/html; charset=UTF-8; boundary=%s\r\n", boundary))
 	}
 
 	buf.WriteString(fmt.Sprintf("Subject: %s\n", t.Subject))
