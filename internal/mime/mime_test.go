@@ -15,7 +15,6 @@ package mime
 
 import (
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -46,7 +45,7 @@ func TestDetectBuffer(t *testing.T) {
 			assert.NoError(t, err)
 
 			path := filepath.Join(filepath.Join(wd, "../../testdata"), test.input)
-			file, err := ioutil.ReadFile(path)
+			file, err := os.ReadFile(path)
 			assert.NoError(t, err)
 
 			got := DetectBuffer(file)

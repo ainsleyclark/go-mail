@@ -15,7 +15,6 @@ package mail
 
 import (
 	"github.com/stretchr/testify/suite"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -54,12 +53,10 @@ const (
 // Returns a PNG attachment for testing.
 func (t *MailTestSuite) Attachment(name string) Attachment {
 	path := filepath.Join(filepath.Dir(t.base), DataPath, name)
-	file, err := ioutil.ReadFile(path)
-
+	file, err := os.ReadFile(path)
 	if err != nil {
 		t.Fail("error getting attachment with the path: "+path, err)
 	}
-
 	return Attachment{
 		Filename: name,
 		Bytes:    file,

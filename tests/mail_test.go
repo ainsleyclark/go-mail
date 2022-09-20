@@ -18,7 +18,6 @@ import (
 	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -57,7 +56,7 @@ func GetTransmission(t *testing.T) *mail.Transmission {
 	assert.NoError(t, err)
 
 	path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	if err != nil {
 
 		t.Fatal("Error getting attachment with the path: "+path, err)
