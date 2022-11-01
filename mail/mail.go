@@ -1,4 +1,4 @@
-// Copyright 2020 The Go Mail Authors. All rights reserved.
+// Copyright 2022 Ainsley Clark. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,30 +29,31 @@ var (
 // Response or error when an email is sent.
 //
 // Below is an example of creating and sending a transmission:
-// 	cfg := mail.Config{
-//    		URL:         "https://api.eu.sparkpost.com",
-//    		APIKey:      "my-key",
-//    		FromAddress: "hello@gophers.com",
-//    		FromName:    "Gopher",
-//	}
 //
-//	mailer, err := drivers.NewSparkPost(cfg)
-//	if err != nil {
-//		log.Fatalln(err)
-//	}
+//		cfg := mail.Config{
+//	   		URL:         "https://api.eu.sparkpost.com",
+//	   		APIKey:      "my-key",
+//	   		FromAddress: "hello@gophers.com",
+//	   		FromName:    "Gopher",
+//		}
 //
-//	tx := &mail.Transmission{
-//  		Recipients:  []string{"hello@gophers.com"},
-//    		Subject:     "My email",
-//    		HTML:        "<h1>Hello from Go Mail!</h1>",
-//	}
+//		mailer, err := drivers.NewSparkPost(cfg)
+//		if err != nil {
+//			log.Fatalln(err)
+//		}
 //
-//	result, err := mailer.Send(tx)
-//	if err != nil {
-//		log.Fatalln(err)
-//	}
+//		tx := &mail.Transmission{
+//	 		Recipients:  []string{"hello@gophers.com"},
+//	   		Subject:     "My email",
+//	   		HTML:        "<h1>Hello from Go Mail!</h1>",
+//		}
 //
-//	fmt.Printf("%+v\n", result)
+//		result, err := mailer.Send(tx)
+//		if err != nil {
+//			log.Fatalln(err)
+//		}
+//
+//		fmt.Printf("%+v\n", result)
 type Mailer interface {
 	// Send accepts a mail.Transmission to send an email through a particular
 	// driver/provider. Transmissions will be validated before sending.

@@ -1,4 +1,4 @@
-// Copyright 2020 The Go Mail Authors. All rights reserved.
+// Copyright 2022 Ainsley Clark. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -92,6 +92,7 @@ func (m *smtpClient) getTo(t *mail.Transmission) []string {
 // Processes the mail.Transmission and returns the bytes for
 // sending. Mime types are set dependent on the
 // content passed.
+// See: https://gist.github.com/tylermakin/d820f65eb3c9dd98d58721c7fb1939a8?permalink_comment_id=2703291
 func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 	buf := bytes.NewBuffer(nil)
 
@@ -106,7 +107,7 @@ func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 	if t.HasAttachments() {
 		buf.WriteString(fmt.Sprintf("Content-Type: multipart/alternative; boundary=%s\r\n", boundary))
 	} else {
-		buf.WriteString("Content-Type: text/html; charset=UTF-8\r\n")
+		buf.WriteString(fmt.Sprintf("Content-Type: text/html; charset=UTF-8; boundary=%s\r\n", boundary))
 	}
 
 	buf.WriteString(fmt.Sprintf("Subject: %s\n", t.Subject))
@@ -116,18 +117,20 @@ func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 		buf.WriteString(fmt.Sprintf("CC: %s\n", strings.Join(t.CC, ",")))
 	}
 
+	buf.WriteString("\n")
+
 	if t.PlainText != "" {
 		buf.WriteString(fmt.Sprintf("--%s\r\n", boundary))
 		buf.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
 		buf.WriteString("Content-Type: text/plain; charset=UTF-8\r\n")
-		buf.WriteString(fmt.Sprintf("\r\n%s\r\n", strings.TrimSpace(t.PlainText)))
+		buf.WriteString(fmt.Sprintf("\r\n%s\r\n\n", strings.TrimSpace(t.PlainText)))
 	}
 
 	if t.HTML != "" {
 		buf.WriteString(fmt.Sprintf("--%s\r\n", boundary))
 		buf.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
 		buf.WriteString("Content-Type: text/html; charset=UTF-8\r\n")
-		buf.WriteString(fmt.Sprintf("\r\n%s\r\n", t.HTML))
+		buf.WriteString(fmt.Sprintf("\r\n%s\r\n\n", t.HTML))
 	}
 
 	if t.HasAttachments() {
@@ -140,6 +143,8 @@ func (m *smtpClient) bytes(t *mail.Transmission) []byte {
 		}
 		buf.WriteString("--")
 	}
+
+	buf.WriteString(fmt.Sprintf("--%s--\n", boundary))
 
 	return buf.Bytes()
 }

@@ -1,4 +1,4 @@
-// Copyright 2020 The Go Mail Authors. All rights reserved.
+// Copyright 2022 Ainsley Clark. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@ package mime
 
 import (
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -46,7 +45,7 @@ func TestDetectBuffer(t *testing.T) {
 			assert.NoError(t, err)
 
 			path := filepath.Join(filepath.Join(wd, "../../testdata"), test.input)
-			file, err := ioutil.ReadFile(path)
+			file, err := os.ReadFile(path)
 			assert.NoError(t, err)
 
 			got := DetectBuffer(file)

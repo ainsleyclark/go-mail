@@ -1,4 +1,4 @@
-// Copyright 2020 The Go Mail Authors. All rights reserved.
+// Copyright 2022 Ainsley Clark. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import (
 	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -57,7 +56,7 @@ func GetTransmission(t *testing.T) *mail.Transmission {
 	assert.NoError(t, err)
 
 	path := filepath.Join(filepath.Dir(wd), DataPath, PNGName)
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	if err != nil {
 
 		t.Fatal("Error getting attachment with the path: "+path, err)

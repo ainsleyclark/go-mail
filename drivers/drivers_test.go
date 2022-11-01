@@ -1,4 +1,4 @@
-// Copyright 2020 The Go Mail Authors. All rights reserved.
+// Copyright 2022 Ainsley Clark. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import (
 	"github.com/ainsleyclark/go-mail/mail"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -85,13 +85,11 @@ var (
 
 // Returns a PNG attachment for testing.
 func (t *DriversTestSuite) Attachment(name string) mail.Attachment {
-	path := t.base + string(os.PathSeparator) + DataPath + string(os.PathSeparator) + name
-	file, err := ioutil.ReadFile(path)
-
+	path := filepath.Join(t.base, DataPath, name)
+	file, err := os.ReadFile(path)
 	if err != nil {
 		t.Fail("error getting attachment with the path: "+path, err)
 	}
-
 	return mail.Attachment{
 		Filename: name,
 		Bytes:    file,

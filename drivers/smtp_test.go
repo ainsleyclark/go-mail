@@ -1,4 +1,4 @@
-// Copyright 2020 The Go Mail Authors. All rights reserved.
+// Copyright 2022 Ainsley Clark. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@ package drivers
 
 import (
 	"errors"
+	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
 	"net/smtp"
 )
@@ -130,4 +131,23 @@ func (t *DriversTestSuite) TestSMTP_Send() {
 			t.Equal(test.want, resp)
 		})
 	}
+}
+
+func (t *DriversTestSuite) TestSMTP_Bytes() {
+	t.T().Skip()
+
+	m := smtpClient{}
+	got := m.bytes(&mail.Transmission{
+		Recipients: []string{"hello@gmail.com"},
+		Subject:    "Subject",
+		HTML:       "<h1>Hey!</h1>",
+		PlainText:  "Hey!",
+		//Attachments: []mail.Attachment{
+		//	{
+		//		Filename: "test.jpg",
+		//		Bytes:    []byte("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=="),
+		//	},
+		//},
+	})
+	fmt.Println(string(got))
 }
