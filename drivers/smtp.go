@@ -15,13 +15,13 @@ package drivers
 
 import (
 	"bytes"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"github.com/ainsleyclark/go-mail/mail"
 	"mime/multipart"
 	"net/http"
 	"net/smtp"
-	"strconv"
 	"strings"
 )
 
@@ -68,8 +68,47 @@ func (m *smtpClient) Send(t *mail.Transmission) (mail.Response, error) {
 		return mail.Response{}, err
 	}
 
+	servername := fmt.Sprintf("%s:%d", m.cfg.URL, m.cfg.Port)
+
+	// TLS config for sending SMTP mail.
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         m.cfg.URL,
+	}
+
+	// Here is the key, you need to call tls.Dial instead of smtp.Dial
+	// for smtp servers running on 465 that require a ssl connection
+	// from the very beginning (no starttls)
+	conn, err := tls.Dial("tcp", m.cfg.URL, tlsConfig)
+	if err != nil {
+		return mail.Response{}, err
+	}
+
+	mailer, err := smtp.NewClient(conn, m.cfg.URL)
+	if err != nil {
+		return mail.Response{}, err
+	}
+
+	// Authenticate the SMTP client.
 	auth := smtp.PlainAuth("", m.cfg.FromAddress, m.cfg.Password, m.cfg.URL)
-	err = m.send(m.cfg.URL+":"+strconv.Itoa(m.cfg.Port), auth, m.cfg.FromAddress, m.getTo(t), m.bytes(t))
+
+	// Auth
+	err = mailer.Auth(auth)
+	if err != nil {
+		return mail.Response{}, err
+	}
+
+	// To && From
+	err = mailer.Mail(fr)
+	if err != nil {
+		return mail.Response{}, err
+	}
+
+	if err = mailer.Rcpt(to.Address) err != nil {
+		return mail.Response{}, err
+	}
+
+	err = m.send(servername, auth, m.cfg.FromAddress, m.getTo(t), m.bytes(t))
 	if err != nil {
 		return mail.Response{}, err
 	}
