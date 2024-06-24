@@ -15,14 +15,15 @@ package mail
 
 import (
 	"fmt"
-	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/joho/godotenv"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/flightaware/go-mail/mail"
+	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
 )
 
 const (

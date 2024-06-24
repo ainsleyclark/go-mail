@@ -5,7 +5,7 @@ package mocks
 import (
 	http "net/http"
 
-	httputil "github.com/ainsleyclark/go-mail/internal/httputil"
+	httputil "github.com/flightaware/go-mail/internal/httputil"
 	mock "github.com/stretchr/testify/mock"
 )
 

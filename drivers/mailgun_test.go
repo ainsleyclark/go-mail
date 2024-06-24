@@ -15,10 +15,11 @@ package drivers
 
 import (
 	"errors"
-	mocks "github.com/ainsleyclark/go-mail/internal/mocks/client"
-	"github.com/ainsleyclark/go-mail/mail"
 	"log"
 	"net/http"
+
+	mocks "github.com/flightaware/go-mail/internal/mocks/client"
+	"github.com/flightaware/go-mail/mail"
 )
 
 func ExampleNewMailgun() {

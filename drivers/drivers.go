@@ -13,7 +13,7 @@
 
 package drivers
 
-import "github.com/ainsleyclark/go-mail/internal/httputil"
+import "github.com/flightaware/go-mail/internal/httputil"
 
 var (
 	// newJSONData is an alias for httputil.NewJSONData

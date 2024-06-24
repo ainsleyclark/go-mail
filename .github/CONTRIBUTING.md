@@ -24,5 +24,5 @@ covering this problem or requesting this feature.
     - Please provide a convincing reason why you think this feature needs to be added.
 - If you add a bug fix:
     - Please refer the corresponding issue, if one exists, in your PR.
-    - If no issue exist for the bug you fix you need to provide a detailed description of the error and if possible a live demo. Or create a new issue on our [Github page](https://github.com/ainsleyclark/go-mail/issues)
+    - If no issue exist for the bug you fix you need to provide a detailed description of the error and if possible a live demo. Or create a new issue on our [Github page](https://github.com/flightaware/go-mail/issues)
 - Create unit tests for new features and use the `make all` command to test, lint and format.

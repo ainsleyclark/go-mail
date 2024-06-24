@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	mail "github.com/ainsleyclark/go-mail/mail"
+	mail "github.com/flightaware/go-mail/mail"
 	mock "github.com/stretchr/testify/mock"
 )
 

@@ -1,4 +1,4 @@
-module github.com/ainsleyclark/go-mail
+module github.com/flightaware/go-mail
 
 go 1.18
 

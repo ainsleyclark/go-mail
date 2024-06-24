@@ -17,7 +17,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/mail"
+
+	"github.com/flightaware/go-mail/mail"
 )
 
 // Application error codes.

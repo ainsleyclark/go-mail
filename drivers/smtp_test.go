@@ -16,8 +16,9 @@ package drivers
 import (
 	"errors"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/mail"
 	"net/smtp"
+
+	"github.com/flightaware/go-mail/mail"
 )
 
 func (t *DriversTestSuite) TestNewSMTP() {

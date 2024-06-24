@@ -15,9 +15,10 @@ package mail
 
 import (
 	"fmt"
-	"github.com/ainsleyclark/go-mail/drivers"
-	"github.com/ainsleyclark/go-mail/mail"
 	"log"
+
+	"github.com/flightaware/go-mail/drivers"
+	"github.com/flightaware/go-mail/mail"
 )
 
 // SMTP example for Go Mail

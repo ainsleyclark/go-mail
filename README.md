@@ -2,10 +2,10 @@
 <img height="300" src="res/logos/go-mail.svg?size=new2" alt="Go Mail Logo" />
 
 [![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ainsleyclark/go-mail)](https://goreportcard.com/report/github.com/ainsleyclark/go-mail)
-[![Test](https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ainsleyclark/go-mail/actions/workflows/test.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/flightaware/go-mail)](https://goreportcard.com/report/github.com/flightaware/go-mail)
+[![Test](https://github.com/flightaware/go-mail/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/flightaware/go-mail/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/ainsleyclark/go-mail/branch/main/graph/badge.svg?token=1ZI9R34CHQ)](https://codecov.io/gh/ainsleyclark/go-mail)
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/ainsleyclark/go-mail)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/flightaware/go-mail)
 [![Twitter Handle](https://img.shields.io/twitter/follow/ainsleydev)](https://twitter.com/ainsleydev)
 </div>
 
@@ -70,12 +70,12 @@ fmt.Printf("%+v\n", result)
 ## Installation
 
 ```bash
-go get -u github.com/ainsleyclark/go-mail
+go get -u github.com/flightaware/go-mail
 ```
 
 ## Docs
 
-Documentation can be found at the [Go Docs](https://pkg.go.dev/github.com/ainsleyclark/go-mail), but we have included a
+Documentation can be found at the [Go Docs](https://pkg.go.dev/github.com/flightaware/go-mail), but we have included a
 kick-start guide below to get you started.
 
 ### Creating a new client:

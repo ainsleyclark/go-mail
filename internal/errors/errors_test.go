@@ -2,9 +2,10 @@ package errors
 
 import (
 	"fmt"
-	"github.com/ainsleyclark/go-mail/mail"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/flightaware/go-mail/mail"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestError_Error(t *testing.T) {

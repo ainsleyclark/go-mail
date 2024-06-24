@@ -17,9 +17,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/internal/errors"
 	"io"
 	"mime/multipart"
+
+	"github.com/flightaware/go-mail/internal/errors"
 )
 
 // Payload defines the methods used for creating  HTTP payload

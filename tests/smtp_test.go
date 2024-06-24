@@ -14,11 +14,12 @@
 package mail
 
 import (
-	"github.com/ainsleyclark/go-mail/drivers"
-	"github.com/ainsleyclark/go-mail/mail"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/flightaware/go-mail/drivers"
+	"github.com/flightaware/go-mail/mail"
 )
 
 func Test_SMTP(t *testing.T) {

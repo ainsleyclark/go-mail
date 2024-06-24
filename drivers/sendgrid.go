@@ -17,10 +17,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/internal/client"
-	"github.com/ainsleyclark/go-mail/internal/httputil"
-	"github.com/ainsleyclark/go-mail/mail"
 	"net/http"
+
+	"github.com/flightaware/go-mail/internal/client"
+	"github.com/flightaware/go-mail/internal/httputil"
+	"github.com/flightaware/go-mail/mail"
 )
 
 // sendGrid represents the entity for sending mail via the

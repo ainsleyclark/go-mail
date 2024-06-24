@@ -13,10 +13,11 @@ package mail
 
 import (
 	"fmt"
-	"github.com/ainsleyclark/go-mail/drivers"
-	"github.com/ainsleyclark/go-mail/mail"
 	"io/ioutil"
 	"log"
+
+	"github.com/flightaware/go-mail/drivers"
+	"github.com/flightaware/go-mail/mail"
 )
 
 // Attachments example for Go Mail

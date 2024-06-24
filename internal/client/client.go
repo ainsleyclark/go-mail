@@ -16,13 +16,14 @@ package client
 import (
 	"context"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/internal/errors"
-	"github.com/ainsleyclark/go-mail/internal/httputil"
-	"github.com/ainsleyclark/go-mail/mail"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/flightaware/go-mail/internal/errors"
+	"github.com/flightaware/go-mail/internal/httputil"
+	"github.com/flightaware/go-mail/mail"
 )
 
 // Requester defines the method used for interacting with
