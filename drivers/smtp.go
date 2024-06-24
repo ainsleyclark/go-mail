@@ -17,12 +17,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/ainsleyclark/go-mail/mail"
 	"mime/multipart"
 	"net/http"
 	"net/smtp"
 	"strconv"
 	"strings"
+
+	"github.com/ainsleyclark/go-mail/mail"
 )
 
 // smtpClient represents the data for sending mail via
@@ -49,9 +50,6 @@ func NewSMTP(cfg mail.Config) (mail.Mailer, error) {
 	}
 	if cfg.FromName == "" {
 		return nil, errors.New("driver requires from name")
-	}
-	if cfg.Password == "" {
-		return nil, errors.New("driver requires a password")
 	}
 	return &smtpClient{
 		cfg:  cfg,
